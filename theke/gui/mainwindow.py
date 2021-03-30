@@ -11,9 +11,9 @@ w:hover {
 }
 """
 
-class ThekeWindow(Gtk.Window):
-    def __init__(self):
-        Gtk.Window.__init__(self, title="Theke")
+class ThekeWindow(Gtk.ApplicationWindow):
+    def __init__(self, *args, **kwargs):
+        Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         self.set_default_size(800, 600)
 
         self.scrolled_window = Gtk.ScrolledWindow()
@@ -27,10 +27,13 @@ class ThekeWindow(Gtk.Window):
             None, None)
         self.contentManager.add_style_sheet(self.styleSheet)
 
-        self.webview.load_html("", "foo:///")
+        self.webview.load_html("", "theke:///")
 
         self.scrolled_window.add(self.webview)
         self.add(self.scrolled_window)
 
     def load_html(self, html):
-        self.webview.load_html(html, "foo:///")
+        '''Load a html page in the webview.
+        @param html: html code to display
+        '''
+        self.webview.load_html(html, "theke:///")
