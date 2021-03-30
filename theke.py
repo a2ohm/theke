@@ -2,6 +2,8 @@
 # -*- coding:utf-8 -*-
 
 import Sword
+import theke.gui.mainwindow
+
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -10,9 +12,8 @@ gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk, WebKit2
 
 # Main windows
-window = Gtk.Window()
-window.set_default_size(800, 600)
-window.connect("destroy", Gtk.main_quit)
+TW = theke.gui.mainwindow.ThekeWindow()
+TW.connect("destroy", Gtk.main_quit)
 
 # Load some text
 key = "John 1:1"
@@ -48,14 +49,6 @@ html = "<h1>{mod_name}</h1><p>{mod_description}</p><p>{text}</p>".format(
     text = verse)
 
 # Display the html page
-scrolled_window = Gtk.ScrolledWindow()
-webview = WebKit2.WebView()
-webview.load_html(html)
-scrolled_window.add(webview)
-
-window.add(scrolled_window)
-window.show_all()
+TW.load_html(html)
+TW.show_all()
 Gtk.main()
-
-
-
