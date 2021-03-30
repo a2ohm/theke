@@ -6,6 +6,9 @@ gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk, WebKit2
 
 css = """
+sup {
+    color: #f00;
+}
 w:hover {
     background-color: #FCFABA;
 }
@@ -16,7 +19,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         self.set_default_size(800, 600)
 
+        self._theke_window_main = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
+
         self.scrolled_window = Gtk.ScrolledWindow()
+        self.statusbar = Gtk.Statusbar()
+
         self.webview = WebKit2.WebView()
         self.contentManager = self.webview.get_user_content_manager()
 
@@ -30,7 +37,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview.load_html("", "theke:///")
 
         self.scrolled_window.add(self.webview)
-        self.add(self.scrolled_window)
+        self._theke_window_main.pack_start(self.scrolled_window, True, True, 0)
+        self._theke_window_main.pack_start(self.statusbar, False, True, 0)
+        self.add(self._theke_window_main)
 
     def load_html(self, html):
         '''Load a html page in the webview.

@@ -25,14 +25,20 @@ class ThekeApp(Gtk.Application):
         self.window.show_all()
 
         # Load some default text
-        html = self.get_sword_text("John 1:1", "MorphGNT")
+        key = "John 1:1"
+        moduleName = "MorphGNT"
+        html = self.get_sword_text(key, moduleName)
         self.window.load_html(html)
+
+        # Shwo something in the status bar
+        context_id = self.window.statusbar.get_context_id("main")
+        self.window.statusbar.push(context_id, "{} − {}".format(moduleName, key))
 
         
 
     def get_sword_text(self, key, moduleName):
         """Get some text from sword and return it as a html string.
-        
+
         @param key: Bible key (eg. John 1:1)
         @param moduleName: a valid Sword module name (eg.MorphGNT)
         @return: text in a html string
@@ -54,11 +60,13 @@ class ThekeApp(Gtk.Application):
 
         mod.setKey(vk)
 
-        verse = str(mod.renderText())
+        verse = "<sup>{}</sup>".format(vk.getVerse())
+        verse += str(mod.renderText())
         vk.increment()
 
         while vk.getChapter() == 1:
-            verse += " " + str(mod.renderText())
+            verse += " <sup>{}</sup>".format(vk.getVerse())
+            verse += str(mod.renderText())
             vk.increment()
 
         # Format the html page
