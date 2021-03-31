@@ -17,7 +17,7 @@ class ThekeURI:
 
         if m:
             if len(m.groups()) == 4:
-                # Parse parameters (m.group(4))
+                # Parse parameters in a dict (m.group(4))
                 params = {}
                 for p in m.group(4).split('&'):
                     name, value = p.split('=')
@@ -35,8 +35,12 @@ class ThekeURI:
     def get_coded_URI(self):
         return self.URIprefix + quote(self.path) + '?' + '&'.join([name + '=' + quote(value) for name, value in self.params.items()])
 
+    def __repr__(self):
+        return self.get_decoded_URI()
+
 
 if __name__ == "__main__":
     uri = ThekeURI("theke:///bible/John 1:1?source=MorphGNT")
+    print(uri)
     print(uri.get_decoded_URI())
     print(uri.get_coded_URI())
