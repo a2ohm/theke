@@ -5,6 +5,9 @@ gi.require_version('WebKit2', '4.0')
 
 from gi.repository import Gtk, WebKit2
 
+import theke.uri
+import theke.loaders
+
 css = """
 sup {
     color: #f00;
@@ -27,6 +30,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview = WebKit2.WebView()
         self.contentManager = self.webview.get_user_content_manager()
 
+        self.webview.connect("decide-policy", self.decidePolicy)
+
         # Add css
         self.styleSheet = WebKit2.UserStyleSheet(css,
             WebKit2.UserContentInjectedFrames.ALL_FRAMES,
@@ -34,15 +39,34 @@ class ThekeWindow(Gtk.ApplicationWindow):
             None, None)
         self.contentManager.add_style_sheet(self.styleSheet)
 
-        self.webview.load_html("", "theke:///")
-
         self.scrolled_window.add(self.webview)
         self._theke_window_main.pack_start(self.scrolled_window, True, True, 0)
         self._theke_window_main.pack_start(self.statusbar, False, True, 0)
         self.add(self._theke_window_main)
 
-    def load_html(self, html):
-        '''Load a html page in the webview.
-        @param html: html code to display
+    def load_uri(self, uri):
+        self.webview.load_uri(uri.get_coded_URI())
+
+    def decidePolicy(self, web_view, decision, decision_type):
+        '''Handler of the decodePolicy signal.
         '''
-        self.webview.load_html(html, "theke:///")
+        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+            print(decision.get_request().get_uri())
+            try:
+                uri = theke.uri.ThekeURI(decision.get_request().get_uri(), isRaw = True)
+            except ValueError:
+                return False
+
+            #print(uri)
+
+            if uri.prefix == "theke:///":
+                html = theke.loaders.load_asset(uri)
+                self.webview.load_html(html, uri.prefix)
+                return True
+
+            if uri.prefix == "sword:///":
+                html = theke.loaders.load_sword(uri)
+                self.webview.load_html(html, uri.prefix)
+                return True
+
+        return False
