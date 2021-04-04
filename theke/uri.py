@@ -16,7 +16,7 @@ class ThekeURI:
         m = reURI.match(URI)
 
         if m:
-            if len(m.groups()) == 4:
+            if m.group(3) is not None:
                 # Parse parameters in a dict (m.group(4))
                 params = {}
                 for p in m.group(4).split('&'):
@@ -30,17 +30,26 @@ class ThekeURI:
             raise ValueError("Invalid ThekeURI")
 
     def get_decoded_URI(self):
-        return self.URIprefix + self.path + '?' + '&'.join([name + '=' + value for name, value in self.params.items()])
+        if len(self.params) > 0:
+            return self.URIprefix + self.path + '?' + '&'.join([name + '=' + value for name, value in self.params.items()])
+        else:
+            return self.URIprefix + self.path
 
     def get_coded_URI(self):
-        return self.URIprefix + quote(self.path) + '?' + '&'.join([name + '=' + quote(value) for name, value in self.params.items()])
+        if len(self.params) > 0:
+            return self.URIprefix + quote(self.path) + '?' + '&'.join([name + '=' + quote(value) for name, value in self.params.items()])
+        else:
+            return self.URIprefix + quote(self.path)
 
     def __repr__(self):
         return self.get_decoded_URI()
 
 
 if __name__ == "__main__":
-    uri = ThekeURI("theke:///bible/John 1:1?source=MorphGNT")
-    print(uri)
-    print(uri.get_decoded_URI())
-    print(uri.get_coded_URI())
+    uri1 = ThekeURI("theke:///bible/John 1:1?source=MorphGNT")
+    print(uri1.get_decoded_URI())
+    print(uri1.get_coded_URI())
+
+    uri2 = ThekeURI("theke:///welcome.html")
+    print(uri2.get_decoded_URI())
+    print(uri2.get_coded_URI())
