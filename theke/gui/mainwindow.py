@@ -1,3 +1,4 @@
+import os
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -17,6 +18,9 @@ w:hover {
 }
 """
 
+# Configurations
+assets_path = "file://" + os.path.abspath(os.getcwd()) + "/assets/"
+
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
@@ -28,6 +32,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.scrolled_window = Gtk.ScrolledWindow()
         self.statusbar = Gtk.Statusbar()
 
+        # TODO: Move all of this in an external widget class.
         self.gotobar = Gtk.SearchEntry()
         self.gotobar.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "go-next")
         self.gotobar.connect("activate", self.handleGoto)
@@ -50,6 +55,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._theke_window_main.pack_start(self.statusbar, False, True, 0)
         self.add(self._theke_window_main)
 
+        # Set the focus on the webview
+        self.webview.grab_focus()
+
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
 
@@ -57,17 +65,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''Handler of the decodePolicy signal.
         '''
         if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
-            print(decision.get_request().get_uri())
+            #print(decision.get_request().get_uri())
             try:
                 uri = theke.uri.ThekeURI(decision.get_request().get_uri(), isRaw = True)
             except ValueError:
                 return False
 
-            #print(uri)
-
             if uri.prefix == "theke:///":
-                html = theke.loaders.load_asset(uri)
-                self.webview.load_html(html, uri.prefix)
+                self.webview.load_uri(assets_path + uri.path)
                 return True
 
             if uri.prefix == "sword:///":
