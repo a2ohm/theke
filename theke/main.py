@@ -40,7 +40,7 @@ class ThekeApp(Gtk.Application):
         """Get some text from sword and return it as a html string.
 
         @param key: Bible key (eg. John 1:1)
-        @param moduleName: a valid Sword module name (eg.MorphGNT)
+        @param moduleName: a valid Sword module name (eg. MorphGNT)
         @return: text in a html string
         """
         
