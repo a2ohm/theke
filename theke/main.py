@@ -27,7 +27,3 @@ class ThekeApp(Gtk.Application):
         # Load some default text
         uri = theke.uri.ThekeURI("theke:///welcome.html")
         self.window.load_uri(uri)
-
-        # Show something in the status bar
-        context_id = self.window.statusbar.get_context_id("main")
-        self.window.statusbar.push(context_id, "{}".format(uri))

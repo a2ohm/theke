@@ -78,14 +78,22 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 uri = theke.uri.ThekeURI(decision.get_request().get_uri(), isRaw = True)
             except ValueError:
                 return False
+            
+            context_id = self.statusbar.get_context_id("navigation")
 
             if uri.prefix == "theke:///":
                 self.webview.load_uri(assets_path + '/'.join(uri.path))
+                self.statusbar.push(context_id, "{}".format(uri.path[-1]))
                 return True
+
+            if uri.prefix == "file:///":
+                self.statusbar.push(context_id, "{}".format(uri.path[-1]))
+                return False
 
             if uri.prefix == "sword:///":
                 html = theke.loaders.load_sword(uri)
                 self.webview.load_html(html, uri.prefix)
+                self.statusbar.push(context_id, "{} > {}".format(uri.path[0], uri.path[1]))
                 return True
 
         return False
