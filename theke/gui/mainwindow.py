@@ -37,6 +37,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "go-next")
         self.gotobar.connect("activate", self.handleGoto)
 
+        self.gotocompletion = Gtk.EntryCompletion()
+        self.gotocompletionlist = Gtk.ListStore(str)
+        for i in ['Matthew', 'Mark', 'Luke', 'John']:
+            self.gotocompletionlist.append((i,))
+        self.gotocompletion.set_model(self.gotocompletionlist)
+        self.gotocompletion.set_text_column(0)
+        self.gotobar.set_completion(self.gotocompletion)
+
         self.webview = WebKit2.WebView()
         self.webview.connect("decide-policy", self.decidePolicy)
 
