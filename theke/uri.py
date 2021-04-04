@@ -27,24 +27,24 @@ class ThekeURI:
                 for p in m.group(4).split('&'):
                     name, value = p.split('=')
                     params[name] = value
-                return m.group(1), m.group(2), params
+                return m.group(1), m.group(2).split('/'), params
 
             else:
-                return m.group(1), m.group(2), {}
+                return m.group(1), m.group(2).split('/'), {}
         else:
             raise ValueError("Invalid ThekeURI")
 
     def get_decoded_URI(self):
         if len(self.params) > 0:
-            return self.prefix + self.path + '?' + '&'.join([name + '=' + value for name, value in self.params.items()])
+            return self.prefix + '/'.join(self.path) + '?' + '&'.join([name + '=' + value for name, value in self.params.items()])
         else:
-            return self.prefix + self.path
+            return self.prefix + '/'.join(self.path)
 
     def get_coded_URI(self):
         if len(self.params) > 0:
-            return self.prefix + quote(self.path) + '?' + '&'.join([name + '=' + quote(value) for name, value in self.params.items()])
+            return self.prefix + quote('/'.join(self.path)) + '?' + '&'.join([name + '=' + quote(value) for name, value in self.params.items()])
         else:
-            return self.prefix + quote(self.path)
+            return self.prefix + quote('/'.join(self.path))
 
     def __repr__(self):
         return self.get_decoded_URI()
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     print(uri1.get_decoded_URI())
     print(uri1.get_coded_URI())
 
-    uri2 = ThekeURI("theke:///welcome.html")
+    uri2 = ThekeURI("theke:///pomme/poire/abricot/welcome.html")
     print(uri2.get_decoded_URI())
     print(uri2.get_coded_URI())
 

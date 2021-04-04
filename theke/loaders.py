@@ -27,7 +27,7 @@ def load_sword(uri):
     '''
 
     # key: Bible key extracted from the uri (eg. John 1:1)
-    key = uri.path.split('/')[1]
+    key = uri.path[1]
     # moduleName: a valid Sword module name (eg. MorphGNT)
     moduleName = uri.params.get('source', sword_default_module)
     

@@ -80,7 +80,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 return False
 
             if uri.prefix == "theke:///":
-                self.webview.load_uri(assets_path + uri.path)
+                self.webview.load_uri(assets_path + '/'.join(uri.path))
                 return True
 
             if uri.prefix == "sword:///":
