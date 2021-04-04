@@ -5,3 +5,6 @@ __pycache__/
 
 # Visual Studio Code
 .vscode/
+
+# My doc
+doc/specifications
