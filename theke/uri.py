@@ -8,7 +8,7 @@ class ThekeURI:
         else:
             self.prefix, self.path, self.params = self.parse_URI(URI)
 
-        validPrefix = ['theke:///', 'sword:///']
+        validPrefix = ['theke:///', 'sword:///', 'file:///']
 
         if self.prefix not in validPrefix:
             raise ValueError("Unsupported ThekeURI ({})".format(self.prefix))
@@ -32,7 +32,7 @@ class ThekeURI:
             else:
                 return m.group(1), m.group(2).split('/'), {}
         else:
-            raise ValueError("Invalid ThekeURI")
+            raise ValueError("Invalid ThekeURI ({})".format(URI))
 
     def get_decoded_URI(self):
         if len(self.params) > 0:
