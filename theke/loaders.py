@@ -46,12 +46,13 @@ def load_sword(uri):
     vk.setPersist(True)
 
     mod.setKey(vk)
+    chapter = vk.getChapter()
 
     verse = "<sup>{}</sup>".format(vk.getVerse())
     verse += str(mod.renderText())
     vk.increment()
 
-    while vk.getChapter() == 1:
+    while vk.getChapter() == chapter:
         verse += " <sup>{}</sup>".format(vk.getVerse())
         verse += str(mod.renderText())
         vk.increment()
