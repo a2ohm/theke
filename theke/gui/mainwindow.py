@@ -4,7 +4,10 @@ import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('WebKit2', '4.0')
 
-from gi.repository import Gtk, WebKit2
+from gi.repository import Gtk
+from gi.repository import Gio
+from gi.repository import GLib
+from gi.repository import WebKit2
 
 import theke.uri
 import theke.loaders
@@ -46,7 +49,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.set_completion(self.gotocompletion)
 
         self.webview = WebKit2.WebView()
-        self.webview.connect("decide-policy", self.decidePolicy)
+        self.webview.connect("load_changed", self.handle_load_changed)
+
+        # Add sword:// and theke:// context
+        self.context = self.webview.get_context()
+        self.context.register_uri_scheme('theke', self.handle_theke_uri, None)
+        self.context.register_uri_scheme('sword', self.handle_sword_uri, None)
 
         # Add css
         self.contentManager = self.webview.get_user_content_manager()
@@ -69,34 +77,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
 
-    def decidePolicy(self, web_view, decision, decision_type):
-        '''Handler of the decodePolicy signal.
-        '''
-        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
-            #print(decision.get_request().get_uri())
-            try:
-                uri = theke.uri.ThekeURI(decision.get_request().get_uri(), isRaw = True)
-            except ValueError:
-                return False
-            
-            context_id = self.statusbar.get_context_id("navigation")
+    def handle_theke_uri(self, request, *user_data):
+        uri = theke.uri.ThekeURI(request.get_uri(), isRaw = True)
+        f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path))
+        request.finish(f.read(), -1, None)
 
-            if uri.prefix == "theke:///":
-                self.webview.load_uri(assets_path + '/'.join(uri.path))
-                self.statusbar.push(context_id, "{}".format(uri.path[-1]))
-                return True
+    def handle_sword_uri(self, request, *user_data):
+        uri = theke.uri.ThekeURI(request.get_uri(), isRaw = True)
+        html = theke.loaders.load_sword(uri)
+        html_bytes = GLib.Bytes.new(html.encode('utf-8'))
+        tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
 
-            if uri.prefix == "file:///":
-                self.statusbar.push(context_id, "{}".format(uri.path[-1]))
-                return False
-
-            if uri.prefix == "sword:///":
-                html = theke.loaders.load_sword(uri)
-                self.webview.load_html(html, uri.prefix)
-                self.statusbar.push(context_id, "{} > {}".format(uri.path[0], uri.path[1]))
-                return True
-
-        return False
+        request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def handleGoto(self, entry):
         '''@param entry: the object which received the signal.
@@ -106,3 +98,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         key = entry.get_text()
         uri = theke.uri.ThekeURI("sword:///bible/{}".format(key))
         self.load_uri(uri)
+
+    def handle_load_changed(self, web_view, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            # Update the status bar with the title of the just loaded page
+            context_id = self.statusbar.get_context_id("navigation")
+            self.statusbar.push(context_id, "{}".format(web_view.get_title()))
