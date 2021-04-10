@@ -12,6 +12,8 @@ from gi.repository import WebKit2
 import theke.uri
 import theke.loaders
 
+from theke.gui.widget_ThekeWebView import ThekeWebView
+
 css = """
 sup {
     color: #f00;
@@ -48,13 +50,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotocompletion.set_text_column(0)
         self.gotobar.set_completion(self.gotocompletion)
 
-        self.webview = WebKit2.WebView()
+        # self.webview = WebKit2.WebView()
+        self.webview = ThekeWebView()
         self.webview.connect("load_changed", self.handle_load_changed)
-
-        # Add sword:// and theke:// context
-        self.context = self.webview.get_context()
-        self.context.register_uri_scheme('theke', self.handle_theke_uri, None)
-        self.context.register_uri_scheme('sword', self.handle_sword_uri, None)
 
         # Add css
         self.contentManager = self.webview.get_user_content_manager()
@@ -76,19 +74,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
-
-    def handle_theke_uri(self, request, *user_data):
-        uri = theke.uri.ThekeURI(request.get_uri(), isRaw = True)
-        f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path))
-        request.finish(f.read(), -1, None)
-
-    def handle_sword_uri(self, request, *user_data):
-        uri = theke.uri.ThekeURI(request.get_uri(), isRaw = True)
-        html = theke.loaders.load_sword(uri)
-        html_bytes = GLib.Bytes.new(html.encode('utf-8'))
-        tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
-
-        request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def handleGoto(self, entry):
         '''@param entry: the object which received the signal.
