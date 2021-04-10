@@ -1,16 +1,12 @@
-import os
 import gi
 
 gi.require_version('Gtk', '3.0')
 gi.require_version('WebKit2', '4.0')
 
 from gi.repository import Gtk
-from gi.repository import Gio
-from gi.repository import GLib
 from gi.repository import WebKit2
 
 import theke.uri
-import theke.loaders
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
 
@@ -22,9 +18,6 @@ w:hover {
     background-color: #FCFABA;
 }
 """
-
-# Configurations
-assets_path = "file://" + os.path.abspath(os.getcwd()) + "/assets/"
 
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
