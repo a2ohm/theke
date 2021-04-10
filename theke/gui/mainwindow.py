@@ -9,6 +9,7 @@ from gi.repository import WebKit2
 import theke.uri
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
+from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 
 css = """
 sup {
@@ -31,19 +32,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.statusbar = Gtk.Statusbar()
 
         # TODO: Move all of this in an external widget class.
-        self.gotobar = Gtk.SearchEntry()
-        self.gotobar.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "go-next")
-        self.gotobar.connect("activate", self.handleGoto)
+        self.gotobar = ThekeGotoBar()
+        self.gotobar.connect("activate", self.handle_goto)
 
-        self.gotocompletion = Gtk.EntryCompletion()
-        self.gotocompletionlist = Gtk.ListStore(str)
-        for i in ['Matthew', 'Mark', 'Luke', 'John']:
-            self.gotocompletionlist.append((i,))
-        self.gotocompletion.set_model(self.gotocompletionlist)
-        self.gotocompletion.set_text_column(0)
-        self.gotobar.set_completion(self.gotocompletion)
-
-        # self.webview = WebKit2.WebView()
         self.webview = ThekeWebView()
         self.webview.connect("load_changed", self.handle_load_changed)
 
@@ -68,7 +59,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
 
-    def handleGoto(self, entry):
+    def handle_goto(self, entry):
         '''@param entry: the object which received the signal.
         '''
 
