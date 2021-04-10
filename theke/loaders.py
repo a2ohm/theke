@@ -15,7 +15,7 @@ def load_asset(uri):
 
         @param uri: uri of the asset (eg. theke:///welcome.html)
         '''
-        with open(assets_path + uri.path) as f:
+        with open(assets_path + '/'.join(uri.path)) as f:
             html = f.read()
 
         return html
