@@ -37,6 +37,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         self.webview = ThekeWebView()
         self.webview.connect("load_changed", self.handle_load_changed)
+        self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
         # Add css
         self.contentManager = self.webview.get_user_content_manager()
@@ -73,3 +74,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the status bar with the title of the just loaded page
             context_id = self.statusbar.get_context_id("navigation")
             self.statusbar.push(context_id, "{}".format(web_view.get_title()))
+
+    def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
+        if hit_test_result.context_is_link():
+            context_id = self.statusbar.get_context_id("navigation-next")
+            self.statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
+        else:
+            context_id = self.statusbar.get_context_id("navigation-next")
+            self.statusbar.pop(context_id)
