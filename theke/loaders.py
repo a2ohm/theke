@@ -7,6 +7,22 @@ assets_path = './assets/'
 # ... for sword
 sword_default_module = "MorphGNT"
 
+# Templates
+bible_template = '''<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="theke:///default.css" type="text/css">
+        <link rel="stylesheet" href="theke:///bible.css" type="text/css">
+
+        <title>{title}</title>
+    </head>
+    <body>
+        <h1>{mod_name}</h1>
+        <p>{mod_description}</p>
+        <p>{text}</p>
+    </body>
+</html>
+'''
 
 
 def load_asset(uri):
@@ -58,7 +74,8 @@ def load_sword(uri):
         vk.increment()
 
     # Format the html page
-    return "<h1>{mod_name}</h1><p>{mod_description}</p><p>{text}</p>".format(
+    return bible_template.format(
+        title = key,
         mod_name = mod.getName(),
         mod_description = mod.getDescription(),
         text = verse)

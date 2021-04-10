@@ -11,15 +11,6 @@ import theke.uri
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 
-css = """
-sup {
-    color: #f00;
-}
-w:hover {
-    background-color: #FCFABA;
-}
-"""
-
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, *args, **kwargs):
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
@@ -38,14 +29,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview = ThekeWebView()
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
-
-        # Add css
-        self.contentManager = self.webview.get_user_content_manager()
-        self.styleSheet = WebKit2.UserStyleSheet(css,
-            WebKit2.UserContentInjectedFrames.ALL_FRAMES,
-            WebKit2.UserStyleLevel.USER,
-            None, None)
-        self.contentManager.add_style_sheet(self.styleSheet)
 
         self.navigationbar.add(self.gotobar)
         self.scrolled_window.add(self.webview)
