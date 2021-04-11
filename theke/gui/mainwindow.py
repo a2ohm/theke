@@ -61,6 +61,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():
             context_id = self.statusbar.get_context_id("navigation-next")
+            self.statusbar.pop(context_id)
             self.statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
         else:
             context_id = self.statusbar.get_context_id("navigation-next")
