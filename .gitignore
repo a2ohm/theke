@@ -8,3 +8,6 @@ __pycache__/
 
 # My doc
 doc/specifications
+
+# Assets build from a template
+assets/welcome.html
