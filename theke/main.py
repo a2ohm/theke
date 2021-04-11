@@ -6,7 +6,7 @@ from gi.repository import Gtk
 
 import theke.sword
 import theke.uri
-import theke.assetsManager
+import theke.templates
 import theke.gui.mainwindow
 
 class ThekeApp(Gtk.Application):
@@ -33,7 +33,7 @@ class ThekeApp(Gtk.Application):
         modules = [{'name': modName, 'type': mod.getType(), 'description': mod.getDescription()}
             for modName, mod in self.SwordLibrary.getModules(theke.sword.MODTYPE_BIBLES).items()]
         
-        theke.assetsManager.build_template('welcome', {'BibleMods': modules})
+        theke.templates.build_template('welcome', {'BibleMods': modules})
 
         # Load the main screen
         uri = theke.uri.ThekeURI("theke:///welcome.html")
