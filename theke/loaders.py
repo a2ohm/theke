@@ -1,9 +1,6 @@
 import Sword
 
 # Config
-# ... for assets
-assets_path = './assets/'
-
 # ... for sword
 sword_default_module = "MorphGNT"
 
@@ -23,18 +20,6 @@ bible_template = '''<html>
     </body>
 </html>
 '''
-
-
-def load_asset(uri):
-        '''Load an asset (html page stored in the assets directory) given its uri
-        and return it as a html string.
-
-        @param uri: uri of the asset (eg. theke:///welcome.html)
-        '''
-        with open(assets_path + '/'.join(uri.path)) as f:
-            html = f.read()
-
-        return html
 
 def load_sword(uri):
     '''Load an sword document given its uri and return it as a html string.
