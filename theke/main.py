@@ -4,6 +4,8 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gio
 from gi.repository import Gtk
 
+import Sword
+
 import theke.sword
 import theke.uri
 import theke.templates
@@ -27,13 +29,33 @@ class ThekeApp(Gtk.Application):
             self.window = theke.gui.mainwindow.ThekeWindow(application=self, title="Theke")
 
         self.window.show_all()
-        self.load_main_screen()
 
-    def load_main_screen(self):
-        modules = [{'name': modName, 'type': mod.getType(), 'description': mod.getDescription()}
-            for modName, mod in self.SwordLibrary.getModules(theke.sword.MODTYPE_BIBLES).items()]
-        
-        theke.templates.build_template('welcome', {'BibleMods': modules})
+        # Parse Sword modules
+        bible_mods = []
+
+        for mod_name, mod in self.SwordLibrary.get_modules():
+            if mod.getType() == theke.sword.MODTYPE_BIBLES:
+                bible_mods.append({'name': mod_name, 'type': mod.getType(), 'description': mod.getDescription()})
+                
+                # Register books present in this Bible source into the GotoBar
+                # TODO: Y a-t-il une façon plus propre de faire la même chose ?
+                vk = Sword.VerseKey()
+                
+                for itestament in [1, 2]:
+                    vk.setTestament(itestament)
+                    for ibook in range(1, vk.getBookMax() +1):
+                        vk.setBook(ibook)
+                        if mod.hasEntry(vk):
+                            self.window.gotobar.autoCompletionlist.append((vk.getBookName(), mod.getName()))
+
+            elif mod.getType() == theke.sword.MODTYPE_GENBOOKS:
+                # Only works for gen books
+                #tkey = Sword.TreeKey_castTo(mod.getKey())
+                pass
+                
+
+        # Build templates
+        theke.templates.build_template('welcome', {'BibleMods': bible_mods})
 
         # Load the main screen
         uri = theke.uri.ThekeURI("theke:///welcome.html")

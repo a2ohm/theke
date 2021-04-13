@@ -15,9 +15,7 @@ class ThekeGotoBar(Gtk.SearchEntry):
 
         # Set the autocompletion
         self.autoCompletion = Gtk.EntryCompletion()
-        self.autoCompletionlist = Gtk.ListStore(str)
-        for i in ['Matthew', 'Mark', 'Luke', 'John']:
-            self.autoCompletionlist.append((i,))
+        self.autoCompletionlist = Gtk.ListStore(str, str)
         self.autoCompletion.set_model(self.autoCompletionlist)
         self.autoCompletion.set_text_column(0)
 
