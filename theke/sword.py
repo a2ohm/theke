@@ -6,3 +6,6 @@ MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 class SwordLibrary():
     def __init__(self):
         self.library = Sword.SWMgr()
+
+    def get_modules(self):
+        return self.library.getModules().items()
