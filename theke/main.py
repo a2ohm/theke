@@ -46,13 +46,17 @@ class ThekeApp(Gtk.Application):
                     for ibook in range(1, vk.getBookMax() +1):
                         vk.setBook(ibook)
                         if mod.hasEntry(vk):
-                            self.window.gotobar.autoCompletionlist.append((vk.getBookName(), mod.getName()))
+                            self.window.gotobar.autoCompletionlist.append((vk.getBookName(), mod.getName(), 'powder blue'))
 
             elif mod.getType() == theke.sword.MODTYPE_GENBOOKS:
                 # Only works for gen books
                 #tkey = Sword.TreeKey_castTo(mod.getKey())
-                pass
-                
+                pass     
+
+        # Register application screens in the GotoBar
+        screens = [('Bienvenue', 'welcome'), ('À propos', 'about')]
+        for s in screens:
+            self.window.gotobar.autoCompletionlist.append((s[0], 'Theke', 'sandy brown'))
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})

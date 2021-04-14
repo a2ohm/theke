@@ -15,8 +15,13 @@ class ThekeGotoBar(Gtk.SearchEntry):
 
         # Set the autocompletion
         self.autoCompletion = Gtk.EntryCompletion()
-        self.autoCompletionlist = Gtk.ListStore(str, str)
+        self.autoCompletionlist = Gtk.ListStore(str, str, str)
         self.autoCompletion.set_model(self.autoCompletionlist)
         self.autoCompletion.set_text_column(0)
+
+        renderer = Gtk.CellRendererText()
+        self.autoCompletion.pack_start (renderer, True)
+        self.autoCompletion.add_attribute(renderer, 'text', 1)
+        self.autoCompletion.add_attribute(renderer, 'background', 2)
 
         self.set_completion(self.autoCompletion)
