@@ -7,6 +7,7 @@ from gi.repository import Gtk
 from gi.repository import WebKit2
 
 import theke.uri
+import theke.reference
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
@@ -22,9 +23,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.scrolled_window = Gtk.ScrolledWindow()
         self.statusbar = Gtk.Statusbar()
 
-        # TODO: Move all of this in an external widget class.
         self.gotobar = ThekeGotoBar()
         self.gotobar.connect("activate", self.handle_goto)
+        self.gotobar.autoCompletion.connect("match-selected", self.handle_match_selected)
 
         self.webview = ThekeWebView()
         self.webview.connect("load_changed", self.handle_load_changed)
@@ -40,6 +41,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # Set the focus on the webview
         self.webview.grab_focus()
 
+        # State variables
+        self.selectedSource = ''
+
+
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
 
@@ -48,15 +53,20 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''
 
         #TOFIX. Suppose that the content of the gotobar is a valid Sword Key
-        key = entry.get_text()
-        uri = theke.uri.ThekeURI("sword:///bible/{}".format(key))
-        self.load_uri(uri)
+        ref = theke.reference.reference(entry.get_text(), source = self.selectedSource)
+        self.load_uri(ref.get_uri())
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
             context_id = self.statusbar.get_context_id("navigation")
             self.statusbar.push(context_id, "{}".format(web_view.get_title()))
+
+    def handle_match_selected(self, entry_completion, model, iter):
+        # TODO: give name to column (and dont use a numerical value)
+        self.selectedSource = model.get_value(iter, 1)
+        return False
+
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():
