@@ -10,26 +10,57 @@ inAppURI = {
     'À propos': 'about.html'
 }
 
+def build(scheme, path, params = {}, fragment=''):
+    return ThekeURI(scheme, path, params, fragment)
+
 def parse(uri, isEncoded = True):
+    '''Parse an uri and return a ThekeURI instance.
+
+    Valids uri are (for example):
+        sword:/bible/John 1:1?source=MorphGNT
+        theke:/welcome.html
+    '''
+
+    # Parse the uri
+    #  /!\ ignore netlock and parameters for last path element
     scheme, _, path, _, query, fragment = urllib.parse.urlparse(uri)
 
-    if scheme not in validSchemes:
-        raise ValueError("Unsupported ThekeURI ({})".format(scheme))
-
+    # Params are queries parsed into a dict
+    #   source=MorphGNT&foo=bar --> {'source': 'MorphGNT', 'foo': 'bar'}
     params = {}
     for q in query.split('&'):
         if len(q) > 0:
             name, value = q.split('=')
             params[name] = urllib.parse.unquote(value) if isEncoded else value
     
+    # Store everything uncoded
     if isEncoded:
         path = urllib.parse.unquote(path)
         fragment = urllib.parse.unquote(fragment)
 
-    return ThekeURI(scheme, path.split('/'), params, fragment)
+    # /!\ If the path begins with a '/', the first element of path is an empty string
+    #   /bible/John 1:1 --> ['', 'bible', 'John 1:1']
+    path = path.split('/')
 
-def build(scheme, path, params = {}, fragment=''):
     return ThekeURI(scheme, path, params, fragment)
+
+def unparse_params(params, quote = True):
+    '''Unparse a params list into a string.
+        {'source': 'MorphGNT', 'foo': 'bar'} --> 'source=MorphGNT&foo=bar'
+    '''
+    if quote:
+        return '&'.join([name + '=' + urllib.parse.quote(value) for name, value in params.items()])
+    else:
+        return '&'.join([name + '=' + value for name, value in params.items()])
+
+def unparse_path(path, quote = False):
+    '''Unparse a path list into a string.
+        ['', 'bible', 'John 1:1'] --> '/bible/John 1:1'
+    '''
+    if quote:
+        return '/'.join(urllib.parse.quote(p) for p in path)
+    else:
+        return '/'.join(path)
 
 class ThekeURI:
     def __init__(self, scheme, path, params, fragment, isEncoded = True):
@@ -41,31 +72,19 @@ class ThekeURI:
         if self.scheme not in validSchemes:
             raise ValueError("Unsupported ThekeURI ({})".format(self.scheme))
 
-    def unparse_params(self, params, quote = True):
-        if quote:
-            return '&'.join([name + '=' + urllib.parse.quote(value) for name, value in params.items()])
-        else:
-            return '&'.join([name + '=' + value for name, value in params.items()])
-
-    def unparse_path(self, path, quote = False):
-        if quote:
-            return '/'.join(urllib.parse.quote(p) for p in path)
-        else:
-            return '/'.join(path)
-
     def get_decoded_URI(self):
         return urllib.parse.urlunparse(
             (self.scheme, '',
-            self.unparse_path(self.path, quote=True), '',
-            self.unparse_params(self.params, quote=True),
+            unparse_path(self.path, quote=True), '',
+            unparse_params(self.params, quote=True),
             urllib.parse.unquote(self.fragment))
         )
 
     def get_coded_URI(self):
         return urllib.parse.urlunparse(
             (self.scheme, '',
-            self.unparse_path(self.path, quote=False), '',
-            self.unparse_params(self.params, quote=False),
+            unparse_path(self.path, quote=False), '',
+            unparse_params(self.params, quote=False),
             self.fragment)
         )
 
