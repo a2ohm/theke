@@ -61,7 +61,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''
 
         #TOFIX. Suppose that the content of the gotobar is a valid Sword Key
-        ref = theke.reference.reference(entry.get_text(), source = self.selectedSource)
+        ref = theke.reference.reference(entry.get_text().strip(), source = self.selectedSource)
         self.load_uri(ref.get_uri())
 
     def handle_load_changed(self, web_view, load_event):

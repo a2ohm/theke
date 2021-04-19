@@ -20,11 +20,10 @@ class reference():
         self.tags = kwargs.get('tags', [])
 
     def get_uri(self):
-        # TODO: Ce serait mieux de pouvoir utiliser ThekeURI pour construire proprement une URI
-        #       plutot que de la construire ici et de la décomposer dans ThekeURI.
-
         if self.source is None:
-            return theke.uri.parse('sword:/bible/{}'.format(self.reference), isEncoded=False)
+            return theke.uri.build('sword', ['', 'bible', self.reference])
+        elif self.source == 'Theke':
+            return theke.uri.build('theke', ['', theke.uri.inAppURI[self.reference]])
         else:
-            return theke.uri.parse('sword:/bible/{}?source={}'.format(self.reference, self.source), isEncoded=False)
+            return theke.uri.build('sword', ['', 'bible', self.reference], {'source': self.source})
 

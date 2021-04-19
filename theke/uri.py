@@ -3,8 +3,12 @@ import urllib.parse
 
 from urllib.parse import unquote, quote
 
-
 validSchemes = ['theke', 'sword']
+
+inAppURI = {
+    'Bienvenue': 'welcome.html',
+    'À propos': 'about.html'
+}
 
 def parse(uri, isEncoded = True):
     scheme, _, path, _, query, fragment = urllib.parse.urlparse(uri)
