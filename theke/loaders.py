@@ -24,11 +24,11 @@ bible_template = '''<html>
 def load_sword(uri):
     '''Load an sword document given its uri and return it as a html string.
 
-    @param uri: uri of the sword document (eg. sword:///bible/John 1:1?source=MorphGNT)
+    @param uri: uri of the sword document (eg. sword:/bible/John 1:1?source=MorphGNT)
     '''
 
     # key: Bible key extracted from the uri (eg. John 1:1)
-    key = uri.path[1]
+    key = uri.path[2]
     # moduleName: a valid Sword module name (eg. MorphGNT)
     moduleName = uri.params.get('source', sword_default_module)
     

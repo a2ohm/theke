@@ -24,7 +24,7 @@ class reference():
         #       plutot que de la construire ici et de la décomposer dans ThekeURI.
 
         if self.source is None:
-            return theke.uri.ThekeURI('sword:///bible/{}'.format(self.reference))
+            return theke.uri.parse('sword:/bible/{}'.format(self.reference), isEncoded=False)
         else:
-            return theke.uri.ThekeURI('sword:///bible/{}?source={}'.format(self.reference, self.source))
+            return theke.uri.parse('sword:/bible/{}?source={}'.format(self.reference, self.source), isEncoded=False)
 
