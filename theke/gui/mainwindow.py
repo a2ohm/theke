@@ -38,6 +38,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._theke_window_main.pack_start(self.statusbar, False, True, 0)
         self.add(self._theke_window_main)
 
+        # Add accelerators (keyboard shortcuts) ...
+        self.accelerators = Gtk.AccelGroup()
+        self.add_accel_group(self.accelerators)
+
+        # ... Ctrl+l: give focus to the gotobar
+        key, mod = Gtk.accelerator_parse('<Control>l')
+        self.gotobar.add_accelerator('grab-focus', self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
         # Set the focus on the webview
         self.webview.grab_focus()
 
