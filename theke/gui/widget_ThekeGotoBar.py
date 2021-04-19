@@ -9,6 +9,8 @@ class ThekeGotoBar(Gtk.SearchEntry):
     def __init__(self, *args, **kwargs):
         Gtk.SearchEntry.__init__(self, *args, **kwargs)
 
+        self.set_placeholder_text('Ouvrir ...')
+
         # Set the icon
         #   go-next: right arrow
         self.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "go-next")
