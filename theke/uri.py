@@ -24,7 +24,7 @@ def parse(uri, isEncoded = True):
 
     return ThekeURI(scheme, path.split('/'), params, fragment)
 
-def build(scheme, path, params, fragment):
+def build(scheme, path, params = {}, fragment=''):
     return ThekeURI(scheme, path, params, fragment)
 
 class ThekeURI:
