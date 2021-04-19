@@ -64,8 +64,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
+        # Update the text in the GotoBar
+        self.gotobar.set_text("{} ".format(model.get_value(iter, 0)))
+
+        # Save in a hidden variable the selected source.
         self.selectedSource = model.get_value(iter, 1)
-        return False
+
+        # Move the cursor to the end
+        self.gotobar.set_position(-1)
+        return True
 
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
