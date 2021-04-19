@@ -55,6 +55,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def load_uri(self, uri):
         self.webview.load_uri(uri.get_coded_URI())
+        self.webview.grab_focus()
 
     def handle_goto(self, entry):
         '''@param entry: the object which received the signal.
