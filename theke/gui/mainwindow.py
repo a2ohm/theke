@@ -6,7 +6,6 @@ gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk
 from gi.repository import WebKit2
 
-import theke.uri
 import theke.reference
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
