@@ -43,7 +43,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             button.connect('clicked', self.on_button_clicked)
             button.show_all()
 
-            self.pack_start(button, True, True, 0)
+            self.pack_start(button, False, False, 0)
 
             
 

@@ -20,7 +20,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._theke_window_main = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
 
         self.navigationbar = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
+        self.navigationbar.set_homogeneous(False)
+
         self.scrolled_window = Gtk.ScrolledWindow()
+        
         self.statusbar = Gtk.Statusbar()
 
         self.gotobar = ThekeGotoBar()
@@ -33,8 +36,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        self.navigationbar.add(self.gotobar)
-        self.navigationbar.add(self.historybar)
+        self.navigationbar.pack_end(self.gotobar, False, False, 1)
+        self.navigationbar.pack_end(self.historybar, True, True, 1)
         self.scrolled_window.add(self.webview)
         self._theke_window_main.pack_start(self.navigationbar, False, True, 0)
         self._theke_window_main.pack_start(self.scrolled_window, True, True, 0)
