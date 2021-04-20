@@ -8,8 +8,8 @@ sword_default_module = "MorphGNT"
 bible_template = '''<html>
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" href="theke:///default.css" type="text/css">
-        <link rel="stylesheet" href="theke:///bible.css" type="text/css">
+        <link rel="stylesheet" href="theke:/default.css" type="text/css">
+        <link rel="stylesheet" href="theke:/bible.css" type="text/css">
 
         <title>{title}</title>
     </head>
@@ -49,13 +49,11 @@ def load_sword(uri):
     mod.setKey(vk)
     chapter = vk.getChapter()
 
-    verse = "<sup>{}</sup>".format(vk.getVerse())
-    verse += str(mod.renderText())
+    verse = "<sup>{}</sup>{}".format(vk.getVerse(), mod.renderText())
     vk.increment()
 
     while vk.getChapter() == chapter:
-        verse += " <sup>{}</sup>".format(vk.getVerse())
-        verse += str(mod.renderText())
+        verse += " <sup>{}</sup>{}".format(vk.getVerse(), mod.renderText())
         vk.increment()
 
     # Format the html page
