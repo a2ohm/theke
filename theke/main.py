@@ -62,4 +62,4 @@ class ThekeApp(Gtk.Application):
 
         # Load the main screen
         uri = theke.uri.parse("theke:/welcome.html", isEncoded=True)
-        self.window.load_uri(uri)
+        self.window.load_uri(uri.get_encoded_URI())

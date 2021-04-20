@@ -80,7 +80,7 @@ class ThekeURI:
             urllib.parse.unquote(self.fragment))
         )
 
-    def get_coded_URI(self):
+    def get_encoded_URI(self):
         return urllib.parse.urlunparse(
             (self.scheme, '',
             unparse_path(self.path, quote=False), '',
@@ -95,12 +95,12 @@ class ThekeURI:
 if __name__ == "__main__":
     uri1 = parse("sword:bible/John 1:1?source=MorphGNT")
     print(uri1.get_decoded_URI())
-    print(uri1.get_coded_URI())
+    print(uri1.get_encoded_URI())
 
     uri2 = parse("theke:pomme/poire/abricot/welcome.html")
     print(uri2.get_decoded_URI())
-    print(uri2.get_coded_URI())
+    print(uri2.get_encoded_URI())
 
     uri3 = parse("sword:bible/John%201%3A1?source=MorphGNT", isEncoded=True)
     print(uri3.get_decoded_URI())
-    print(uri3.get_coded_URI())
+    print(uri3.get_encoded_URI())
