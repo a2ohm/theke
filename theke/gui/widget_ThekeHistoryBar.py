@@ -12,6 +12,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
     def __init__(self, thekeWindow, *args, **kwargs):
         Gtk.Box.__init__(self, orientation = Gtk.Orientation.HORIZONTAL, *args, **kwargs)
         self.set_layout(Gtk.ButtonBoxStyle.EXPAND)
+        self.set_homogeneous(False)
 
         self.thekeWindow = thekeWindow
         self.history = deque()
