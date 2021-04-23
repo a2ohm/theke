@@ -22,6 +22,27 @@ bible_template = '''<html>
 </html>
 '''
 
+book_template = '''<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="theke:/default.css" type="text/css">
+        <link rel="stylesheet" href="theke:/book.css" type="text/css">
+
+        <title>{title}</title>
+    </head>
+    <body>
+        <h1>{mod_name}</h1>
+        <p>{mod_description}</p>
+        {text}
+    </body>
+</html>
+'''
+
+def format_sword_syntax(text, depth):
+    '''Format rendered text from sword into a theke comprehensible syntax
+    '''
+    return text.replace("title", "h{}".format(depth+2))
+
 def load_sword(uri):
     '''Load an sword document given its uri and return it as a html string.
 
@@ -41,25 +62,29 @@ def load_sword_book(uri):
     mod = mgr.getModule(moduleName)
     tk = Sword.TreeKey_castTo(mod.getKey())
 
-    # load all the book
-    def getBookText(tk):
+    def getBookText(tk, depth = 0):
+        '''Recurrently, dives into a book and returns all of its content.
+
+        @param tk: a Sword.TreeKey
+        @param depth: level of the reccurence
+        '''
         text = ""
         if tk.firstChild():
-            #print(tk.getText())
-            text += str(mod.renderText())
-
-            while tk.nextSibling():
-                #print(tk.getText())
-                text += str(mod.renderText())
+            while True:
+                text += format_sword_syntax(str(mod.renderText()), depth)
                 if tk.hasChildren():
-                    text += str(getBookText(tk))
+                    text += getBookText(tk, depth + 1)
+
+                if not tk.nextSibling():
+                    break
 
             tk.parent()
         
         return text
 
     text = getBookText(tk)
-    return bible_template.format(
+
+    return book_template.format(
         title = mod.getName(),
         mod_name = mod.getName(),
         mod_description = mod.getDescription(),
