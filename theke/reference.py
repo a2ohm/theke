@@ -21,9 +21,9 @@ class reference():
 
     def get_uri(self):
         if self.source is None:
-            return theke.uri.build('sword', ['', 'bible', self.reference])
+            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference])
         elif self.source == 'Theke':
             return theke.uri.build('theke', ['', theke.uri.inAppURI[self.reference]])
         else:
-            return theke.uri.build('sword', ['', 'bible', self.reference], {'source': self.source})
+            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference], {'source': self.source})
 

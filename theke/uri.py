@@ -10,6 +10,9 @@ inAppURI = {
     'À propos': 'about.html'
 }
 
+SWORD_BIBLE = 'bible'
+SWORD_BOOK = 'book'
+
 def build(scheme, path, params = {}, fragment=''):
     return ThekeURI(scheme, path, params, fragment)
 
