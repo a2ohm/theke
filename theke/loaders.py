@@ -1,4 +1,5 @@
 import Sword
+import theke.uri
 
 # Config
 # ... for sword
@@ -27,6 +28,44 @@ def load_sword(uri):
     @param uri: uri of the sword document (eg. sword:/bible/John 1:1?source=MorphGNT)
     '''
 
+    if uri.path[1] == theke.uri.SWORD_BIBLE:
+        return load_sword_bible(uri)
+    elif uri.path[1] == theke.uri.SWORD_BOOK:
+        return load_sword_book(uri)
+
+def load_sword_book(uri):
+    # moduleName: a valid Sword module name (eg. MorphGNT)
+    moduleName = uri.path[2]
+
+    mgr = Sword.SWMgr()
+    mod = mgr.getModule(moduleName)
+    tk = Sword.TreeKey_castTo(mod.getKey())
+
+    # load all the book
+    def getBookText(tk):
+        text = ""
+        if tk.firstChild():
+            #print(tk.getText())
+            text += str(mod.renderText())
+
+            while tk.nextSibling():
+                #print(tk.getText())
+                text += str(mod.renderText())
+                if tk.hasChildren():
+                    text += str(getBookText(tk))
+
+            tk.parent()
+        
+        return text
+
+    text = getBookText(tk)
+    return bible_template.format(
+        title = mod.getName(),
+        mod_name = mod.getName(),
+        mod_description = mod.getDescription(),
+        text = text)
+
+def load_sword_bible(uri):
     # key: Bible key extracted from the uri (eg. John 1:1)
     key = uri.path[2]
     # moduleName: a valid Sword module name (eg. MorphGNT)
