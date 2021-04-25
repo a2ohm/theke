@@ -1,5 +1,6 @@
 import Sword
 import theke.uri
+import theke.sword
 
 # Config
 # ... for sword
@@ -55,39 +56,35 @@ def load_sword(uri):
         return load_sword_book(uri)
 
 def load_sword_book(uri):
-    # moduleName: a valid Sword module name (eg. MorphGNT)
-    moduleName = uri.path[2]
+    """Load a sword book.
 
-    mgr = Sword.SWMgr()
-    mod = mgr.getModule(moduleName)
-    tk = Sword.TreeKey_castTo(mod.getKey())
-
-    def getBookText(tk, depth = 0):
-        '''Recurrently, dives into a book and returns all of its content.
-
-        @param tk: a Sword.TreeKey
-        @param depth: level of the reccurence
-        '''
-        text = ""
-        if tk.firstChild():
-            while True:
-                text += format_sword_syntax(str(mod.renderText()), depth)
-                if tk.hasChildren():
-                    text += getBookText(tk, depth + 1)
-
-                if not tk.nextSibling():
-                    break
-
-            tk.parent()
+    @param uri: a theke.uri matching "sword:/book/moduleName/parID"
+        moduleName (mandatory): a valid sword book name (eg. VeritatisSplendor)
+        parID: a paragraph id matching any osisID of the the sword book.
+    """
+    if len(uri.path) == 3:
+        moduleName = uri.path[2]
+        parID = 'Couverture'
         
-        return text
+        mod = theke.sword.SwordBook(moduleName)
+        isParagraphFound, text = mod.get_paragraph(parID)
+    elif len(uri.path) > 3:
+        moduleName = uri.path[2]
+        parID = uri.path[3]
 
-    text = getBookText(tk)
+        mod = theke.sword.SwordBook(moduleName)
+        isParagraphFound, text = mod.get_paragraph_and_siblings(parID)
+    else:
+        raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
+
+    if not isParagraphFound:
+        text = """<p>Ce texte n'a pas été trouvé.</p>
+        <p>uri : {}</p>""".format(uri.get_decoded_URI())
 
     return book_template.format(
-        title = mod.getName(),
-        mod_name = mod.getName(),
-        mod_description = mod.getDescription(),
+        title = mod.get_name(),
+        mod_name = mod.get_name(),
+        mod_description = mod.get_description(),
         text = text)
 
 def load_sword_bible(uri):
