@@ -39,10 +39,10 @@ book_template = '''<html>
 </html>
 '''
 
-def format_sword_syntax(text, depth):
+def format_sword_syntax(text):
     '''Format rendered text from sword into a theke comprehensible syntax
     '''
-    return text.replace("title", "h{}".format(depth+2))
+    return text.replace("title", "h2")
 
 def load_sword(uri):
     '''Load an sword document given its uri and return it as a html string.
@@ -77,7 +77,9 @@ def load_sword_book(uri):
     else:
         raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
 
-    if not isParagraphFound:
+    if isParagraphFound:
+        text = format_sword_syntax(text)
+    else:
         text = """<p>Ce texte n'a pas été trouvé.</p>
         <p>uri : {}</p>""".format(uri.get_decoded_URI())
 
