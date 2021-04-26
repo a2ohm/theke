@@ -9,12 +9,12 @@ from gi.repository import Pango
 MAX_NUMBER_OF_BUTTONS = 6
 
 class ThekeHistoryBar(Gtk.ButtonBox):
-    def __init__(self, thekeWindow, *args, **kwargs):
+    def __init__(self, navigator, *args, **kwargs):
         Gtk.Box.__init__(self, orientation = Gtk.Orientation.HORIZONTAL, *args, **kwargs)
         self.set_layout(Gtk.ButtonBoxStyle.EXPAND)
         self.set_homogeneous(False)
 
-        self.thekeWindow = thekeWindow
+        self.navigator = navigator
         self.history = deque()
 
     def add_uri_to_history(self, label, uri):
@@ -43,9 +43,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             button.connect('clicked', self.on_button_clicked)
             button.show_all()
 
-            self.pack_start(button, False, False, 0)
-
-            
+            self.pack_start(button, False, False, 0)         
 
     def on_button_clicked(self, button):
-        self.thekeWindow.load_uri(button.uri)
+        self.navigator.goto_uri(button.uri)

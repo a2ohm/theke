@@ -1,13 +1,14 @@
 import re
 import urllib.parse
-
-from urllib.parse import unquote, quote
+from collections import namedtuple
 
 validSchemes = ['theke', 'sword']
 
+inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
+
 inAppURI = {
-    'Bienvenue': 'welcome.html',
-    'À propos': 'about.html'
+    'welcome': inAppUriData('Bienvenue !', 'Bienvenue', 'welcome.html'),
+    'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
 }
 
 SWORD_BIBLE = 'bible'
@@ -21,7 +22,8 @@ def parse(uri, isEncoded = True):
 
     Valids uri are (for example):
         sword:/bible/John 1:1?source=MorphGNT
-        theke:/welcome.html
+        theke:welcome
+        theke:/default.css
     '''
 
     # Parse the uri
@@ -93,6 +95,12 @@ class ThekeURI:
 
     def __repr__(self):
         return self.get_decoded_URI()
+
+    def __eq__(self, other):
+        if isinstance(other, ThekeURI):
+            if other.get_encoded_URI() == self.get_encoded_URI():
+                return True
+        return False
 
 
 if __name__ == "__main__":

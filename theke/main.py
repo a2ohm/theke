@@ -9,6 +9,7 @@ import Sword
 import theke.sword
 import theke.uri
 import theke.templates
+import theke.navigator
 import theke.gui.mainwindow
 
 class ThekeApp(Gtk.Application):
@@ -18,6 +19,7 @@ class ThekeApp(Gtk.Application):
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
 
         self.window = None
+        self.navigator = theke.navigator.ThekeNavigator()
 
     def do_startup(self):
         Gtk.Application.do_startup(self)
@@ -26,7 +28,7 @@ class ThekeApp(Gtk.Application):
 
     def do_activate(self):
         if not self.window:
-            self.window = theke.gui.mainwindow.ThekeWindow(application=self, title="Theke")
+            self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator, application=self, title="Theke")
 
         self.window.show_all()
 
@@ -54,12 +56,12 @@ class ThekeApp(Gtk.Application):
                 pass     
 
         # Register application screens in the GotoBar
-        for name, _ in theke.uri.inAppURI.items():
-            self.window.gotobar.autoCompletionlist.append((name, 'Theke', 'sandy brown'))
+        for _, inAppUriData in theke.uri.inAppURI.items():
+            self.window.gotobar.autoCompletionlist.append((inAppUriData[2], 'Theke', 'sandy brown'))
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})
 
         # Load the main screen
-        uri = theke.uri.parse("theke:/welcome.html", isEncoded=True)
-        self.window.load_uri(uri.get_encoded_URI())
+        uri = theke.uri.parse("theke:welcome", isEncoded=True)
+        self.navigator.goto_uri(uri)
