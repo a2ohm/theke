@@ -4,6 +4,7 @@ from collections import deque
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import Pango
 
 MAX_NUMBER_OF_BUTTONS = 6
@@ -16,6 +17,16 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
         self.navigator = navigator
         self.history = deque()
+
+        self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+
+        # Menu appearing right clicking on a button
+        self.button_right_click_menu = Gtk.Menu()
+        self.menu_copy_uri_to_clipboard = Gtk.MenuItem("Copier l'uri")
+        self.menu_copy_uri_to_clipboard.connect('activate', self.handle_menu_copy_uri_to_clipboard)
+
+        self.button_right_click_menu.append(self.menu_copy_uri_to_clipboard)
+        self.menu_copy_uri_to_clipboard.show()
 
     def add_uri_to_history(self, label, uri):
         try:
@@ -40,10 +51,24 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             button.set_tooltip_text(str(uri))
             button.uri = uri
 
-            button.connect('clicked', self.on_button_clicked)
+            button.connect('button-release-event', self.on_button_clicked)
             button.show_all()
 
             self.pack_start(button, False, False, 0)         
 
-    def on_button_clicked(self, button):
-        self.navigator.goto_uri(button.uri)
+    def on_button_clicked(self, button, event):
+        if event.type == Gdk.EventType.BUTTON_RELEASE:
+            if event.button == 1: # Left click
+                self.navigator.goto_uri(button.uri)
+                return True
+            elif event.button == 3: # Right click
+                self.button_right_click_menu.popup_at_widget(button, Gdk.Gravity.SOUTH_WEST, Gdk.Gravity.NORTH_WEST, None)
+                self.menu_copy_uri_to_clipboard.uri = button.uri
+                return True
+            else:
+                return False
+        return False
+
+    def handle_menu_copy_uri_to_clipboard(self, menu_item):
+        self.clipboard.set_text(menu_item.uri.get_encoded_URI(), -1)
+
