@@ -27,3 +27,9 @@ class reference():
         else:
             return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference], {'source': self.source})
 
+    def get_repr(self):
+        return self.reference
+
+    def get_short_repr(self):
+        return self.reference
+
