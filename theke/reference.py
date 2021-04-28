@@ -1,6 +1,18 @@
 import theke.uri
 import re
 
+def get_reference_from_uri(uri, defaultSource = None):
+    '''Return a reference according to an uri.
+        sword:/bible/John 1:1 --> biblical reference to Jn 1,1
+    '''
+    if uri.scheme != 'sword':
+        raise ValueError('Unsupported scheme: {}.'.format(uri.scheme))
+
+    if uri.path[1] != 'bible':
+        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))
+
+    return BiblicalReference(uri.path[2], source = uri.params.get('source', defaultSource))
+
 def get_standard_reference(rawReference):
     '''Try to standadize a reference.
     If it is biblical reference, return it in a valid OSIS format.
