@@ -9,6 +9,10 @@ from gi.repository import Pango
 
 MAX_NUMBER_OF_BUTTONS = 6
 
+import theke.uri
+
+home_uri = theke.uri.parse('theke:welcome', isEncoded=True)
+
 class ThekeHistoryBar(Gtk.ButtonBox):
     def __init__(self, navigator, *args, **kwargs):
         Gtk.Box.__init__(self, orientation = Gtk.Orientation.HORIZONTAL, *args, **kwargs)
@@ -28,7 +32,24 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         self.button_right_click_menu.append(self.menu_copy_uri_to_clipboard)
         self.menu_copy_uri_to_clipboard.show()
 
+        # Add the home button at the beginning
+        home_icon = Gtk.Image()
+        home_icon.set_from_stock(Gtk.STOCK_HOME, Gtk.IconSize.BUTTON)
+        button = Gtk.Button(image = home_icon, use_underline=False)
+
+        button.set_tooltip_text(theke.uri.inAppURI['welcome'].shortTitle)
+        button.uri = home_uri
+
+        button.connect('clicked', self.on_home_button_clicked)
+        button.show_all()
+
+        self.pack_start(button, False, False, 0)
+
     def add_uri_to_history(self, label, uri):
+        if uri == home_uri:
+            # The home uri is not added to the history as it is alway here.
+            return
+
         try:
             historyIndex = self.history.index((label, uri))
 
@@ -38,13 +59,13 @@ class ThekeHistoryBar(Gtk.ButtonBox):
                 # Rotate to.
                 del self.history[historyIndex]
                 self.history.append((label, uri))
-                self.reorder_child(self.get_children()[historyIndex], -1)
+                self.reorder_child(self.get_children()[historyIndex+1], -1)
 
         except ValueError:
             # This uri does not exist in the history
             if len(self.history) >= MAX_NUMBER_OF_BUTTONS:
                 self.history.popleft()
-                self.remove(self.get_children()[0])
+                self.remove(self.get_children()[1])
 
             self.history.append((label, uri))
             button = Gtk.Button(label=label, use_underline=False)
@@ -68,6 +89,10 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             else:
                 return False
         return False
+
+    def on_home_button_clicked(self, button):
+        self.navigator.goto_uri(button.uri)
+        return True
 
     def handle_menu_copy_uri_to_clipboard(self, menu_item):
         self.clipboard.set_text(menu_item.uri.get_encoded_URI(), -1)
