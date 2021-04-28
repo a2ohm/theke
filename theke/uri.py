@@ -79,16 +79,16 @@ class ThekeURI:
     def get_decoded_URI(self):
         return urllib.parse.urlunparse(
             (self.scheme, '',
-            unparse_path(self.path, quote=True), '',
-            unparse_params(self.params, quote=True),
+            unparse_path(self.path, quote=False), '',
+            unparse_params(self.params, quote=False),
             urllib.parse.unquote(self.fragment))
         )
 
     def get_encoded_URI(self):
         return urllib.parse.urlunparse(
             (self.scheme, '',
-            unparse_path(self.path, quote=False), '',
-            unparse_params(self.params, quote=False),
+            unparse_path(self.path, quote=True), '',
+            unparse_params(self.params, quote=True),
             self.fragment)
         )
 
