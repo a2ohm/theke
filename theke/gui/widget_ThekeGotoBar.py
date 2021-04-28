@@ -1,7 +1,6 @@
 import gi
 
 gi.require_version('Gtk', '3.0')
-gi.require_version('WebKit2', '4.0')
 
 from gi.repository import Gtk
 
@@ -9,7 +8,7 @@ class ThekeGotoBar(Gtk.SearchEntry):
     def __init__(self, *args, **kwargs):
         Gtk.SearchEntry.__init__(self, *args, **kwargs)
 
-        self.set_placeholder_text('Ouvrir ...')
+        self.set_placeholder_text('Ouvrir un document')
 
         # Set the icon
         #   go-next: right arrow
