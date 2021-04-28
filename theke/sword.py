@@ -5,33 +5,31 @@ MODTYPE_BIBLES = Sword.SWMgr().MODTYPE_BIBLES
 MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
-library = Sword.SWMgr(Sword.MarkupFilterMgr(Sword.FMT_HTML))
-#library = Sword.SWMgr()
 
 class SwordLibrary():
-    def __init__(self):
-        # self.markup = Sword.MarkupFilterMgr(Sword.FMT_OSIS)
-        # self.library = Sword.SWMgr(self.markup)
-        #self.library = Sword.SWMgr(Sword.MarkupFilterMgr(Sword.FMT_OSIS))
-        pass
+    def __init__(self, markup = Sword.FMT_HTML):
+        self.markup = Sword.MarkupFilterMgr(markup)
+        self.markup.thisown = False
+
+        self.mgr = Sword.SWMgr(self.markup)
 
     def get_modules(self):
-        #return self.library.getModules().items()
-        return library.getModules().items()
+        return self.mgr.getModules().items()
 
     def get_module(self, moduleName):
-        #return self.library.getModule(moduleName)
-        return library.getModule(moduleName)
+        return self.mgr.getModule(moduleName)
 
     def get_book_module(self, moduleName):
         return Sword.SWGenBook_castTo(self.get_module(moduleName))
 
-class SwordBook():
+class SwordModule():
     def __init__(self, moduleName):
         self.moduleName = moduleName
         self.library = SwordLibrary()
-        self.mod = self.library.get_book_module(moduleName)
-        self.key = Sword.TreeKey_castTo(self.mod.getKey())
+        self.mod = self.library.get_module(moduleName)
+
+        if not self.mod:
+            raise ValueError("Unknown module: {}.".format(moduleName))
 
     def get_name(self):
         return self.mod.getName()
@@ -39,17 +37,73 @@ class SwordBook():
     def get_description(self):
         return self.mod.getDescription()
 
+class SwordBible(SwordModule):
+    def __init__(self, moduleName):
+        super().__init__(moduleName)
+
+        self.key = Sword.VerseKey_castTo(self.mod.getKey())
+        self.key.setPersist(True)
+        self.key.setVersificationSystem(self.mod.getConfigEntry("Versification"))
+
+        self.library.mgr.setGlobalOption("Strong's Numbers", "Off")
+        self.library.mgr.setGlobalOption("Cross-references", "Off")
+        self.library.mgr.setGlobalOption("Lemmas", "Off")
+        self.library.mgr.setGlobalOption("Morphological Tags", "On")
+        self.library.mgr.setGlobalOption("Hebrew Vowel Points", "On")
+
+    def get_verse(self, bookName, chapter, verse):
+        """
+        @param bookName: (string)
+        @param chapter: (int)
+        @param verse: (int)
+        """
+        self.key.setBookName(bookName)
+        self.key.setChapter(chapter)
+        self.key.setVerse(verse)
+        
+        self.mod.setKey(self.key)
+        
+        return self.mod.renderText()
+
+    def get_chapter(self, bookName, chapter):
+        """
+        @param bookName: (string)
+        @param chapter: (int)
+        """
+        self.key.setBookName(bookName)
+        self.key.setChapter(chapter)
+        self.key.setVerse(1)
+        
+        self.mod.setKey(self.key)
+
+        verse = ""
+
+        while True:
+            verse += "<sup>{}</sup>{}".format(self.key.getVerse(), self.mod.renderText())
+            self.key.increment()
+
+            if self.key.getChapter() != chapter:
+                break
+
+        return verse
+
+class SwordBook(SwordModule):
+    def __init__(self, moduleName):
+        super().__init__(moduleName)
+
+        self.key = Sword.TreeKey_castTo(self.mod.getKey())
+
     def get_paragraph(self, parID):
         isParagraphFound, text = self.do_get_paragraph(self.key, parID)
         self.do_reset_key(self.key)
 
-        return (isParagraphFound, text)
+        return text if isParagraphFound else None
 
     def get_paragraph_and_siblings(self, parID):
         isParagraphFound, text = self.do_get_paragraph(self.key, parID, doGetSiblings=True)
         self.do_reset_key(self.key)
 
-        return (isParagraphFound, text)
+        return text if isParagraphFound else None
 
     def do_get_paragraph(self, tk, parID, doGetSiblings = False):
         '''Return paragraph given its ID

@@ -1,4 +1,5 @@
 import theke.uri
+import re
 
 def get_standard_reference(rawReference):
     '''Try to standadize a reference.
@@ -9,7 +10,22 @@ def get_standard_reference(rawReference):
     '''
     return rawReference
 
-class reference():
+def parse_biblical_reference(reference):
+    pattern_br_EN = re.compile(r'^(\w+) (\d+)(:(\d+))?$')
+    match_br_EN = pattern_br_EN.match(reference)
+
+    if match_br_EN is not None:
+        if match_br_EN.group(4) is None:
+            # Chapter reference: "bookName chapter"
+            return match_br_EN.group(1), int(match_br_EN.group(2)), None
+        else:
+            # Verse reference: "bookName chapter:verse"
+            return match_br_EN.group(1), int(match_br_EN.group(2)), int(match_br_EN.group(4))
+
+    # This is not a biblical reference
+    return None
+
+class Reference():
     '''Reference of any document readable by Theke.
     (application screen, Sword reference)
     '''
@@ -33,3 +49,7 @@ class reference():
     def get_short_repr(self):
         return self.reference
 
+class BiblicalReference(Reference):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)

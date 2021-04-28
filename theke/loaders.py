@@ -1,6 +1,7 @@
 import Sword
 import theke.uri
 import theke.sword
+import theke.reference
 
 # Config
 # ... for sword
@@ -67,21 +68,21 @@ def load_sword_book(uri):
         parID = 'Couverture'
         
         mod = theke.sword.SwordBook(moduleName)
-        isParagraphFound, text = mod.get_paragraph(parID)
+        text = mod.get_paragraph(parID)
     elif len(uri.path) > 3:
         moduleName = uri.path[2]
         parID = uri.path[3]
 
         mod = theke.sword.SwordBook(moduleName)
-        isParagraphFound, text = mod.get_paragraph_and_siblings(parID)
+        text = mod.get_paragraph_and_siblings(parID)
     else:
         raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
 
-    if isParagraphFound:
-        text = format_sword_syntax(text)
-    else:
+    if text is None:
         text = """<p>Ce texte n'a pas été trouvé.</p>
         <p>uri : {}</p>""".format(uri.get_decoded_URI())
+    else:
+        text = format_sword_syntax(text)
 
     return book_template.format(
         title = mod.get_name(),
@@ -90,38 +91,18 @@ def load_sword_book(uri):
         text = text)
 
 def load_sword_bible(uri):
-    # key: Bible key extracted from the uri (eg. John 1:1)
-    key = uri.path[2]
-    # moduleName: a valid Sword module name (eg. MorphGNT)
-    moduleName = uri.params.get('source', sword_default_module)
-    
-    markup = Sword.MarkupFilterMgr(Sword.FMT_OSIS)
-    markup.thisown = False
+    # TODO: theke.reference parses a reference directly from an uri
+    br = theke.reference.BiblicalReference(uri.path[2], source = uri.params.get('source', sword_default_module))
+    moduleName = br.source
+    bookName = br.bookName
+    chapter = br.chapter
 
-    mgr = Sword.SWMgr(markup)
-    mgr.setGlobalOption("Strong's Numbers", "Off")
-    mgr.setGlobalOption("Cross-references", "Off")
-    mgr.setGlobalOption("Lemmas", "Off")
-    mgr.setGlobalOption("Morphological Tags", "Off")
-
-    mod = mgr.getModule(moduleName)
-
-    vk = Sword.VerseKey(key)
-    vk.setPersist(True)
-
-    mod.setKey(vk)
-    chapter = vk.getChapter()
-
-    verse = "<sup>{}</sup>{}".format(vk.getVerse(), mod.renderText())
-    vk.increment()
-
-    while vk.getChapter() == chapter:
-        verse += " <sup>{}</sup>{}".format(vk.getVerse(), mod.renderText())
-        vk.increment()
+    mod = theke.sword.SwordBible(moduleName)
+    verse = mod.get_chapter(bookName, chapter)
 
     # Format the html page
     return bible_template.format(
-        title = key,
-        mod_name = mod.getName(),
-        mod_description = mod.getDescription(),
+        title = moduleName,
+        mod_name = mod.get_name(),
+        mod_description = mod.get_description(),
         text = verse)
