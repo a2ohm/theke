@@ -19,7 +19,7 @@ bible_template = '''<html>
     <body>
         <h1>{mod_name}</h1>
         <p>{mod_description}</p>
-        <p>{text}</p>
+        <bdi><p>{text}</p></bdi>
     </body>
 </html>
 '''
