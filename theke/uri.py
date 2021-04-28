@@ -1,4 +1,3 @@
-import re
 import urllib.parse
 from collections import namedtuple
 
