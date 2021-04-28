@@ -6,7 +6,7 @@ validSchemes = ['theke', 'sword']
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 
 inAppURI = {
-    'welcome': inAppUriData('Bienvenue !', 'Bienvenue', 'welcome.html'),
+    'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
     'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
 }
 
