@@ -147,7 +147,8 @@ class SwordBook(SwordModule):
 
                 if not tk.nextSibling():
                     break
-
+            
+            tk.parent()
             return (isParagraphFound, text)
 
         return (isParagraphFound, text)
