@@ -40,7 +40,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         button.set_tooltip_text(theke.uri.inAppURI['welcome'].shortTitle)
         button.uri = home_uri
 
-        button.connect('clicked', self.on_home_button_clicked)
+        button.connect('clicked', self.on_button_clicked)
         button.show_all()
 
         self.pack_start(button, False, False, 0)
@@ -72,17 +72,15 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             button.set_tooltip_text(str(uri))
             button.uri = uri
 
-            button.connect('button-release-event', self.on_button_clicked)
+            button.connect('button-release-event', self.on_button_release)
+            button.connect('clicked', self.on_button_clicked)
             button.show_all()
 
             self.pack_start(button, False, False, 0)         
 
-    def on_button_clicked(self, button, event):
+    def on_button_release(self, button, event):
         if event.type == Gdk.EventType.BUTTON_RELEASE:
-            if event.button == 1: # Left click
-                self.navigator.goto_uri(button.uri)
-                return True
-            elif event.button == 3: # Right click
+            if event.button == 3: # Right click
                 self.button_right_click_menu.popup_at_widget(button, Gdk.Gravity.SOUTH_WEST, Gdk.Gravity.NORTH_WEST, None)
                 self.menu_copy_uri_to_clipboard.uri = button.uri
                 return True
@@ -90,7 +88,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
                 return False
         return False
 
-    def on_home_button_clicked(self, button):
+    def on_button_clicked(self, button):
         self.navigator.goto_uri(button.uri)
         return True
 
