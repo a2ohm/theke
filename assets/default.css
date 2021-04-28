@@ -1,3 +1,18 @@
 body {
     margin: 1em 3em;
+    color: rgb(42, 42, 42);
+    font-family:Verdana, Geneva, Tahoma, sans-serif;
+}
+
+header img, header h1 {
+    display: inline-block;
+    margin: 0;
+}
+
+h1 small {
+    display: block;
+    font-style: italic;
+    font-size: 0.6em;
+    font-family:Georgia, 'Times New Roman', Times, serif;
+    color:rgb(84, 84, 84);
 }
