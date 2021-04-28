@@ -91,8 +91,7 @@ def load_sword_book(uri):
         text = text)
 
 def load_sword_bible(uri):
-    # TODO: theke.reference parses a reference directly from an uri
-    br = theke.reference.BiblicalReference(uri.path[2], source = uri.params.get('source', sword_default_module))
+    br = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
     moduleName = br.source
     bookName = br.bookName
     chapter = br.chapter
