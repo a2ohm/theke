@@ -40,6 +40,12 @@ class SwordModule():
     def get_description(self):
         return self.mod.getDescription()
 
+    def get_repr(self):
+        return self.mod.getName()
+
+    def get_short_repr(self):
+        return self.mod.getName()
+
 class SwordBible(SwordModule):
     def __init__(self, moduleName):
         super().__init__(moduleName)
@@ -108,6 +114,10 @@ class SwordBook(SwordModule):
         super().__init__(moduleName)
 
         self.key = Sword.TreeKey_castTo(self.mod.getKey())
+
+    def get_short_repr(self):
+        abbr = self.mod.getConfigEntry("Abbreviation")
+        return abbr if abbr is not None else self.mod.getName()
 
     def get_paragraph(self, parID):
         isParagraphFound, text = self.do_get_paragraph(self.key, parID)
