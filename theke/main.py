@@ -31,6 +31,7 @@ class ThekeApp(Gtk.Application):
             self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator, application=self, title="Theke")
 
         self.window.show_all()
+        self.window.sidePanel_frame.hide()
 
         # Parse Sword modules
         bible_mods = []

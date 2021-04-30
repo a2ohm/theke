@@ -44,6 +44,32 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.navigationbar.pack_end(self.historybar, True, True, 1)
 
         # Middle: content
+        self.panes = Gtk.Paned()
+        self.panes.set_position(150)
+        self._theke_window_main.pack_start(self.panes, True, True, 0)
+
+        # Pane 1: table of content, information about the current document, ...
+        self.sidePanel_frame = Gtk.Frame()
+        self.sidePanel_frame.set_shadow_type(Gtk.ShadowType.IN)
+        self.sidePanel_frame.set_size_request(100, -1)
+
+        sidePanel_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
+        sidePanel_box.set_homogeneous(False)
+
+
+        # ... title
+        self.sidePanel_title = Gtk.Label("Hello")
+
+        # ... table of content
+        self.sidePanel_TOC = Gtk.TreeView()
+
+        sidePanel_box.pack_start(self.sidePanel_title, False, True, 0)
+        sidePanel_box.pack_start(self.sidePanel_TOC, True, True, 0)
+
+        self.sidePanel_frame.add(sidePanel_box)
+        self.panes.pack1(self.sidePanel_frame, True, False)
+        
+        # Pane 2: document view
         self.scrolled_window = Gtk.ScrolledWindow()
 
         # ... webview: where the document is displayed
@@ -51,8 +77,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        self._theke_window_main.pack_start(self.scrolled_window, True, True, 0)
         self.scrolled_window.add(self.webview)
+        self.panes.pack2(self.scrolled_window, True, False)
+        
         
         # Bottom: status bar
         self.statusbar = Gtk.Statusbar()
