@@ -99,6 +99,9 @@ class ThekeURI:
         if isinstance(other, ThekeURI):
             if other.get_encoded_URI() == self.get_encoded_URI():
                 return True
+        elif isinstance(other, str):
+            if other == self.get_encoded_URI():
+                return True
         return False
 
 
