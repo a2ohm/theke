@@ -61,10 +61,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.sidePanel_title = Gtk.Label("Hello")
 
         # ... table of content
-        self.sidePanel_TOC = Gtk.TreeView()
+        sidePanel_scrolledWindow = Gtk.ScrolledWindow()
+        self.sidePanel_toc = Gtk.TreeView()
 
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Chapitre", renderer, text=0)
+        self.sidePanel_toc.append_column(column)
+
+        self.sidePanel_toc.get_selection().connect("changed", self.handle_toc_selection_changed)
+
+        sidePanel_scrolledWindow.add(self.sidePanel_toc)
         sidePanel_box.pack_start(self.sidePanel_title, False, True, 0)
-        sidePanel_box.pack_start(self.sidePanel_TOC, True, True, 0)
+        sidePanel_box.pack_start(sidePanel_scrolledWindow, True, True, 0)
 
         self.sidePanel_frame.add(sidePanel_box)
         panes.pack1(self.sidePanel_frame, True, False)
@@ -115,6 +123,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the history bar
             self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
 
+            if self.navigator.toc is None:
+                self.sidePanel_frame.hide()
+            else:
+                self.sidePanel_title.set_text(self.navigator.title)
+                self.sidePanel_toc.set_model(self.navigator.toc.toc)
+                self.sidePanel_frame.show_all()
+
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
         # Update the text in the GotoBar
@@ -136,3 +151,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         else:
             context_id = self.statusbar.get_context_id("navigation-next")
             self.statusbar.pop(context_id)
+
+    def handle_toc_selection_changed(self, tree_selection):
+        model, treeIter = tree_selection.get_selected()
+
+        if treeIter is not None:
+            uri = model[treeIter][1]
+            if uri != self.navigator.uri:
+                self.navigator.goto_uri(uri)
