@@ -4,6 +4,8 @@ import re
 def get_reference_from_uri(uri, defaultSource = None):
     '''Return a reference according to an uri.
         sword:/bible/John 1:1 --> biblical reference to Jn 1,1
+
+        @param uri: (ThekeUri)
     '''
     if uri.scheme != 'sword':
         raise ValueError('Unsupported scheme: {}.'.format(uri.scheme))
