@@ -1,6 +1,9 @@
 import Sword
 import re
 
+import theke.uri
+import theke.tableofcontent
+
 MODTYPE_BIBLES = Sword.SWMgr().MODTYPE_BIBLES
 MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
@@ -86,6 +89,19 @@ class SwordBible(SwordModule):
                 break
 
         return verse
+
+    def get_TOC(self, bookName):
+        self.key.setBookName(bookName)
+        nbOfChapters = self.key.getChapterMax()
+
+        toc = theke.tableofcontent.ThekeTOC()
+
+        for i in range(nbOfChapters):
+            uri = theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, '{} {}'.format(bookName, i+1)], {'source': self.moduleName})
+            toc.append(str(i+1), uri.get_encoded_URI())
+
+        return toc
+        
 
 class SwordBook(SwordModule):
     def __init__(self, moduleName):
