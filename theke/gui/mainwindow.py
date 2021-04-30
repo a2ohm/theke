@@ -20,46 +20,56 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         self.navigator = navigator
 
+        # State variables
+        self.selectedSource = ''
+
+        # UI BUILDING
+        # Main frame
         self._theke_window_main = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
 
+        # Top: navigation bar
         self.navigationbar = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
         self.navigationbar.set_homogeneous(False)
 
-        self.scrolled_window = Gtk.ScrolledWindow()
-        
-        self.statusbar = Gtk.Statusbar()
+        #   ... historybar: shortcuts to last viewed documents
+        self.historybar = ThekeHistoryBar(navigator = self.navigator)
 
+        #   ... gotobar: entry to open any document
         self.gotobar = ThekeGotoBar()
         self.gotobar.connect("activate", self.handle_goto)
         self.gotobar.autoCompletion.connect("match-selected", self.handle_match_selected)
 
-        self.historybar = ThekeHistoryBar(navigator = self.navigator)
+        self._theke_window_main.pack_start(self.navigationbar, False, True, 0)
+        self.navigationbar.pack_end(self.gotobar, False, False, 1)
+        self.navigationbar.pack_end(self.historybar, True, True, 1)
 
+        # Middle: content
+        self.scrolled_window = Gtk.ScrolledWindow()
+
+        # ... webview: where the document is displayed
         self.webview = ThekeWebView(navigator=self.navigator)
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        self.navigationbar.pack_end(self.gotobar, False, False, 1)
-        self.navigationbar.pack_end(self.historybar, True, True, 1)
-        self.scrolled_window.add(self.webview)
-        self._theke_window_main.pack_start(self.navigationbar, False, True, 0)
         self._theke_window_main.pack_start(self.scrolled_window, True, True, 0)
+        self.scrolled_window.add(self.webview)
+        
+        # Bottom: status bar
+        self.statusbar = Gtk.Statusbar()
+
         self._theke_window_main.pack_start(self.statusbar, False, True, 0)
         self.add(self._theke_window_main)
 
-        # Add accelerators (keyboard shortcuts) ...
+        # Set the focus on the webview
+        self.webview.grab_focus()
+
+        # SET ACCELERATORS (keyboard shortcuts)
         self.accelerators = Gtk.AccelGroup()
         self.add_accel_group(self.accelerators)
 
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-
-        # Set the focus on the webview
-        self.webview.grab_focus()
-
-        # State variables
-        self.selectedSource = ''
 
     def handle_goto(self, entry):
         '''@param entry: the object which received the signal.
