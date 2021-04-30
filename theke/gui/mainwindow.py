@@ -28,8 +28,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._theke_window_main = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
 
         # Top: navigation bar
-        self.navigationbar = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
-        self.navigationbar.set_homogeneous(False)
+        navigationbar = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
+        navigationbar.set_homogeneous(False)
 
         #   ... historybar: shortcuts to last viewed documents
         self.historybar = ThekeHistoryBar(navigator = self.navigator)
@@ -39,14 +39,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.connect("activate", self.handle_goto)
         self.gotobar.autoCompletion.connect("match-selected", self.handle_match_selected)
 
-        self._theke_window_main.pack_start(self.navigationbar, False, True, 0)
-        self.navigationbar.pack_end(self.gotobar, False, False, 1)
-        self.navigationbar.pack_end(self.historybar, True, True, 1)
+        self._theke_window_main.pack_start(navigationbar, False, True, 0)
+        navigationbar.pack_end(self.gotobar, False, False, 1)
+        navigationbar.pack_end(self.historybar, True, True, 1)
 
         # Middle: content
-        self.panes = Gtk.Paned()
-        self.panes.set_position(150)
-        self._theke_window_main.pack_start(self.panes, True, True, 0)
+        panes = Gtk.Paned()
+        panes.set_position(150)
+        self._theke_window_main.pack_start(panes, True, True, 0)
 
         # Pane 1: table of content, information about the current document, ...
         self.sidePanel_frame = Gtk.Frame()
@@ -67,18 +67,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
         sidePanel_box.pack_start(self.sidePanel_TOC, True, True, 0)
 
         self.sidePanel_frame.add(sidePanel_box)
-        self.panes.pack1(self.sidePanel_frame, True, False)
+        panes.pack1(self.sidePanel_frame, True, False)
         
         # Pane 2: document view
-        self.scrolled_window = Gtk.ScrolledWindow()
+        scrolled_window = Gtk.ScrolledWindow()
 
         # ... webview: where the document is displayed
         self.webview = ThekeWebView(navigator=self.navigator)
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        self.scrolled_window.add(self.webview)
-        self.panes.pack2(self.scrolled_window, True, False)
+        scrolled_window.add(self.webview)
+        panes.pack2(scrolled_window, True, False)
         
         
         # Bottom: status bar
@@ -91,12 +91,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.webview.grab_focus()
 
         # SET ACCELERATORS (keyboard shortcuts)
-        self.accelerators = Gtk.AccelGroup()
-        self.add_accel_group(self.accelerators)
+        accelerators = Gtk.AccelGroup()
+        self.add_accel_group(accelerators)
 
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
-        self.gotobar.add_accelerator('grab-focus', self.accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
     def handle_goto(self, entry):
         '''@param entry: the object which received the signal.
