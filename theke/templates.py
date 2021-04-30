@@ -23,5 +23,11 @@ def build_template(template_name, template_data):
     template = env.get_template('{}.html.j2'.format(template_name))
     template.stream(template_data).dump('{}/{}.html'.format(assets_path, template_name))
 
+def render(template_name, template_data):
+    '''Fill a template with given data and return the str.
+    '''
+    template = env.get_template('{}.html.j2'.format(template_name))
+    return template.render(template_data)
+
 if __name__ == '__main__':
     build_template('welcome_', {'title': 'FOO!'})
