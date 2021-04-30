@@ -2,6 +2,11 @@ sup {
     color: #f00;
 }
 
-w:hover {
-    background-color: #FCFABA;
+p.em {
+    background-color: #84adff45;
+}
+
+.content p {
+    margin: 0;
+    padding: 0 3px 3px 3px;
 }

@@ -8,9 +8,14 @@
     </head>
     <body>
         <h1>{{ ref.bookName }} {{ ref.chapter }}</h1>
-        <bdi>
+
+        <bdi class="content">
         {% for verse in verses %}
+        {% if loop.index == ref.verse %}
+        <p class="em"><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        {% else%}
         <p><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        {% endif%}
         {% endfor %}
         </bdi>
     </body>

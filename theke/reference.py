@@ -31,7 +31,7 @@ def parse_biblical_reference(reference):
     if match_br_EN is not None:
         if match_br_EN.group(4) is None:
             # Chapter reference: "bookName chapter"
-            return match_br_EN.group(1), int(match_br_EN.group(2)), None
+            return match_br_EN.group(1), int(match_br_EN.group(2)), 0
         else:
             # Verse reference: "bookName chapter:verse"
             return match_br_EN.group(1), int(match_br_EN.group(2)), int(match_br_EN.group(4))
@@ -69,7 +69,7 @@ class BiblicalReference(Reference):
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)
 
     def get_repr(self):
-        if self.verse == None:
+        if self.verse == 0:
             return "{} {}".format(self.bookName, self.chapter)
         else:
             return "{} {}:{}".format(self.bookName, self.chapter, self.verse)
