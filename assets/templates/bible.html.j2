@@ -4,11 +4,14 @@
         <link rel="stylesheet" href="theke:/default.css" type="text/css">
         <link rel="stylesheet" href="theke:/bible.css" type="text/css">
 
-        <title>{{ title }}</title>
+        <title>{{ ref.bookName }} {{ ref.chapter }}</title>
     </head>
     <body>
-        <h1>{{ mod_name }}</h1>
-        <p>{{ mod_description }}</p>
-        <bdi><p>{{ text }}</p></bdi>
+        <h1>{{ ref.bookName }} {{ ref.chapter }}</h1>
+        <bdi>
+        {% for verse in verses %}
+        <p><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        {% endfor %}
+        </bdi>
     </body>
 </html>

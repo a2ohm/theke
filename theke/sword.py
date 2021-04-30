@@ -85,16 +85,16 @@ class SwordBible(SwordModule):
         
         self.mod.setKey(self.key)
 
-        verse = ""
+        verses = []
 
         while True:
-            verse += "<sup>{}</sup>{}".format(self.key.getVerse(), self.mod.renderText())
+            verses.append(self.mod.renderText())
             self.key.increment()
 
             if self.key.getChapter() != chapter:
                 break
 
-        return verse
+        return verses
 
     def get_TOC(self, bookName):
         self.key.setBookName(bookName)

@@ -125,10 +125,9 @@ class ThekeNavigator(GObject.Object):
         self._shortTitle = ref.get_short_repr()
 
         return theke.templates.render('bible', {
-            'title': ref.source,
-            'mod_name': mod.get_name(),
-            'mod_description': mod.get_description(),
-            'text': mod.get_chapter(ref.bookName, ref.chapter)})
+            'ref': ref,
+            'verses': mod.get_chapter(ref.bookName, ref.chapter)
+            })
 
     def load_sword_book(self, uri):
         """Load a sword book.
