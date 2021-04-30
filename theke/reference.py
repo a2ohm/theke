@@ -67,3 +67,9 @@ class BiblicalReference(Reference):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)
+
+    def get_repr(self):
+        if self.verse == None:
+            return "{} {}".format(self.bookName, self.chapter)
+        else:
+            return "{} {}:{}".format(self.bookName, self.chapter, self.verse)

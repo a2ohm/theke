@@ -126,7 +126,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             if self.navigator.toc is None:
                 self.sidePanel_frame.hide()
             else:
-                self.sidePanel_title.set_text(self.navigator.title)
+                self.sidePanel_title.set_text(self.navigator.ref.bookName)
                 self.sidePanel_toc.set_model(self.navigator.toc.toc)
                 self.sidePanel_frame.show_all()
 
