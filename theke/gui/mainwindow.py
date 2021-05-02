@@ -63,6 +63,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... table of content
         sidePanel_scrolledWindow = Gtk.ScrolledWindow()
         self.sidePanel_toc = Gtk.TreeView()
+        self.sidePanel_toc.set_headers_visible(False)
 
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Chapitre", renderer, text=0)
