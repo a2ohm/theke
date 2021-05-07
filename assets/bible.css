@@ -15,3 +15,12 @@ w:hover {
     color: darkorange;
     cursor: pointer;
 }
+
+[lang="hbo"] {
+    font-family: 'Frank Ruhl Libre';
+    font-size: 1.4em;
+}
+
+[lang="hbo"] sup {
+    font-size: 0.7em;
+}

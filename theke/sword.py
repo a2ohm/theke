@@ -40,6 +40,9 @@ class SwordModule():
     def get_description(self):
         return self.mod.getDescription()
 
+    def get_lang(self):
+        return self.mod.getConfigEntry("Lang")
+
     def get_repr(self):
         return self.mod.getName()
 

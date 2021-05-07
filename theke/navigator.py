@@ -133,6 +133,7 @@ class ThekeNavigator(GObject.Object):
         self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
+            'lang': mod.get_lang(),
             'ref': ref,
             'verses': mod.get_chapter(ref.bookName, ref.chapter)
             })

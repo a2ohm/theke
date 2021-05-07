@@ -9,7 +9,7 @@
     <body>
         <h1>{{ ref.bookName }} {{ ref.chapter }}</h1>
 
-        <bdi id="content">
+        <bdi id="content" lang="{{ lang }}">
         {% for verse in verses %}
         {% if loop.index == ref.verse %}
         <p class="em"><sup>{{ loop.index }}</sup>{{ verse }}</p>
