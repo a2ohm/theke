@@ -13,6 +13,8 @@ inAppURI = {
 SWORD_BIBLE = 'bible'
 SWORD_BOOK = 'book'
 
+SWORD_SIGNAL = 'signal'
+
 def build(scheme, path, params = {}, fragment=''):
     return ThekeURI(scheme, path, params, fragment)
 

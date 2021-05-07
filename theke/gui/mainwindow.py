@@ -11,6 +11,7 @@ import theke.reference
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
+from theke.gui.widget_ThekeMorphoView import ThekeMorphoView
 
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, navigator, *args, **kwargs):
@@ -89,6 +90,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         scrolled_window.add(self.webview)
         panes.pack2(scrolled_window, True, False)
         
+        # Bottom: morphview
+        self.morphview = ThekeMorphoView()
+        self._theke_window_main.pack_start(self.morphview, False, True, 0)
+        self.navigator.connect("notify::morph", self.handle_morph_changed)
         
         # Bottom: status bar
         self.statusbar = Gtk.Statusbar()
@@ -152,6 +157,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         else:
             context_id = self.statusbar.get_context_id("navigation-next")
             self.statusbar.pop(context_id)
+
+    def handle_morph_changed(self, instance, param):
+        self.morphview.label_morph_val.set_label(self.navigator.morph)
 
     def handle_toc_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()

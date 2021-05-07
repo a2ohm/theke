@@ -38,6 +38,8 @@ class ThekeNavigator(GObject.Object):
 
         self._toc = None
 
+        self._morph = None
+
     def register_webview(self, webview):
         self.webview = webview
 
@@ -103,6 +105,10 @@ class ThekeNavigator(GObject.Object):
 
         elif uri.path[1] == theke.uri.SWORD_BOOK:
             html = self.load_sword_book(uri)
+
+        elif uri.path[1] == theke.uri.SWORD_SIGNAL:
+            self.parse_signal(uri)
+            html = ""
 
         else:
             raise ValueError('Unknown sword book type: {}.'.format(uri.path[1]))
@@ -173,6 +179,10 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
+    def parse_signal(self, uri):
+        if uri.path[2] == 'morph':
+            self.set_property("morph", uri.path[3])
+
     
     # PUBLIC PROPERTIES
     @GObject.Property
@@ -181,9 +191,13 @@ class ThekeNavigator(GObject.Object):
         return self._uri
 
     @GObject.Property
-    def title(self):
-        """The title of the current uri"""
-        return self._title
+    def morph(self):
+        """The morph of a selected word"""
+        return self._morph
+
+    @morph.setter
+    def morph(self, morph):
+        self._morph = morph
 
     @GObject.Property
     def ref(self):
@@ -191,11 +205,18 @@ class ThekeNavigator(GObject.Object):
         return self._ref
 
     @GObject.Property
+    def shortTitle(self):
+        """The short title of the current uri"""
+        return self._shortTitle
+
+    @GObject.Property
+    def title(self):
+        """The title of the current uri"""
+        return self._title
+
+    @GObject.Property
     def toc(self):
         """The table of content of the current uri"""
         return self._toc
 
-    @GObject.Property
-    def shortTitle(self):
-        """The short title of the current uri"""
-        return self._shortTitle
+    
