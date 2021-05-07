@@ -6,7 +6,12 @@ p.em {
     background-color: #84adff45;
 }
 
-.content p {
+#content p {
     margin: 0;
     padding: 0 3px 3px 3px;
+}
+
+w:hover {
+    color: darkorange;
+    cursor: pointer;
 }
