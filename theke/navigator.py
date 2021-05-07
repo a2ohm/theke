@@ -38,7 +38,7 @@ class ThekeNavigator(GObject.Object):
 
         self._toc = None
 
-        self._morph = None
+        self._morph = "-"
 
     def register_webview(self, webview):
         self.webview = webview
@@ -90,6 +90,7 @@ class ThekeNavigator(GObject.Object):
             self._shortTitle = inAppUriData.shortTitle
             self._toc = None
             self._ref = None
+            self.set_property("morph", "-")
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
             request.finish(f.read(), -1, 'text/html; charset=utf-8')
@@ -129,6 +130,7 @@ class ThekeNavigator(GObject.Object):
         self._ref = ref
         self._title = ref.get_repr()
         self._shortTitle = ref.get_short_repr()
+        self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
             'ref': ref,
@@ -172,6 +174,7 @@ class ThekeNavigator(GObject.Object):
         self._ref = None
         self._toc = None
         self._title = mod.get_name()
+        self.set_property("morph", "-")
 
         return theke.templates.render('book', {
             'title': mod.get_name(),
