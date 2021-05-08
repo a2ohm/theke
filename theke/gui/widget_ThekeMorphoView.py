@@ -15,7 +15,7 @@ class ThekeMorphoView(Gtk.Box):
         label = Gtk.Label(label="Morphologie : ")
         hbox.pack_start(label, False, True, 1)
 
-        self.label_morph_val = Gtk.Label(label="")
+        self.label_morph_val = Gtk.Label(label="-")
         hbox.pack_start(self.label_morph_val, False, True, 0)
 
         self.pack_start(hbox, True, True, 0)
