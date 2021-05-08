@@ -20,12 +20,25 @@
         </bdi>
 
         <script>
+        var currentWord;
+
         function handle_click_on_word(evt) {
-            try {
-              r = "sword:/signal/morph/" + evt.target.getAttributeNode("morph").value.replace(/\//g, '_');
-              fetch(r);
+            morph = evt.target.getAttribute("morph");
+
+            if (morph != null) {
+                // Unselect previous word
+                if (currentWord != null) {
+                    currentWord.classList.remove("selected");
+                }
+                
+                // Select this word
+                currentWord = evt.target;
+                currentWord.classList.add("selected");
+
+                // Send its morphology out of the webview
+                r = "sword:/signal/morph/" + morph.replace(/\//g, '_');
+                fetch(r);
             }
-            catch(err) {}
         }
 
         document.getElementById("content").addEventListener('click', handle_click_on_word);
