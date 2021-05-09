@@ -27,8 +27,9 @@ Theke ne sait pas encore télécharger et installer les modules Sword. Il faut p
 
 Nom du module | Nom du dépôt | Description
 ------------- | ------------ | -----------
-MorphGNT | CrossWire > Textes bibliques > Κοινὴ Ἑλληνική | Morphologically Parsed Greek New Testament based on the SBLGNT
+OSHB | CrossWire > Texte bibliques > ﬠברית מקראית | Open Scriptures Hebrew Bible
 EarlyFathers | Xiphos > Livres > English | -
+MorphGNT | CrossWire > Textes bibliques > Κοινὴ Ἑλληνική | Morphologically Parsed Greek New Testament based on the SBLGNT
 
 ### Theke
 
