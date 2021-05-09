@@ -30,7 +30,7 @@ class ThekeMorphoView(Gtk.Frame):
 
         if analysis:
             self.label_morph_raw.set_label(morph)
-            self.label_morph_parsed.set_label(analysis)
+            self.label_morph_parsed.set_label(' / '.join(analysis))
         else:
             self.label_morph_raw.set_label("-")
             self.label_morph_parsed.set_label('')
