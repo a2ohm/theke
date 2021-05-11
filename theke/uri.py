@@ -6,8 +6,10 @@ validSchemes = ['theke', 'sword']
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 
 inAppURI = {
-    'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
     'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
+    'help' : inAppUriData('Aide', 'Aide', 'help.html'),
+    'test' : inAppUriData('⚠️ Zone de test ⚠️', 'Test', 'test.html'),
+    'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
 }
 
 SWORD_BIBLE = 'bible'

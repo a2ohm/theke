@@ -14,30 +14,22 @@
                 <small>Lire et étudier la Bible et l'enseignement de l'Église.</small>
             </h1>
         </header>
-        
-        <p>
-            <ul>
-                <li><a href="theke:about">À propos.</a></li>
-                <li><a href="sword:/bible/John%201%3A1?source=MorphGNT">Jn 1, 1</a></li>
-                <li><a href="sword:/bible/John%201?source=MorphGNT">Jn 1</a></li>
-                <li><a href="sword:/book/VeritatisSplendor">Veritatis Splendor</a>
-                    <ul>
-                        <li><a href="sword:/book/VeritatisSplendor/1">Veritatis Splendor, §1</a></li>
-                        <li><a href="sword:/book/VeritatisSplendor/7">Veritatis Splendor, §7</a></li>
-                        <li><a href="sword:/book/VeritatisSplendor/42">Veritatis Splendor, §42</a></li>
-                    </ul>
-                </li>
-                <li><a href="sword:/bible/Genesis 1?source=OSHB">Gen 1</a></li>
-            </ul>
-        </p>
 
-        <h2>Modules SWORD</h2>
-        <h3>Bibles</h3>
-        <dl>
-        {% for mod in BibleMods %}
-            <dt>− <strong>{{ mod.name }}</strong></dt>
-            <dd>{{ mod.description }}</dd>
-        {% endfor %}
-        </dl>
+        <p><a href="theke:help">Aide</a> − <a href="theke:about">À propos de Theke</a></p>
+        
+        <h2>Accès rapide.</h2>
+        <ul>
+            <li><a href="sword:/bible/Hebrews%201?source=MorphGNT">He 1</a> (grec)</li>
+            <li><a href="sword:/bible/Isaiah%2052?source=OSHB">Is 52, 13 − 53, 12</a> (hébreu)</li>
+            <li><a href="sword:/bible/Isaiah%2056?source=OSHB">Is 56</a> (hébreu)</li>
+            <li><a href="sword:/bible/Isaiah%2061?source=OSHB">Is 61, 1 − 62, 12</a> (hébreu)</li>
+        </ul>
+
+        <hr/>
+
+        <div id="logbook">
+        <h2>Dernières fonctionnalités.</h2>
+        {% include 'logbook.html' %}
+        </div>
     </body>
 </html>
