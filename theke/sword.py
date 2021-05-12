@@ -40,6 +40,9 @@ class SwordModule():
     def get_description(self):
         return self.mod.getDescription()
 
+    def get_global_option_filter(self):
+        return [str(value) for key, value in self.mod.getConfigMap().items() if str(key) == "GlobalOptionFilter"]
+
     def get_lang(self):
         return self.mod.getConfigEntry("Lang")
 
