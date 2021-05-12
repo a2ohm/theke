@@ -38,6 +38,7 @@ class ThekeNavigator(GObject.Object):
 
         self._toc = None
 
+        self._isMorphAvailable = False
         self._morph = "-"
 
     def register_webview(self, webview):
@@ -90,6 +91,7 @@ class ThekeNavigator(GObject.Object):
             self._shortTitle = inAppUriData.shortTitle
             self._toc = None
             self._ref = None
+            self._isMorphAvailable = False
             self.set_property("morph", "-")
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
@@ -130,6 +132,7 @@ class ThekeNavigator(GObject.Object):
         self._ref = ref
         self._title = ref.get_repr()
         self._shortTitle = ref.get_short_repr()
+        self._isMorphAvailable = "OSISMorph" in mod.get_global_option_filter()
         self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
@@ -175,6 +178,7 @@ class ThekeNavigator(GObject.Object):
         self._ref = None
         self._toc = None
         self._title = mod.get_name()
+        self._isMorphAvailable = False
         self.set_property("morph", "-")
 
         return theke.templates.render('book', {
@@ -193,6 +197,10 @@ class ThekeNavigator(GObject.Object):
     def uri(self):
         """The current uri"""
         return self._uri
+
+    @GObject.Property
+    def isMorphAvailable(self):
+        return self._isMorphAvailable
 
     @GObject.Property
     def morph(self):

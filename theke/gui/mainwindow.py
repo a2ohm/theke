@@ -154,6 +154,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self.sidePanel_toc.set_model(self.navigator.toc.toc)
                 self.sidePanel_frame.show_all()
 
+            if self.navigator.isMorphAvailable:
+                self.morphview.show_all()
+            else:
+                self.morphview.hide()
+
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
         # Update the text in the GotoBar
