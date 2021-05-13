@@ -18,6 +18,7 @@ class ThekeMorphoView(Gtk.Frame):
         hbox.set_homogeneous(False)
 
         self.label_morph_raw = Gtk.Label(label="-", xalign=0)
+        self.label_morph_raw.set_selectable(True)
         hbox.pack_start(self.label_morph_raw, False, False, 0)
 
         self.label_morph_parsed = Gtk.Label(xalign=0, margin_left=10)
