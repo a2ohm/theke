@@ -189,6 +189,18 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
+    def register_web_uri(self, uri):
+        self._uri = uri
+        self._ref = None
+
+        self._title = self.webview.get_title()
+        self._shortTitle = uri.netlock
+
+        self._toc = None
+
+        self._isMorphAvailable = False
+        self._morph = "-"
+
     def parse_signal(self, uri):
         if uri.path[2] == 'morph':
             self.set_property("morph", uri.path[3])

@@ -13,6 +13,8 @@ class ThekeWebView(WebKit2.WebView):
 
         self.navigator = navigator
         self.navigator.register_webview(self)
+
+        self.connect("load_changed", self.handle_load_changed)
         
         context = self.get_context()
         context.register_uri_scheme('theke', self.handle_theke_uri, None)
@@ -25,3 +27,12 @@ class ThekeWebView(WebKit2.WebView):
     def handle_sword_uri(self, request, *user_data):
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
         self.navigator.load_sword_uri(uri, request)
+
+    def handle_load_changed(self, web_view, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            uri = theke.uri.parse(web_view.get_uri())
+
+            if uri.scheme in ['http', 'https']:
+                # Those uri are loaded out of the navigator scope
+                # so they have to be registered manually
+                self.navigator.register_web_uri(uri)
