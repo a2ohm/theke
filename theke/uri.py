@@ -1,7 +1,7 @@
 import urllib.parse
 from collections import namedtuple
 
-validSchemes = ['theke', 'sword']
+validSchemes = ['theke', 'sword', 'http', 'https']
 
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 
@@ -18,7 +18,7 @@ SWORD_BOOK = 'book'
 SWORD_SIGNAL = 'signal'
 
 def build(scheme, path, params = {}, fragment=''):
-    return ThekeURI(scheme, path, params, fragment)
+    return ThekeURI(scheme, '', path, params, fragment)
 
 def parse(uri, isEncoded = True):
     '''Parse an uri and return a ThekeURI instance.
@@ -30,8 +30,8 @@ def parse(uri, isEncoded = True):
     '''
 
     # Parse the uri
-    #  /!\ ignore netlock and parameters for last path element
-    scheme, _, path, _, query, fragment = urllib.parse.urlparse(uri)
+    #  /!\ ignore parameters for last path element
+    scheme, netlock, path, _, query, fragment = urllib.parse.urlparse(uri)
 
     # Params are queries parsed into a dict
     #   source=MorphGNT&foo=bar --> {'source': 'MorphGNT', 'foo': 'bar'}
@@ -50,7 +50,7 @@ def parse(uri, isEncoded = True):
     #   /bible/John 1:1 --> ['', 'bible', 'John 1:1']
     path = path.split('/')
 
-    return ThekeURI(scheme, path, params, fragment)
+    return ThekeURI(scheme, netlock, path, params, fragment)
 
 def unparse_params(params, quote = True):
     '''Unparse a params list into a string.
@@ -71,8 +71,9 @@ def unparse_path(path, quote = False):
         return '/'.join(path)
 
 class ThekeURI:
-    def __init__(self, scheme, path, params, fragment, isEncoded = True):
+    def __init__(self, scheme, netlock, path, params, fragment, isEncoded = True):
         self.scheme = scheme
+        self.netlock = netlock
         self.path = path
         self.params =  params
         self.fragment = fragment
@@ -82,7 +83,7 @@ class ThekeURI:
 
     def get_decoded_URI(self):
         return urllib.parse.urlunparse(
-            (self.scheme, '',
+            (self.scheme, self.netlock,
             unparse_path(self.path, quote=False), '',
             unparse_params(self.params, quote=False),
             urllib.parse.unquote(self.fragment))
@@ -90,7 +91,7 @@ class ThekeURI:
 
     def get_encoded_URI(self):
         return urllib.parse.urlunparse(
-            (self.scheme, '',
+            (self.scheme, self.netlock,
             unparse_path(self.path, quote=True), '',
             unparse_params(self.params, quote=True),
             self.fragment)
