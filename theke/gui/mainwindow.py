@@ -142,7 +142,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
             context_id = self.statusbar.get_context_id("navigation")
-            self.statusbar.push(context_id, "{}".format(self.navigator.title))
+            self.statusbar.push(context_id, str(self.navigator.title))
 
             # Update the history bar
             self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
