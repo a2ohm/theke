@@ -6,7 +6,9 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 import theke.uri
+import theke.sword
 import theke.templates
+import theke.reference
 
 # Config
 # ... for sword
