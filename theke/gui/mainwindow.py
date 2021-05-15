@@ -25,12 +25,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.selectedSource = ''
 
         # UI BUILDING
-        # Main frame
-        self._theke_window_main = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
+        builder = Gtk.Builder()
+        builder.add_from_file("./gui/theke_mainwindow.glade")
+        self.add(builder.get_object("mainBox"))
 
-        # Top: navigation bar
-        navigationbar = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
-        navigationbar.set_homogeneous(False)
+        # TOP
+        #   = navigation bar
+        _top_box = builder.get_object("top_box")
 
         #   ... historybar: shortcuts to last viewed documents
         self.historybar = ThekeHistoryBar(navigator = self.navigator)
@@ -40,84 +41,69 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.connect("activate", self.handle_goto)
         self.gotobar.autoCompletion.connect("match-selected", self.handle_match_selected)
 
-        self._theke_window_main.pack_start(navigationbar, False, True, 0)
-        navigationbar.pack_end(self.gotobar, False, False, 1)
-        navigationbar.pack_end(self.historybar, True, True, 1)
+        _top_box.pack_end(self.gotobar, False, False, 1)
+        _top_box.pack_end(self.historybar, True, True, 1)
 
-        # Middle: content
-        # vPanes
-        # ---------------------------
-        # | TOC, webview            |
-        # |-------------------------|
-        # | MorphoView, dictionnary |
-        # ---------------------------
-        vPanes = Gtk.Paned.new(Gtk.Orientation.VERTICAL)
-        self._theke_window_main.pack_start(vPanes, True, True, 0)
+        # CONTENT
+        _contentPane = builder.get_object("contentPane")
 
-        # vPanes > Pane 1
-        #   hPanes
-        #   -----------------
-        #   | TOC | webview |
-        #   -----------------
-        hPanes = Gtk.Paned()
-        hPanes.set_position(150)
-
-        vPanes.pack1(hPanes, True, False)
-
-        # Pane 1: table of content, information about the current document, ...
-        self.sidePanel_frame = Gtk.Frame()
-        self.sidePanel_frame.set_shadow_type(Gtk.ShadowType.IN)
-        self.sidePanel_frame.set_size_request(100, -1)
-
-        hPanes.pack1(self.sidePanel_frame, True, False)
-
-        sidePanel_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 0)
-        sidePanel_box.set_homogeneous(False)
-
-        self.sidePanel_frame.add(sidePanel_box)
-
-        # ... title
-        self.sidePanel_title = Gtk.Label("Hello")
-
-        # ... table of content
-        sidePanel_scrolledWindow = Gtk.ScrolledWindow()
-        self.sidePanel_toc = Gtk.TreeView()
-        self.sidePanel_toc.set_headers_visible(False)
+        #   ... TOC
+        self.tocPanel_frame = builder.get_object("tocPanel_frame")
+        #   ... TOC > title
+        self.tocPanel_title = builder.get_object("tocPanel_title")
+        #   ... TOC > content
+        self.tocPanel_toc = builder.get_object("tocPanel_toc")
 
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Chapitre", renderer, text=0)
-        self.sidePanel_toc.append_column(column)
+        self.tocPanel_toc.append_column(column)
 
-        self.sidePanel_toc.get_selection().connect("changed", self.handle_toc_selection_changed)
-
-        sidePanel_scrolledWindow.add(self.sidePanel_toc)
-        sidePanel_box.pack_start(self.sidePanel_title, False, True, 0)
-        sidePanel_box.pack_start(sidePanel_scrolledWindow, True, True, 0)        
+        self.tocPanel_toc.get_selection().connect("changed", self.handle_toc_selection_changed)
         
-        # Pane 2: document view
-        scrolled_window = Gtk.ScrolledWindow()
+        #   ... document view
+        _scrolled_window = builder.get_object("webview_scrolledWindow")
 
-        # ... webview: where the document is displayed
+        # ... document view > webview: where the document is displayed
         self.webview = ThekeWebView(navigator=self.navigator)
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        scrolled_window.add(self.webview)
-        hPanes.pack2(scrolled_window, True, False)
+        _scrolled_window.add(self.webview)
 
-        # vPanes > Pane 2
-        #   bottomPanel: morphoview, ...
+        #   ... search panel
+
+        # ... search panel > title
+        self.searchPanel_title = builder.get_object("searchPanel_title")
+
+        # ... search panel > results
+        self.searchPanel_results = builder.get_object("searchPanel_results")
+        self.searchPanel_results.set_headers_visible(False)
+
+        renderer = Gtk.CellRendererText()
+        column = Gtk.TreeViewColumn("Reference", renderer, text=0)
+        self.searchPanel_results.append_column(column)
+
+        # # self.sidePanel_search.get_selection().connect("changed", self.handle_toc_selection_changed)
+
+        # Set size.
+        _searchPanel_pane = builder.get_object("searchPane")
+        _searchPanel_pane.set_position(_searchPanel_pane.props.max_position)
+
+        # ... tools view
+        self.toolViewBox = builder.get_object("toolsViewBox")
+
+        #   ... tools view > morphoview
         self.morphview = ThekeMorphoView()        
         self.navigator.connect("notify::morph", self.handle_morph_changed)
 
-        vPanes.pack2(self.morphview, True, False)
-        vPanes.set_position(vPanes.props.max_position)
+        self.toolViewBox.pack_start(self.morphview, True, True, 0)
+        _contentPane.set_position(_contentPane.props.max_position)
         
-        # Bottom: status bar
+        # BOTTOM
+        bottomBox = builder.get_object("bottomBox")
+        #   ... status bar
         self.statusbar = Gtk.Statusbar()
-
-        self._theke_window_main.pack_start(self.statusbar, False, True, 0)
-        self.add(self._theke_window_main)
+        bottomBox.pack_start(self.statusbar, False, True, 0)
 
         # Set the focus on the webview
         self.webview.grab_focus()
@@ -148,16 +134,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
 
             if self.navigator.toc is None:
-                self.sidePanel_frame.hide()
+                self.tocPanel_frame.hide()
             else:
-                self.sidePanel_title.set_text(self.navigator.ref.bookName)
-                self.sidePanel_toc.set_model(self.navigator.toc.toc)
-                self.sidePanel_frame.show_all()
+                self.tocPanel_title.set_text(self.navigator.ref.bookName)
+                self.tocPanel_toc.set_model(self.navigator.toc.toc)
+                self.tocPanel_frame.show()
 
             if self.navigator.isMorphAvailable:
-                self.morphview.show_all()
+                self.toolViewBox.show()
             else:
-                self.morphview.hide()
+                self.toolViewBox.hide()
 
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
@@ -170,7 +156,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # Move the cursor to the end
         self.gotobar.set_position(-1)
         return True
-
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():
