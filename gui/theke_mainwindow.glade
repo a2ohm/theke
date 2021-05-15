@@ -48,12 +48,15 @@ Author: a2ohm
       <object class="GtkPaned" id="contentPane">
         <property name="visible">True</property>
         <property name="can-focus">True</property>
+        <property name="margin-top">1</property>
         <property name="orientation">vertical</property>
         <property name="position">250</property>
         <child>
           <object class="GtkPaned" id="searchPane">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="margin-start">2</property>
+            <property name="margin-end">2</property>
             <property name="position">450</property>
             <child>
               <object class="GtkPaned">
@@ -180,7 +183,6 @@ Author: a2ohm
                       <object class="GtkScrolledWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
-                        <property name="margin-end">1</property>
                         <property name="margin-bottom">1</property>
                         <property name="shadow-type">in</property>
                         <child>
