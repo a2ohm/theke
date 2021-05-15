@@ -23,9 +23,14 @@
         var currentWord;
 
         function handle_click_on_word(evt) {
+            word = evt.target.innerText;
             morph = evt.target.getAttribute("morph");
+            lemma = evt.target.getAttribute("lemma");
 
-            if (morph != null) {
+            if ((morph != null) || (lemma != null)) {
+                if (morph == null) { morph = ''; } else { morph = morph.replace(/\//g, '_'); }
+                if (lemma == null) { lemma = ''; }
+
                 // Unselect previous word
                 if (currentWord != null) {
                     currentWord.classList.remove("selected");
@@ -36,7 +41,7 @@
                 currentWord.classList.add("selected");
 
                 // Send its morphology out of the webview
-                r = "sword:/signal/morph/" + morph.replace(/\//g, '_');
+                r = "sword:/signal/click_on_word?word=" + word + "&morph=" + morph + "&lemma=" + lemma;
                 fetch(r);
             }
         }

@@ -202,8 +202,8 @@ class ThekeNavigator(GObject.Object):
         self._morph = "-"
 
     def parse_signal(self, uri):
-        if uri.path[2] == 'morph':
-            self.set_property("morph", uri.path[3])
+        if uri.path[2] == 'click_on_word':
+            self.set_property("morph", uri.params.get('morph', '-'))
 
     
     # PUBLIC PROPERTIES
