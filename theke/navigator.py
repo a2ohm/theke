@@ -41,7 +41,9 @@ class ThekeNavigator(GObject.Object):
         self._toc = None
 
         self._isMorphAvailable = False
-        self._morph = "-"
+        self._word = None
+        self._lemma = None
+        self._morph = '-'
 
     def register_webview(self, webview):
         self.webview = webview
@@ -203,7 +205,13 @@ class ThekeNavigator(GObject.Object):
 
     def parse_signal(self, uri):
         if uri.path[2] == 'click_on_word':
+            # (word should be the last to be set, cf. signal triggering)
+            lemma = uri.params.get('lemma', '?').split(':')
+            lemma = lemma[-1] if len(lemma) > 1 else None
+
+            self.set_property("lemma", lemma)
             self.set_property("morph", uri.params.get('morph', '-'))
+            self.set_property("word", uri.params.get('word', '?'))
 
     
     # PUBLIC PROPERTIES
@@ -215,6 +223,15 @@ class ThekeNavigator(GObject.Object):
     @GObject.Property
     def isMorphAvailable(self):
         return self._isMorphAvailable
+
+    @GObject.Property
+    def lemma(self):
+        """The lemma of a selected word"""
+        return self._lemma
+
+    @lemma.setter
+    def lemma(self, lemma):
+        self._lemma = lemma
 
     @GObject.Property
     def morph(self):
@@ -244,5 +261,14 @@ class ThekeNavigator(GObject.Object):
     def toc(self):
         """The table of content of the current uri"""
         return self._toc
+
+    @GObject.Property
+    def word(self):
+        """The selected word"""
+        return self._word
+
+    @word.setter
+    def word(self, word):
+        self._word = word
 
     

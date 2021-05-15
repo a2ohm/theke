@@ -93,10 +93,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolViewBox = builder.get_object("toolsViewBox")
 
         #   ... tools view > morphoview
-        self.morphview = ThekeMorphoView()        
-        self.navigator.connect("notify::morph", self.handle_morph_changed)
+        _morphoView_box = builder.get_object("morphoView_box")
+        self.morphoView_word = builder.get_object("morphoView_word")
+        self.morphoView_lemma = builder.get_object("morphoView_lemma")
+        self.morphview_searchButton = builder.get_object("morphoView_searchButton")
 
-        self.toolViewBox.pack_start(self.morphview, True, True, 0)
+        self.morphview = ThekeMorphoView()
+        self.navigator.connect("notify::word", self.handle_selected_word_changed)
+
+        _morphoView_box.pack_start(self.morphview, True, True, 0)
         _contentPane.set_position(_contentPane.props.max_position)
         
         # BOTTOM
@@ -166,8 +171,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
             context_id = self.statusbar.get_context_id("navigation-next")
             self.statusbar.pop(context_id)
 
-    def handle_morph_changed(self, instance, param):
+    def handle_selected_word_changed(self, instance, param):
+        self.morphoView_word.set_text("{}".format(self.navigator.word))
         self.morphview.set_morph(self.navigator.morph)
+
+        if self.navigator.lemma is None:
+            self.morphoView_lemma.hide()
+            self.morphview_searchButton.set_sensitive(False)
+        else:
+            self.morphoView_lemma.set_text("({})".format(self.navigator.lemma))
+            self.morphoView_lemma.show()
+            self.morphview_searchButton.set_sensitive(True)
+
 
     def handle_toc_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()
