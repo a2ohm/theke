@@ -221,6 +221,7 @@ Author: a2ohm
         <child>
           <object class="GtkBox" id="toolsViewBox">
             <property name="can-focus">False</property>
+            <property name="no-show-all">True</property>
             <property name="margin-start">2</property>
             <property name="margin-end">2</property>
             <child>

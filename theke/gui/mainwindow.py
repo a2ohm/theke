@@ -145,9 +145,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self.tocPanel_toc.set_model(self.navigator.toc.toc)
                 self.tocPanel_frame.show()
 
-            if self.navigator.isMorphAvailable:
-                self.toolViewBox.show()
-            else:
+            if not self.navigator.isMorphAvailable:
                 self.toolViewBox.hide()
 
     def handle_match_selected(self, entry_completion, model, iter):
@@ -183,6 +181,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.morphoView_lemma.show()
             self.morphview_searchButton.set_sensitive(True)
 
+        self.toolViewBox.show()
 
     def handle_toc_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()

@@ -25,6 +25,7 @@ class ThekeMorphoView(Gtk.Frame):
         hbox.pack_start(self.label_morph_parsed, False, False, 0)
 
         self.add(hbox)
+        self.show_all()
 
     def set_morph(self, morph):
         analysis = theke.morphology.parse(morph)
