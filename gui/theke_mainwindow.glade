@@ -276,15 +276,51 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="morphoView_lemma">
+                      <object class="GtkBox" id="morphoView_lemma">
                         <property name="can-focus">False</property>
                         <property name="no-show-all">True</property>
-                        <property name="margin-start">4</property>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="margin-start">4</property>
+                            <property name="label" translatable="yes">(</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="morphoView_lemmaText">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="selectable">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="label" translatable="yes">)</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">True</property>
-                        <property name="position">2</property>
+                        <property name="position">6</property>
                       </packing>
                     </child>
                   </object>

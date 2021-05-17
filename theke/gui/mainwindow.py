@@ -96,6 +96,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _morphoView_box = builder.get_object("morphoView_box")
         self.morphoView_word = builder.get_object("morphoView_word")
         self.morphoView_lemma = builder.get_object("morphoView_lemma")
+        self.morphoView_lemmaText = builder.get_object("morphoView_lemmaText")
         self.morphview_searchButton = builder.get_object("morphoView_searchButton")
 
         self.morphview = ThekeMorphoView()
@@ -177,7 +178,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.morphoView_lemma.hide()
             self.morphview_searchButton.set_sensitive(False)
         else:
-            self.morphoView_lemma.set_text("({})".format(self.navigator.lemma))
+            self.morphoView_lemmaText.set_text(self.navigator.lemma)
             self.morphoView_lemma.show()
             self.morphview_searchButton.set_sensitive(True)
 
