@@ -126,8 +126,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''@param entry: the object which received the signal.
         '''
 
-        #TOFIX. Suppose that the content of the gotobar is a valid Sword Key
-        ref = theke.reference.Reference(entry.get_text().strip(), source = self.selectedSource)
+        #TOFIX. Suppose that the content of the gotobar is a valid biblical reference
+        ref = theke.reference.BiblicalReference(entry.get_text().strip(), source = self.selectedSource)
         self.navigator.goto_ref(ref)
 
     def handle_load_changed(self, web_view, load_event):
