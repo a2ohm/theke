@@ -5,13 +5,17 @@
 
 **Debian / Ubuntu**
 
-Installer GTK+ et PyGObject.
-
-* `sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0`
-
 Installer Sword.
 
 * `sudo apt install python3-sword`
+
+Si le packet `python3-sword` n'est pas disponible pour votre distribution, vous pouvez essayer de passer par pip3.
+
+* `pip3 install libsword`
+
+Installer ensuite GTK+ et PyGObject.
+
+* `sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0`
 
 Autres paquets requis : Jinja2.
 
