@@ -25,7 +25,7 @@ def get_standard_reference(rawReference):
     return rawReference
 
 def parse_biblical_reference(reference):
-    pattern_br_EN = re.compile(r'^(\w+) (\d+)(:(\d+))?$')
+    pattern_br_EN = re.compile(r'^([\w\s]+) (\d+)(:(\d+))?$')
     match_br_EN = pattern_br_EN.match(reference)
 
     if match_br_EN is not None:
