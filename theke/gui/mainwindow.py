@@ -181,8 +181,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if treeIter is not None:
             ref = theke.reference.Reference(model[treeIter][0])
             uri = ref.get_uri()
-            if uri != self.navigator.uri:
-                self.navigator.goto_uri(uri)
+            self.navigator.goto_uri(uri)
 
     def handle_selected_word_changed(self, instance, param):
         self.morphoView_word.set_text("{}".format(self.navigator.word))
@@ -203,5 +202,4 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         if treeIter is not None:
             uri = model[treeIter][1]
-            if uri != self.navigator.uri:
-                self.navigator.goto_uri(uri)
+            self.navigator.goto_uri(uri)

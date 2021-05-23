@@ -48,7 +48,7 @@ class ThekeNavigator(GObject.Object):
     def register_webview(self, webview):
         self.webview = webview
 
-    def goto_uri(self, uri):
+    def goto_uri(self, uri, reload = False):
         """Ask the webview to load a given uri.
 
         Notice: all uri requests must go through the webview,
@@ -56,12 +56,13 @@ class ThekeNavigator(GObject.Object):
 
         @parm uri: (string or ThekeUri)
         """
-        if isinstance(uri, str):
-            self.webview.load_uri(uri)
-        elif isinstance(uri, theke.uri.ThekeURI):
-            self.webview.load_uri(uri.get_encoded_URI())
-        else:
-            raise ValueError('This is not an uri: {}.'.format(uri))
+        if reload or uri != self._uri:
+            if isinstance(uri, str):
+                self.webview.load_uri(uri)
+            elif isinstance(uri, theke.uri.ThekeURI):
+                self.webview.load_uri(uri.get_encoded_URI())
+            else:
+                raise ValueError('This is not an uri: {}.'.format(uri))
 
         self.webview.grab_focus()
 
