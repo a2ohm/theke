@@ -82,7 +82,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPanel_resultsWindows = builder.get_object("searchPanel_resultsWindow")
         self.searchPanel_resultsWindows.add(self.searchPanel_results)
 
-        # # self.sidePanel_search.get_selection().connect("changed", self.handle_toc_selection_changed)
+        self.searchPanel_results.get_selection().connect("changed", self.handle_searchResults_selection_changed)
 
         # Set size.
         _searchPanel_pane = builder.get_object("searchPane")
@@ -174,6 +174,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPanel_frame.show()
         self.searchPanel_results.search("MorphGNT", self.morphoView_lemmaText.get_text())
+
+    def handle_searchResults_selection_changed(self, tree_selection):
+        model, treeIter = tree_selection.get_selected()
+
+        if treeIter is not None:
+            ref = theke.reference.Reference(model[treeIter][0])
+            uri = ref.get_uri()
+            if uri != self.navigator.uri:
+                self.navigator.goto_uri(uri)
 
     def handle_selected_word_changed(self, instance, param):
         self.morphoView_word.set_text("{}".format(self.navigator.word))
