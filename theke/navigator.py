@@ -28,7 +28,7 @@ class ThekeNavigator(GObject.Object):
     """
 
     def __init__(self, *args, **kwargs):
-        GObject.Object.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.webview = None
 
