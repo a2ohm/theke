@@ -180,19 +180,13 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkScrolledWindow">
+                      <object class="GtkScrolledWindow" id="searchPanel_resultsWindow">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="margin-bottom">1</property>
                         <property name="shadow-type">in</property>
                         <child>
-                          <object class="GtkTreeView" id="searchPanel_results">
-                            <property name="visible">True</property>
-                            <property name="can-focus">True</property>
-                            <child internal-child="selection">
-                              <object class="GtkTreeSelection"/>
-                            </child>
-                          </object>
+                          <placeholder/>
                         </child>
                       </object>
                       <packing>

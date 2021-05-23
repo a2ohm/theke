@@ -12,6 +12,7 @@ from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeMorphoView import ThekeMorphoView
+from theke.gui.widget_ThekeSearchView import ThekeSearchView
 
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, navigator, *args, **kwargs):
@@ -71,17 +72,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _scrolled_window.add(self.webview)
 
         #   ... search panel
+        self.searchPanel_results = ThekeSearchView()
+        self.searchPanel_frame = builder.get_object("searchFrame")
 
         # ... search panel > title
         self.searchPanel_title = builder.get_object("searchPanel_title")
 
         # ... search panel > results
-        self.searchPanel_results = builder.get_object("searchPanel_results")
-        self.searchPanel_results.set_headers_visible(False)
-
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Reference", renderer, text=0)
-        self.searchPanel_results.append_column(column)
+        self.searchPanel_resultsWindows = builder.get_object("searchPanel_resultsWindow")
+        self.searchPanel_resultsWindows.add(self.searchPanel_results)
 
         # # self.sidePanel_search.get_selection().connect("changed", self.handle_toc_selection_changed)
 
@@ -98,6 +97,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.morphoView_lemma = builder.get_object("morphoView_lemma")
         self.morphoView_lemmaText = builder.get_object("morphoView_lemmaText")
         self.morphview_searchButton = builder.get_object("morphoView_searchButton")
+
+        self.morphview_searchButton.connect("clicked", self.handle_morphview_searchButton_clicked)
 
         self.morphview = ThekeMorphoView()
         self.navigator.connect("notify::word", self.handle_selected_word_changed)
@@ -169,6 +170,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         else:
             context_id = self.statusbar.get_context_id("navigation-next")
             self.statusbar.pop(context_id)
+
+    def handle_morphview_searchButton_clicked(self, button):
+        self.searchPanel_frame.show()
+        self.searchPanel_results.search("MorphGNT", self.morphoView_lemmaText.get_text())
 
     def handle_selected_word_changed(self, instance, param):
         self.morphoView_word.set_text("{}".format(self.navigator.word))
