@@ -14,12 +14,13 @@ import theke.uri
 home_uri = theke.uri.parse('theke:welcome', isEncoded=True)
 
 class ThekeHistoryBar(Gtk.ButtonBox):
-    def __init__(self, navigator, *args, **kwargs):
+    def __init__(self, on_button_clicked_callback, *args, **kwargs):
         Gtk.Box.__init__(self, orientation = Gtk.Orientation.HORIZONTAL, *args, **kwargs)
         self.set_layout(Gtk.ButtonBoxStyle.EXPAND)
         self.set_homogeneous(False)
 
-        self.navigator = navigator
+        self.on_button_clicked = on_button_clicked_callback
+
         self.history = deque()
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
@@ -87,10 +88,6 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             else:
                 return False
         return False
-
-    def on_button_clicked(self, button):
-        self.navigator.goto_uri(button.uri)
-        return True
 
     def handle_menu_copy_uri_to_clipboard(self, menu_item):
         self.clipboard.set_text(menu_item.uri.get_encoded_URI(), -1)

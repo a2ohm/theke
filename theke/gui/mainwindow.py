@@ -35,7 +35,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _top_box = builder.get_object("top_box")
 
         #   ... historybar: shortcuts to last viewed documents
-        self.historybar = ThekeHistoryBar(navigator = self.navigator)
+        self.historybar = ThekeHistoryBar(on_button_clicked_callback = self.on_history_button_clicked)
 
         #   ... gotobar: entry to open any document
         self.gotobar = ThekeGotoBar()
@@ -203,3 +203,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if treeIter is not None:
             uri = model[treeIter][1]
             self.navigator.goto_uri(uri)
+
+    def on_history_button_clicked(self, button):
+        self.navigator.goto_uri(button.uri)
+        return True
