@@ -113,7 +113,6 @@ class SwordBible(SwordModule):
             toc.append(str(i+1), uri.get_encoded_URI())
 
         return toc
-        
 
 class SwordBook(SwordModule):
     def __init__(self, moduleName):
@@ -188,3 +187,18 @@ class SwordBook(SwordModule):
     def do_reset_key(self, tk):
         while tk.parent():
             pass
+
+def bibleSearch_lemma(moduleName, lemma):
+    mod = SwordBible(moduleName)
+
+    searchResults = mod.mod.doSearch(lemma)
+    searchResults.setPersist(True)
+    mod.mod.setKey(searchResults)
+
+    i = 0
+    nbOfResults = searchResults.getCount()
+
+    while i < nbOfResults:
+        yield searchResults.getText()
+        searchResults.increment()
+        i+=1
