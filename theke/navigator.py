@@ -27,6 +27,11 @@ class ThekeNavigator(GObject.Object):
     Outside of the webview workflow, it has to be called to open an uri or a reference.
     """
 
+    __gsignals__ = {
+        'click_on_word': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,))
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -115,8 +120,9 @@ class ThekeNavigator(GObject.Object):
             html = self.load_sword_book(uri)
 
         elif uri.path[1] == theke.uri.SWORD_SIGNAL:
-            self.parse_signal(uri)
-            html = ""
+            if uri.path[2] == 'click_on_word':
+                self.emit("click_on_word", uri)
+                html = ""
 
         else:
             raise ValueError('Unknown sword book type: {}.'.format(uri.path[1]))
@@ -204,15 +210,17 @@ class ThekeNavigator(GObject.Object):
         self._isMorphAvailable = False
         self._morph = "-"
 
-    def parse_signal(self, uri):
-        if uri.path[2] == 'click_on_word':
-            # (word should be the last to be set, cf. signal triggering)
-            lemma = uri.params.get('lemma', '?').split(':')
-            lemma = lemma[-1] if len(lemma) > 1 else None
+    def do_click_on_word(self, uri):
+        """Do what should be do when a new word is selected in the webview
+        Action(s):
+            - update morphological data
+        """
+        lemma = uri.params.get('lemma', '?').split(':')
+        lemma = lemma[-1] if len(lemma) > 1 else None
 
-            self.set_property("lemma", lemma)
-            self.set_property("morph", uri.params.get('morph', '-'))
-            self.set_property("word", uri.params.get('word', '?'))
+        self.set_property("lemma", lemma)
+        self.set_property("morph", uri.params.get('morph', '-'))
+        self.set_property("word", uri.params.get('word', '?'))
 
     
     # PUBLIC PROPERTIES

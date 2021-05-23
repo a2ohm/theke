@@ -101,7 +101,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.morphview_searchButton.connect("clicked", self.handle_morphview_searchButton_clicked)
 
         self.morphview = ThekeMorphoView()
-        self.navigator.connect("notify::word", self.handle_selected_word_changed)
+        self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
         _morphoView_box.pack_start(self.morphview, True, True, 0)
         _contentPane.set_position(_contentPane.props.max_position)
