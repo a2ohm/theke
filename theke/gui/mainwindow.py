@@ -93,14 +93,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         #   ... tools view > morphoview
         _morphoView_box = builder.get_object("morphoView_box")
-        self.morphoView_word = builder.get_object("morphoView_word")
-        self.morphoView_lemma = builder.get_object("morphoView_lemma")
-        self.morphoView_lemmaText = builder.get_object("morphoView_lemmaText")
-        self.morphview_searchButton = builder.get_object("morphoView_searchButton")
 
-        self.morphview_searchButton.connect("clicked", self.handle_morphview_searchButton_clicked)
-
-        self.morphview = ThekeMorphoView()
+        self.morphview = ThekeMorphoView(builder)
+        
+        self.morphview.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
         _morphoView_box.pack_start(self.morphview, True, True, 0)
@@ -173,7 +169,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPanel_frame.show()
-        self.searchPanel_results.search("MorphGNT", self.morphoView_lemmaText.get_text())
+        self.searchPanel_results.search("MorphGNT", self.navigator.lemma)
 
     def handle_searchResults_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()
@@ -184,16 +180,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.navigator.goto_uri(uri)
 
     def handle_selected_word_changed(self, instance, param):
-        self.morphoView_word.set_text("{}".format(self.navigator.word))
-        self.morphview.set_morph(self.navigator.morph)
+        self.morphview.set_morph(self.navigator.word, self.navigator.morph)
 
         if self.navigator.lemma is None:
-            self.morphoView_lemma.hide()
-            self.morphview_searchButton.set_sensitive(False)
+            self.morphview.lemma_hide()
+            self.morphview.search_button_set_sensitive(False)
         else:
-            self.morphoView_lemmaText.set_text(self.navigator.lemma)
-            self.morphoView_lemma.show()
-            self.morphview_searchButton.set_sensitive(True)
+            self.morphview.lemma_set(self.navigator.lemma)
+            self.morphview.lemma_show()
+            self.morphview.search_button_set_sensitive(True)
 
         self.toolViewBox.show()
 
