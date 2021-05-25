@@ -27,7 +27,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # UI BUILDING
         builder = Gtk.Builder()
-        builder.add_from_file("./gui/theke_mainwindow.glade")
+        builder.add_from_file("./theke/gui/theke_mainwindow.glade")
         self.add(builder.get_object("mainBox"))
 
         # TOP
