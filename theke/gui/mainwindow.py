@@ -95,7 +95,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _morphoView_box = builder.get_object("morphoView_box")
 
         self.morphview = ThekeMorphoView(builder)
-        
+
         self.morphview.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
@@ -169,7 +169,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPanel_frame.show()
-        self.searchPanel_results.search("MorphGNT", self.navigator.lemma)
+        self.searchPanel_results.search(self.navigator.ref.source, self.navigator.lemma)
 
     def handle_searchResults_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()
