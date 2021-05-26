@@ -8,6 +8,7 @@ inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 inAppURI = {
     'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
     'help' : inAppUriData('Aide', 'Aide', 'help.html'),
+    'modules' : inAppUriData('Liste des modules installés', 'Modules', 'modules.html'),
     'test' : inAppUriData('⚠️ Zone de test ⚠️', 'Test', 'test.html'),
     'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
 }

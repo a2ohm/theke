@@ -60,7 +60,8 @@ class ThekeApp(Gtk.Application):
             self.window.gotobar.autoCompletionlist.append((inAppUriData[2], 'Theke', 'sandy brown'))
 
         # Build templates
-        theke.templates.build_template('welcome', {'BibleMods': bible_mods})
+        theke.templates.build_template('welcome', {})
+        theke.templates.build_template('modules', {'BibleMods': bible_mods})
 
         # Load the main screen
         uri = theke.uri.parse("theke:welcome", isEncoded=True)
