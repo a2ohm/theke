@@ -18,6 +18,7 @@
         <p>Theke fonctionne à partir de <em>modules</em>. Chaque module peut contenir une version de la bible, un dictionnaire, ou encore un ouvrage. Pour plus de détails et pour apprendre comment installer de nouveaux modules, nous vous invitons à consulter l'<a href="theke:help#modules">aide</a>.</p>
         
         <h2>Modules installés</h2>
+        {% if BibleMods %}
         <h3>Modules bibliques</h3>
         <p>Tableau des modules bibliques installés sur votre ordinateur et qui sont accessibles depuis Theke.</p>
         
@@ -26,7 +27,7 @@
                 <th>Nom</th>
                 <th>Description</th>
             </tr>
-
+            
             {% for mod in BibleMods %}
             <tr>
                 <td>{{ mod.name }}</td>
@@ -34,6 +35,10 @@
             </tr>
             {% endfor %}
         </table>
+        {% else %}
+        <p class="center">⚠️ <em>Aucun module n'est installé.</em> ⚠️</p>
+        <p>Vous trouverez dans l'<a href="theke:help#modules">aide</a> quelques indications sur l'installation des modules.</p>
+        {% endif %}
 
     </body>
 </html>
