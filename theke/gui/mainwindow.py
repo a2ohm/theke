@@ -190,6 +190,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.morphview.lemma_show()
             self.morphview.search_button_set_sensitive(True)
 
+        self.morphview.strong_set(self.navigator.strong)
+
         self.toolViewBox.show()
 
     def handle_toc_selection_changed(self, tree_selection):

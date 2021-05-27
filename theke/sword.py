@@ -60,7 +60,7 @@ class SwordBible(SwordModule):
         self.key.setPersist(True)
         self.key.setVersificationSystem(self.mod.getConfigEntry("Versification"))
 
-        self.library.mgr.setGlobalOption("Strong's Numbers", "Off")
+        self.library.mgr.setGlobalOption("Strong's Numbers", "On")
         self.library.mgr.setGlobalOption("Cross-references", "Off")
         self.library.mgr.setGlobalOption("Lemmas", "On")
         self.library.mgr.setGlobalOption("Morphological Tags", "On")

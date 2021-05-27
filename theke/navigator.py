@@ -45,6 +45,7 @@ class ThekeNavigator(GObject.Object):
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     word = GObject.Property(type=str)
     lemma = GObject.Property(type=str)
+    strong = GObject.Property(type=str)
     morph = GObject.Property(type=str)
 
 
@@ -218,9 +219,11 @@ class ThekeNavigator(GObject.Object):
         Action(s):
             - update morphological data
         """
-        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?(strong:(?P<strong>\w\d+))?')
-        match_signal_clickOnWors = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
+        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong>\w\d+))?')
+        match_signal_clickOnWord = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
 
-        self.lemma = match_signal_clickOnWors.group('lemma')
+        self.lemma = match_signal_clickOnWord.group('lemma')
+        self.strong = match_signal_clickOnWord.group('strong')
+
         self.set_property("morph", uri.params.get('morph', '-'))
         self.set_property("word", uri.params.get('word', '?'))
