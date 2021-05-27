@@ -14,6 +14,7 @@ class ThekeMorphoView(Gtk.Frame):
         self.word_label = builder.get_object("morphoView_word")
         self.lemma_box = builder.get_object("morphoView_lemma")
         self.lemma_label = builder.get_object("morphoView_lemmaText")
+        self.strong_label = builder.get_object("morphoView_strongText")
         self.search_button = builder.get_object("morphoView_searchButton")
 
         # #####
@@ -55,6 +56,13 @@ class ThekeMorphoView(Gtk.Frame):
 
     def lemma_hide(self):
         self.lemma_box.hide()
+
+    def strong_set(self, strong):
+        if strong:
+            self.strong_label.set_label(strong)
+            self.strong_label.show()
+        else:
+            self.strong_label.hide()
 
     def search_button_connect(self, callback):
         self.search_button.connect("clicked", callback)
