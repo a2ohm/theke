@@ -5,6 +5,8 @@ from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject
 
+import re
+
 import theke.uri
 import theke.sword
 import theke.templates
@@ -215,15 +217,16 @@ class ThekeNavigator(GObject.Object):
         Action(s):
             - update morphological data
         """
-        lemma = uri.params.get('lemma', '?').split(':')
-        lemma = lemma[-1] if len(lemma) > 1 else None
+        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?(strong:(?P<strong>\w\d+))?')
+        match_signal_clickOnWors = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
 
-        self.set_property("lemma", lemma)
+        self.set_property("lemma", match_signal_clickOnWors.group('lemma'))
         self.set_property("morph", uri.params.get('morph', '-'))
         self.set_property("word", uri.params.get('word', '?'))
 
     
     # PUBLIC PROPERTIES
+    # TODO: simplifier (https://python-gtk-3-tutorial.readthedocs.io/en/latest/objects.html#properties)
     @GObject.Property
     def uri(self):
         """The current uri"""
