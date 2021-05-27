@@ -137,7 +137,11 @@ class ThekeNavigator(GObject.Object):
         request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def load_sword_bible(self, uri):
-        ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
+        if self.ref:
+            ref = theke.reference.get_reference_from_uri(uri, defaultSource = self.ref.source)
+        else:
+            ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
+        
         mod = theke.sword.SwordBible(ref.source)
 
         if self.ref is None or ref.bookName != self.ref.bookName:
