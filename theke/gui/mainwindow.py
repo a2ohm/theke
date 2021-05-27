@@ -182,14 +182,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def handle_selected_word_changed(self, instance, param):
         self.morphview.set_morph(self.navigator.word, self.navigator.morph)
 
-        if self.navigator.lemma is None:
-            self.morphview.lemma_hide()
-            self.morphview.search_button_set_sensitive(False)
-        else:
-            self.morphview.lemma_set(self.navigator.lemma)
-            self.morphview.lemma_show()
-            self.morphview.search_button_set_sensitive(True)
-
+        self.morphview.lemma_set(self.navigator.lemma)
         self.morphview.strong_set(self.navigator.strong)
 
         self.toolViewBox.show()

@@ -49,23 +49,20 @@ class ThekeMorphoView(Gtk.Frame):
             self.label_morph_parsed.set_label('')
     
     def lemma_set(self, lemma):
-        self.lemma_label.set_label(lemma)
-
-    def lemma_show(self):
-        self.lemma_box.show()
-
-    def lemma_hide(self):
-        self.lemma_box.hide()
+        if lemma:
+            self.lemma_label.set_label(lemma)
+            self.lemma_label.show()
+        else:
+            self.lemma_label.hide()
 
     def strong_set(self, strong):
         if strong:
             self.strong_label.set_label(strong)
+            self.search_button.set_sensitive(True)
             self.strong_label.show()
         else:
+            self.search_button.set_sensitive(False)
             self.strong_label.hide()
 
     def search_button_connect(self, callback):
         self.search_button.connect("clicked", callback)
-
-    def search_button_set_sensitive(self, sensitive):
-        self.search_button.set_sensitive(sensitive)
