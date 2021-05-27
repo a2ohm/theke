@@ -34,23 +34,24 @@ class ThekeNavigator(GObject.Object):
                       (object,))
         }
 
+    uri = GObject.Property(type=object)
+    ref = GObject.Property(type=object)
+
+    title = GObject.Property(type=str, default="")
+    shortTitle = GObject.Property(type=str, default="")
+
+    toc = GObject.Property(type=object)
+
+    isMorphAvailable  = GObject.Property(type=bool, default=False)
+    word = GObject.Property(type=str)
+    lemma = GObject.Property(type=str)
+    morph = GObject.Property(type=str)
+
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.webview = None
-
-        self._uri = None
-        self._ref = None
-
-        self._title = "Title"
-        self._shortTitle = "ShortTitle"
-
-        self._toc = None
-
-        self._isMorphAvailable = False
-        self._word = None
-        self._lemma = None
-        self._morph = '-'
 
     def register_webview(self, webview):
         self.webview = webview
@@ -63,7 +64,7 @@ class ThekeNavigator(GObject.Object):
 
         @parm uri: (string or ThekeUri)
         """
-        if reload or uri != self._uri:
+        if reload or uri != self.uri:
             if isinstance(uri, str):
                 self.webview.load_uri(uri)
             elif isinstance(uri, theke.uri.ThekeURI):
@@ -98,12 +99,12 @@ class ThekeNavigator(GObject.Object):
             # Case 2.
             inAppUriData = theke.uri.inAppURI[uri.path[0]]
 
-            self._uri = uri
-            self._title = inAppUriData.title
-            self._shortTitle = inAppUriData.shortTitle
-            self._toc = None
-            self._ref = None
-            self._isMorphAvailable = False
+            self.set_property("uri", uri)
+            self.set_property("title", inAppUriData.title)
+            self.set_property("shortTitle", inAppUriData.shortTitle)
+            self.set_property("toc", None)
+            self.set_property("ref", None)
+            self.set_property("isMorphAvailable", False)
             self.set_property("morph", "-")
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
@@ -138,14 +139,14 @@ class ThekeNavigator(GObject.Object):
         ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
         mod = theke.sword.SwordBible(ref.source)
 
-        if self._ref is None or ref.bookName != self._ref.bookName:
-            self._toc = mod.get_TOC(ref.bookName)
+        if self.ref is None or ref.bookName != self.ref.bookName:
+            self.set_property("toc", mod.get_TOC(ref.bookName))
         
-        self._uri = uri
-        self._ref = ref
-        self._title = ref.get_repr()
-        self._shortTitle = ref.get_short_repr()
-        self._isMorphAvailable = "OSISMorph" in mod.get_global_option_filter()
+        self.set_property("uri", uri)
+        self.set_property("ref", ref)
+        self.set_property("title", ref.get_repr())
+        self.set_property("shortTitle", ref.get_short_repr())
+        self.set_property("isMorphAvailable", "OSISMorph" in mod.get_global_option_filter())
         self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
@@ -169,7 +170,7 @@ class ThekeNavigator(GObject.Object):
             mod = theke.sword.SwordBook(moduleName)
             text = mod.get_paragraph(parID)
 
-            self._shortTitle = '{}'.format(mod.get_short_repr())
+            self.set_property("shortTitle", '{}'.format(mod.get_short_repr()))
         elif len(uri.path) > 3:
             moduleName = uri.path[2]
             parID = uri.path[3]
@@ -177,7 +178,7 @@ class ThekeNavigator(GObject.Object):
             mod = theke.sword.SwordBook(moduleName)
             text = mod.get_paragraph_and_siblings(parID)
 
-            self._shortTitle = '{} {}'.format(mod.get_short_repr(), parID)
+            self.set_property("shortTitle", '{} {}'.format(mod.get_short_repr(), parID))
         else:
             raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
 
@@ -187,11 +188,11 @@ class ThekeNavigator(GObject.Object):
         else:
             text = format_sword_syntax(text)
 
-        self._uri = uri
-        self._ref = None
-        self._toc = None
-        self._title = mod.get_name()
-        self._isMorphAvailable = False
+        self.set_property("uri", uri)
+        self.set_property("ref", None)
+        self.set_property("toc", None)
+        self.set_property("title", mod.get_name())
+        self.set_property("isMorphAvailable", False)
         self.set_property("morph", "-")
 
         return theke.templates.render('book', {
@@ -201,16 +202,16 @@ class ThekeNavigator(GObject.Object):
             'text': text})
 
     def register_web_uri(self, uri):
-        self._uri = uri
-        self._ref = None
+        self.set_property("uri", uri)
+        self.set_property("ref", None)
 
-        self._title = self.webview.get_title()
-        self._shortTitle = uri.netlock
+        self.set_property("title", self.webview.get_title())
+        self.set_property("shortTitle", uri.netlock)
 
-        self._toc = None
+        self.set_property("toc", None)
 
-        self._isMorphAvailable = False
-        self._morph = "-"
+        self.set_property("isMorphAvailable", False)
+        self.set_property("morph", "-")
 
     def do_click_on_word(self, uri):
         """Do what should be do when a new word is selected in the webview
@@ -220,67 +221,6 @@ class ThekeNavigator(GObject.Object):
         pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?(strong:(?P<strong>\w\d+))?')
         match_signal_clickOnWors = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
 
-        self.set_property("lemma", match_signal_clickOnWors.group('lemma'))
+        self.lemma = match_signal_clickOnWors.group('lemma')
         self.set_property("morph", uri.params.get('morph', '-'))
         self.set_property("word", uri.params.get('word', '?'))
-
-    
-    # PUBLIC PROPERTIES
-    # TODO: simplifier (https://python-gtk-3-tutorial.readthedocs.io/en/latest/objects.html#properties)
-    @GObject.Property
-    def uri(self):
-        """The current uri"""
-        return self._uri
-
-    @GObject.Property
-    def isMorphAvailable(self):
-        return self._isMorphAvailable
-
-    @GObject.Property
-    def lemma(self):
-        """The lemma of a selected word"""
-        return self._lemma
-
-    @lemma.setter
-    def lemma(self, lemma):
-        self._lemma = lemma
-
-    @GObject.Property
-    def morph(self):
-        """The morph of a selected word"""
-        return self._morph
-
-    @morph.setter
-    def morph(self, morph):
-        self._morph = morph
-
-    @GObject.Property
-    def ref(self):
-        """The current ref"""
-        return self._ref
-
-    @GObject.Property
-    def shortTitle(self):
-        """The short title of the current uri"""
-        return self._shortTitle
-
-    @GObject.Property
-    def title(self):
-        """The title of the current uri"""
-        return self._title
-
-    @GObject.Property
-    def toc(self):
-        """The table of content of the current uri"""
-        return self._toc
-
-    @GObject.Property
-    def word(self):
-        """The selected word"""
-        return self._word
-
-    @word.setter
-    def word(self, word):
-        self._word = word
-
-    
