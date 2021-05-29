@@ -83,6 +83,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPanel_resultsWindows.add(self.searchPanel_results)
 
         self.searchPanel_results.get_selection().connect("changed", self.handle_searchResults_selection_changed)
+        self.searchPanel_results.connect("start", self.handle_search_start)
+        self.searchPanel_results.connect("finish", self.handle_search_finish)
 
         # Set size.
         _searchPanel_pane = builder.get_object("searchPane")
@@ -171,6 +173,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
             ref = theke.reference.Reference(model[treeIter][0])
             uri = ref.get_uri()
             self.navigator.goto_uri(uri)
+
+    def handle_search_start(self, object, moduleName, lemma):
+        self.toolsView.search_button.set_sensitive(False)
+
+    def handle_search_finish(self, object):
+        self.toolsView.search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
         self.toolsView.set_morph(self.navigator.word, self.navigator.morph)

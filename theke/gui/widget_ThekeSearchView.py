@@ -29,7 +29,6 @@ class ThekeSearchView(Gtk.TreeView):
     def search(self, moduleName, lemma):
         self.emit("start", moduleName, lemma)
 
-    def do_start(self, moduleName, lemma):
         self.results = theke.searchResults.ThekeSearchResults()
         self.set_model(self.results)
 
@@ -37,6 +36,9 @@ class ThekeSearchView(Gtk.TreeView):
             self.results.add_result(r)
 
         self.emit("finish")
+
+    def do_start(self, moduleName, lemma):
+        pass
 
     def do_finish(self):
         pass
