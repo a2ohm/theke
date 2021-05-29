@@ -219,7 +219,7 @@ Author: a2ohm
             <property name="margin-start">2</property>
             <property name="margin-end">2</property>
             <child>
-              <object class="GtkBox" id="morphoView_box">
+              <object class="GtkBox">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="orientation">vertical</property>
@@ -229,7 +229,7 @@ Author: a2ohm
                     <property name="can-focus">False</property>
                     <property name="spacing">2</property>
                     <child>
-                      <object class="GtkButton" id="morphoView_searchButton">
+                      <object class="GtkButton" id="toolsView_searchButton">
                         <property name="visible">True</property>
                         <property name="sensitive">False</property>
                         <property name="can-focus">True</property>
@@ -254,7 +254,7 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="morphoView_word">
+                      <object class="GtkLabel" id="toolsView_word">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-start">2</property>
@@ -272,7 +272,7 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkBox" id="morphoView_lemma">
+                      <object class="GtkBox" id="toolsView_lemma">
                         <property name="can-focus">False</property>
                         <property name="no-show-all">True</property>
                         <child>
@@ -289,7 +289,7 @@ Author: a2ohm
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLabel" id="morphoView_lemmaText">
+                          <object class="GtkLabel" id="toolsView_lemmaText">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="selectable">True</property>
@@ -320,7 +320,7 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="morphoView_strongText">
+                      <object class="GtkLabel" id="toolsView_strongText">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="margin-start">8</property>
@@ -334,6 +334,28 @@ Author: a2ohm
                         <property name="position">3</property>
                       </packing>
                     </child>
+                    <child>
+                      <object class="GtkButton" id="toolsView_reduceExpand_button">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="focus-on-click">False</property>
+                        <property name="receives-default">True</property>
+                        <property name="relief">none</property>
+                        <child>
+                          <object class="GtkImage" id="toolsView_reduceExpand_image">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="icon-name">go-down-symbolic</property>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="pack-type">end</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -342,7 +364,29 @@ Author: a2ohm
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
+                  <object class="GtkFrame" id="morphoView_frame">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="margin-start">10</property>
+                    <property name="margin-end">10</property>
+                    <property name="label-xalign">0.019999999552965164</property>
+                    <property name="shadow-type">out</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child type="label">
+                      <object class="GtkLabel">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Morphologie</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
               </object>
               <packing>

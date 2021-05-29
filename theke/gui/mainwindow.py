@@ -46,7 +46,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _top_box.pack_end(self.historybar, True, True, 1)
 
         # CONTENT
-        _contentPane = builder.get_object("contentPane")
+        self.contentPane = builder.get_object("contentPane")
 
         #   ... TOC
         self.tocPanel_frame = builder.get_object("tocPanel_frame")
@@ -93,7 +93,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
-        _contentPane.set_position(_contentPane.props.max_position)
+        self.contentPane.connect("notify::max-position", self.handle_contentPane_maxPosition_changed)
         
         # BOTTOM
         bottomBox = builder.get_object("bottomBox")
@@ -186,6 +186,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if treeIter is not None:
             uri = model[treeIter][1]
             self.navigator.goto_uri(uri)
+
+    def handle_contentPane_maxPosition_changed(self, object, param):
+        """Adjust the position of the content pane to its maximal value.
+        """
+        self.contentPane.set_position(self.contentPane.props.max_position)
 
     def on_history_button_clicked(self, button):
         self.navigator.goto_uri(button.uri)
