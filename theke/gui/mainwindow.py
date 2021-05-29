@@ -11,8 +11,8 @@ import theke.reference
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
-from theke.gui.widget_ThekeMorphoView import ThekeMorphoView
 from theke.gui.widget_ThekeSearchView import ThekeSearchView
+from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, navigator, *args, **kwargs):
@@ -89,17 +89,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _searchPanel_pane.set_position(_searchPanel_pane.props.max_position)
 
         # ... tools view
-        self.toolViewBox = builder.get_object("toolsViewBox")
-
-        #   ... tools view > morphoview
-        _morphoView_box = builder.get_object("morphoView_box")
-
-        self.morphview = ThekeMorphoView(builder)
-
-        self.morphview.search_button_connect(self.handle_morphview_searchButton_clicked)
+        self.toolsView = ThekeToolsView(builder)
+        self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
-        _morphoView_box.pack_start(self.morphview, True, True, 0)
         _contentPane.set_position(_contentPane.props.max_position)
         
         # BOTTOM
@@ -144,7 +137,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self.tocPanel_frame.show()
 
             if not self.navigator.isMorphAvailable:
-                self.toolViewBox.hide()
+                self.toolsView.hide()
 
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
@@ -180,12 +173,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.navigator.goto_uri(uri)
 
     def handle_selected_word_changed(self, instance, param):
-        self.morphview.set_morph(self.navigator.word, self.navigator.morph)
+        self.toolsView.set_morph(self.navigator.word, self.navigator.morph)
 
-        self.morphview.lemma_set(self.navigator.lemma)
-        self.morphview.strong_set(self.navigator.strong)
+        self.toolsView.set_lemma(self.navigator.lemma)
+        self.toolsView.set_strongs(self.navigator.strong)
 
-        self.toolViewBox.show()
+        self.toolsView.show()
 
     def handle_toc_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()

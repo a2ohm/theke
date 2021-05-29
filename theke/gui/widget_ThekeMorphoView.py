@@ -48,16 +48,16 @@ class ThekeMorphoView(Gtk.Frame):
             self.label_morph_raw.set_label("-")
             self.label_morph_parsed.set_label('')
     
-    def lemma_set(self, lemma):
+    def set_lemma(self, lemma):
         if lemma:
             self.lemma_label.set_label(lemma)
             self.lemma_label.show()
         else:
             self.lemma_label.hide()
 
-    def strong_set(self, strong):
-        if strong:
-            self.strong_label.set_label(strong)
+    def set_strongs(self, strongs):
+        if strongs:
+            self.strong_label.set_label(strongs)
             self.search_button.set_sensitive(True)
             self.strong_label.show()
         else:
