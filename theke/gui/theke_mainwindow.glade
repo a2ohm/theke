@@ -186,7 +186,14 @@ Author: a2ohm
                         <property name="margin-bottom">1</property>
                         <property name="shadow-type">in</property>
                         <child>
-                          <placeholder/>
+                          <object class="GtkTreeView" id="searchPanel_resultsTreeView">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="headers-visible">False</property>
+                            <child internal-child="selection">
+                              <object class="GtkTreeSelection"/>
+                            </child>
+                          </object>
                         </child>
                       </object>
                       <packing>

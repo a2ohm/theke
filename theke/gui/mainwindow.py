@@ -11,7 +11,7 @@ import theke.reference
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
-from theke.gui.widget_ThekeSearchView import ThekeSearchView
+from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
 from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 class ThekeWindow(Gtk.ApplicationWindow):
@@ -72,30 +72,22 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _scrolled_window.add(self.webview)
 
         #   ... search panel
-        self.searchPanel_results = ThekeSearchView()
-        self.searchPanel_frame = builder.get_object("searchFrame")
+        self.searchPane = ThekeSearchPane(builder)
 
-        # ... search panel > title
-        self.searchPanel_title = builder.get_object("searchPanel_title")
-
-        # ... search panel > results
-        self.searchPanel_resultsWindows = builder.get_object("searchPanel_resultsWindow")
-        self.searchPanel_resultsWindows.add(self.searchPanel_results)
-
-        self.searchPanel_results.get_selection().connect("changed", self.handle_searchResults_selection_changed)
-        self.searchPanel_results.connect("start", self.handle_search_start)
-        self.searchPanel_results.connect("finish", self.handle_search_finish)
+        self.searchPane.connect("selection-changed", self.handle_searchResults_selection_changed)
+        self.searchPane.connect("start", self.handle_search_start)
+        self.searchPane.connect("finish", self.handle_search_finish)
 
         # Set size.
         _searchPanel_pane = builder.get_object("searchPane")
-        _searchPanel_pane.set_position(_searchPanel_pane.props.max_position)
+        _searchPanel_pane.connect("notify::max-position", self.handle_maxPosition_changed)
 
         # ... tools view
         self.toolsView = ThekeToolsView(builder)
         self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
-        self.contentPane.connect("notify::max-position", self.handle_contentPane_maxPosition_changed)
+        self.contentPane.connect("notify::max-position", self.handle_maxPosition_changed)
         
         # BOTTOM
         bottomBox = builder.get_object("bottomBox")
@@ -163,10 +155,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.statusbar.pop(context_id)
 
     def handle_morphview_searchButton_clicked(self, button):
-        self.searchPanel_frame.show()
-        self.searchPanel_results.search(self.navigator.ref.source, self.navigator.strong)
+        self.searchPane.show()
+        self.searchPane.search(self.navigator.ref.source, self.navigator.strong)
 
-    def handle_searchResults_selection_changed(self, tree_selection):
+    def handle_searchResults_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()
 
         if treeIter is not None:
@@ -195,10 +187,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
             uri = model[treeIter][1]
             self.navigator.goto_uri(uri)
 
-    def handle_contentPane_maxPosition_changed(self, object, param):
-        """Adjust the position of the content pane to its maximal value.
+    def handle_maxPosition_changed(self, object, param):
+        """Move the pane to its maximal value.
         """
-        self.contentPane.set_position(self.contentPane.props.max_position)
+        object.set_position(object.props.max_position)
 
     def on_history_button_clicked(self, button):
         self.navigator.goto_uri(button.uri)
