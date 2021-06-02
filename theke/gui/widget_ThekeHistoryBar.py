@@ -47,6 +47,11 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         self.pack_start(button, False, False, 0)
 
     def add_uri_to_history(self, label, uri):
+        """Add an uri to the HistoryBar.
+
+        @param label: (string) label to print in the HistoryBar
+        @param uri: (ThekeUri) Uri of the new item
+        """
         if uri == home_uri:
             # The home uri is not added to the history as it is alway here.
             return
