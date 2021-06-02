@@ -73,3 +73,6 @@ class BiblicalReference(Reference):
             return "{} {}".format(self.bookName, self.chapter)
         else:
             return "{} {}:{}".format(self.bookName, self.chapter, self.verse)
+
+    def get_short_repr(self):
+        return "{} {}".format(self.bookName, self.chapter)

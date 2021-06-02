@@ -1,5 +1,5 @@
 import gi
-from collections import deque
+from collections import OrderedDict
 
 gi.require_version('Gtk', '3.0')
 
@@ -21,7 +21,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
         self.on_button_clicked = on_button_clicked_callback
 
-        self.history = deque()
+        self.history = OrderedDict()
 
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
@@ -54,26 +54,24 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         """
         if uri == home_uri:
             # The home uri is not added to the history as it is alway here.
-            return
+            return            
 
         try:
-            historyIndex = self.history.index((label, uri))
+            historyIndex = list(self.history.keys()).index(label)
 
             # The visited uri is already in the history,
             # move its button at the end of the bar
-            if historyIndex < MAX_NUMBER_OF_BUTTONS-1:
-                # Rotate to.
-                del self.history[historyIndex]
-                self.history.append((label, uri))
-                self.reorder_child(self.get_children()[historyIndex+1], -1)
+            self.history.move_to_end(label)
+            self.reorder_child(self.get_children()[historyIndex+1], -1)
 
         except ValueError:
             # This uri does not exist in the history
             if len(self.history) >= MAX_NUMBER_OF_BUTTONS:
-                self.history.popleft()
+                self.history.popitem(last=False)
                 self.remove(self.get_children()[1])
 
-            self.history.append((label, uri))
+            self.history[label] = uri
+            
             button = Gtk.Button(label=label, use_underline=False)
             button.set_tooltip_text(str(uri))
             button.uri = uri
