@@ -64,12 +64,6 @@ class ThekeSearchPane(GObject.Object):
         self.searchPane_title.hide()
         self.reduceExpand_image.set_from_icon_name("go-previous-symbolic", Gtk.IconSize.BUTTON)
 
-    def do_start(self, moduleName, lemma):
-        pass
-
-    def do_finish(self):
-        pass
-
     def handle_reduceExpand_button_clicked(self, button):
         if self.isReduce:
             self.expand()
