@@ -8,5 +8,5 @@ class ThekeSearchResults(Gtk.ListStore):
     def __init__(self):
         super().__init__(str)
 
-    def add_result(self, ref):
+    def add(self, ref):
         self.append((str(ref),))

@@ -36,14 +36,16 @@ class ThekeSearchPane(GObject.Object):
         self.results_treeView.get_selection().connect("changed", self.handle_results_selection_changed)
         self.reduceExpand_button.connect("clicked", self.handle_reduceExpand_button_clicked)
 
-    def search(self, moduleName, lemma):
-        self.emit("start", moduleName, lemma)
+    def search_start(self, moduleName, keyword):
+        self.emit("start", moduleName, keyword)
+        theke.sword.bibleSearch_keyword(moduleName, keyword, self.search_callback)
 
+    def search_callback(self, results):
         self.results = theke.searchResults.ThekeSearchResults()
         self.results_treeView.set_model(self.results)
 
-        for r in theke.sword.bibleSearch_lemma(moduleName, lemma):
-            self.results.add_result(r)
+        for r in results:
+            self.results.add(r)
 
         self.emit("finish")
 

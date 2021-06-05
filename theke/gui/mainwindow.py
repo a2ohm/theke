@@ -156,7 +156,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPane.show()
-        self.searchPane.search(self.navigator.ref.source, self.navigator.strong)
+        self.searchPane.search_start(self.navigator.ref.source, self.navigator.strong)
 
     def handle_searchResults_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()

@@ -1,4 +1,12 @@
+import gi
+
+gi.require_version('Gtk', '3.0')
+
+from gi.repository import GLib
+
 import Sword
+
+import threading
 import re
 
 import theke.uri
@@ -188,17 +196,18 @@ class SwordBook(SwordModule):
         while tk.parent():
             pass
 
-def bibleSearch_lemma(moduleName, lemma):
+def bibleSearch_keyword(moduleName, keyword, callback):
     mod = SwordBible(moduleName)
+    
+    def do_search():
+        rawResults = mod.mod.doSearch(keyword)
+        
+        results = []
+        for _ in range(rawResults.getCount()):
+            results.append(rawResults.getText())
+            rawResults.increment()
 
-    searchResults = mod.mod.doSearch(lemma)
-    searchResults.setPersist(True)
-    mod.mod.setKey(searchResults)
+        GLib.idle_add(callback, results)
 
-    i = 0
-    nbOfResults = searchResults.getCount()
-
-    while i < nbOfResults:
-        yield searchResults.getText()
-        searchResults.increment()
-        i+=1
+    thread = threading.Thread(target=do_search, daemon=True)
+    thread.start()
