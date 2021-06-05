@@ -212,7 +212,7 @@ Author: a2ohm
                     </child>
                     <child>
                       <object class="GtkScrolledWindow" id="searchPane_resultsWindow">
-                        <property name="width-request">120</property>
+                        <property name="width-request">150</property>
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="margin-bottom">1</property>
