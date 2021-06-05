@@ -8,6 +8,10 @@ from gi.repository import GObject
 import theke.searchResults
 import theke.sword
 
+from collections import namedtuple
+
+resultData = namedtuple('resultData', ['reference'])
+
 class ThekeSearchPane(GObject.Object):
     __gsignals__ = {
         'selection-changed': (GObject.SIGNAL_RUN_FIRST, None,
@@ -44,8 +48,8 @@ class ThekeSearchPane(GObject.Object):
         self.results = theke.searchResults.ThekeSearchResults()
         self.results_treeView.set_model(self.results)
 
-        for r in results:
-            self.results.add(r)
+        for bookName, rawReferences in results.items():
+            self.results.add(bookName, rawReferences)
 
         self.emit("finish")
 
@@ -73,4 +77,10 @@ class ThekeSearchPane(GObject.Object):
             self.reduce()
 
     def handle_results_selection_changed(self, tree_selection):
-        self.emit("selection-changed", tree_selection)
+        model, treeIter = tree_selection.get_selected()
+
+        if treeIter is not None:
+            if model.iter_has_child(treeIter):
+                tree_selection.unselect_all()
+            else:
+                self.emit("selection-changed", resultData(*model[treeIter]))

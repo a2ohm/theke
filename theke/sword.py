@@ -202,9 +202,14 @@ def bibleSearch_keyword(moduleName, keyword, callback):
     def do_search():
         rawResults = mod.mod.doSearch(keyword)
         
-        results = []
+        # rawResults cannot be pass to callback (weird bug)
+        # so it is copied in a dictionnary
+        # In addition, results are sort by book
+        results = {}
         for _ in range(rawResults.getCount()):
-            results.append(rawResults.getText())
+            bookName = str(Sword.VerseKey_castTo(rawResults.getElement()).getBookName())
+            results[bookName] = results.get(bookName, []) + [str(rawResults.getText())]
+            #results.append(rawResults.getText())
             rawResults.increment()
 
         GLib.idle_add(callback, results)

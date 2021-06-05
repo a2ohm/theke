@@ -158,13 +158,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPane.show()
         self.searchPane.search_start(self.navigator.ref.source, self.navigator.strong)
 
-    def handle_searchResults_selection_changed(self, object, tree_selection):
-        model, treeIter = tree_selection.get_selected()
-
-        if treeIter is not None:
-            ref = theke.reference.Reference(model[treeIter][0])
-            uri = ref.get_uri()
-            self.navigator.goto_uri(uri)
+    def handle_searchResults_selection_changed(self, object, result):
+        ref = theke.reference.Reference(result.reference)
+        uri = ref.get_uri()
+        self.navigator.goto_uri(uri)
 
     def handle_search_start(self, object, moduleName, lemma):
         self.toolsView.search_button.set_sensitive(False)
