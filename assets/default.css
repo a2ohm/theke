@@ -17,6 +17,15 @@ h1 small {
     color:rgb(84, 84, 84);
 }
 
+.warning {
+    background-color: rgb(214, 140, 140);
+    padding: 1em;
+}
+
+.warning::before {
+    content: '⚠️ ';
+}
+
 #logbook {
     font-size: 0.8em;
 }

@@ -16,7 +16,10 @@
         </header>
 
         <p><a href="theke:help">Aide</a> − <a href="theke:about">À propos de Theke</a></p>
-        
+
+         {% if not BibleMods %}
+         <p class="warning">Vous n'avez aucun module biblique. Vous trouverez dans l'<a href="theke:help#modules">aide</a> des indications pour en installer.</p>
+         {% else %}        
         <h2>Accès rapide.</h2>
         <ul>
             <li>Séminaire Hébreu. (texte grec)
@@ -31,6 +34,8 @@
                 <li><a href="sword:/bible/Isaiah%2061?source=OSHB">Is 61, 1 − 62, 12</a></li>
             </ul></li>
         </ul>
+
+        {% endif %}
 
         <hr/>
 
