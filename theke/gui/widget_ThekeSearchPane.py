@@ -42,7 +42,7 @@ class ThekeSearchPane(GObject.Object):
 
     def search_start(self, moduleName, keyword):
         self.emit("start", moduleName, keyword)
-        theke.sword.bibleSearch_keyword(moduleName, keyword, self.search_callback)
+        theke.sword.bibleSearch_keyword_async(moduleName, keyword, self.search_callback)
 
     def search_callback(self, results):
         self.results = theke.searchResults.ThekeSearchResults()

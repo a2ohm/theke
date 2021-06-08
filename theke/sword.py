@@ -196,7 +196,7 @@ class SwordBook(SwordModule):
         while tk.parent():
             pass
 
-def bibleSearch_keyword(moduleName, keyword, callback):
+def bibleSearch_keyword_async(moduleName, keyword, callback):
     mod = SwordBible(moduleName)
     
     def do_search():
