@@ -53,7 +53,7 @@ class Reference():
         if self.source is None:
             return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference])
         elif self.source == 'Theke':
-            return theke.uri.build('theke', ['', theke.uri.inAppURI[self.reference]])
+            return theke.uri.build('theke', [self.reference])
         else:
             return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference], {'source': self.source})
 

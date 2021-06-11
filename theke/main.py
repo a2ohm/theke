@@ -56,8 +56,8 @@ class ThekeApp(Gtk.Application):
                 pass     
 
         # Register application screens in the GotoBar
-        for _, inAppUriData in theke.uri.inAppURI.items():
-            self.window.gotobar.autoCompletionlist.append((inAppUriData[2], 'Theke', 'sandy brown'))
+        for inAppUriKey in theke.uri.inAppURI.keys():
+            self.window.gotobar.autoCompletionlist.append((inAppUriKey, 'Theke', 'sandy brown'))
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})

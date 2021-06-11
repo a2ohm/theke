@@ -111,7 +111,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''
 
         #TOFIX. Suppose that the content of the gotobar is a valid biblical reference
-        ref = theke.reference.BiblicalReference(entry.get_text().strip(), source = self.selectedSource)
+        ref = theke.reference.Reference(entry.get_text().strip(), source = self.selectedSource)
         self.navigator.goto_ref(ref)
 
     def handle_load_changed(self, web_view, load_event):
