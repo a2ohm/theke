@@ -23,14 +23,14 @@ class ThekeWebView(WebKit2.WebView):
 
     def jump_to_anchor(self, anchor):
         script = """var element_to_scroll_to = document.getElementById('{}');
-        element_to_scroll_to.scrollIntoView();
+        element_to_scroll_to.scrollIntoView({{behavior: "smooth", block: "center", inline: "nearest"}});
         """.format(anchor)
-
         self.run_javascript(script, None, None, None)
 
     def scroll_to_verse(self, verse):
         if verse > 0:
-            self.jump_to_anchor("verse-{}".format(verse))
+            script = 'jump_to_verse("verse-{}")'.format(verse)
+            self.run_javascript(script, None, None, None)
 
     def handle_decide_policy(self, web_view, decision, decision_type):
         if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
