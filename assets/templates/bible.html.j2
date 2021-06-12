@@ -12,9 +12,9 @@
         <bdi id="content" lang="{{ lang }}">
         {% for verse in verses %}
         {% if loop.index == ref.verse %}
-        <p class="em"><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        <p id="verse-{{ loop.index }}" class="em"><sup>{{ loop.index }}</sup>{{ verse }}</p>
         {% else%}
-        <p><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        <p  id="verse-{{ loop.index }}"><sup>{{ loop.index }}</sup>{{ verse }}</p>
         {% endif%}
         {% endfor %}
         </bdi>

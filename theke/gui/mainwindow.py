@@ -123,6 +123,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the history bar
             self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
 
+            # Update the table of content
             if self.navigator.toc is None:
                 self.tocPanel_frame.hide()
             else:
@@ -130,8 +131,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self.tocPanel_toc.set_model(self.navigator.toc.toc)
                 self.tocPanel_frame.show()
 
+            # Hide the morphoView, if necessary
             if not self.navigator.isMorphAvailable:
                 self.toolsView.hide()
+
+            if self.navigator.ref and self.navigator.ref.type == theke.reference.TYPE_BIBLE and self.navigator.ref.verse is not None:
+                self.webview.scroll_to_verse(self.navigator.ref.verse)
 
     def handle_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
@@ -160,8 +165,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_searchResults_selection_changed(self, object, result):
         ref = theke.reference.Reference(result.reference)
-        uri = ref.get_uri()
-        self.navigator.goto_uri(uri)
+        self.navigator.goto_ref(ref)
 
     def handle_search_start(self, object, moduleName, lemma):
         self.toolsView.search_button.set_sensitive(False)

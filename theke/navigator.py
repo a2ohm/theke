@@ -99,12 +99,13 @@ class ThekeNavigator(GObject.Object):
         else:
             # Case 2.
             inAppUriData = theke.uri.inAppURI[uri.path[0]]
+            ref = theke.reference.Reference(uri.path[0])
 
             self.set_property("uri", uri)
             self.set_property("title", inAppUriData.title)
             self.set_property("shortTitle", inAppUriData.shortTitle)
             self.set_property("toc", None)
-            self.set_property("ref", None)
+            self.set_property("ref", ref)
             self.set_property("isMorphAvailable", False)
             self.set_property("morph", "-")
 
@@ -137,14 +138,16 @@ class ThekeNavigator(GObject.Object):
         request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def load_sword_bible(self, uri):
-        if self.ref:
-            ref = theke.reference.get_reference_from_uri(uri, defaultSource = self.ref.source)
-        else:
-            ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
-        
+        # Get the reference of the biblical document from the uri
+        # The default source is, by order:
+        #   - the source of the current document ;
+        #   - a hardcoded default source.
+        defaultSource = self.ref.source if self.ref else sword_default_module
+        ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
+
         mod = theke.sword.SwordBible(ref.source)
 
-        if self.ref is None or ref.bookName != self.ref.bookName:
+        if self.ref is None or self.ref.type == theke.reference.TYPE_UNKNOWN or ref.bookName != self.ref.bookName:
             self.set_property("toc", mod.get_TOC(ref.bookName))
         
         self.set_property("uri", uri)
@@ -207,6 +210,9 @@ class ThekeNavigator(GObject.Object):
             'text': text})
 
     def register_web_uri(self, uri):
+        """Update properties according to this web page data.
+        """
+
         self.set_property("uri", uri)
         self.set_property("ref", None)
 
@@ -231,3 +237,33 @@ class ThekeNavigator(GObject.Object):
 
         self.set_property("morph", uri.params.get('morph', '-'))
         self.set_property("word", uri.params.get('word', '?'))
+
+    def handle_navigation_action(self, decision):
+        """Decide if the webview should execute a navigation action.
+
+        @param decision: (WebKit2.NavigationPolicyDecision)
+        """
+        uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
+
+        if uri.scheme == 'sword':
+
+            defaultSource = self.ref.source if self.ref else sword_default_module
+            ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
+
+            # Catch a navigation action to a biblical reference where only the verse number change
+            if (self.ref and
+                self.ref.type == theke.reference.TYPE_BIBLE and
+                self.ref.source == ref.source and
+                self.ref.bookName == ref.bookName and
+                self.ref.chapter == ref.chapter):
+
+                self.set_property("uri", uri)
+                self.set_property("ref", ref)
+                self.set_property("title", ref.get_repr())
+                self.set_property("shortTitle", ref.get_short_repr())
+
+                decision.ignore()
+                self.webview.scroll_to_verse(ref.verse)
+                return True
+
+        return False
