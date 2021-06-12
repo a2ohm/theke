@@ -1,22 +1,22 @@
-sup {
+#content sup {
     color: #f00;
 }
 
-p.em {
+#content p.em {
     background-color: #84adff45;
 }
 
 #content p {
-    margin: 0;
-    padding: 0 3px 3px 3px;
+    margin: 0 -1em;
+    padding: 0 1em 3px 1em;
 }
 
-w:hover {
+#content w:hover {
     color: darkorange;
     cursor: pointer;
 }
 
-.selected {
+#content .selected {
     color: rgb(230, 128, 4);
 }
 
