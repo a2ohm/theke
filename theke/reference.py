@@ -39,6 +39,9 @@ def parse_biblical_reference(reference):
     # This is not a biblical reference
     return None
 
+TYPE_UNKNOWN = 0
+TYPE_BIBLE = 1
+
 class Reference():
     '''Reference of any document readable by Theke.
     (application screen, Sword reference)
@@ -48,6 +51,7 @@ class Reference():
         self.reference = get_standard_reference(rawReference)
         self.source = kwargs.get('source', None)
         self.tags = kwargs.get('tags', [])
+        self.type = TYPE_UNKNOWN
 
     def get_uri(self):
         if self.source is None:
@@ -67,6 +71,7 @@ class BiblicalReference(Reference):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)
+        self.type = TYPE_BIBLE
 
     def get_repr(self):
         if self.verse == 0:
