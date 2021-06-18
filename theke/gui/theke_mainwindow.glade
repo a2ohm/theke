@@ -252,7 +252,7 @@ Author: a2ohm
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="toolsViewBox">
+          <object class="GtkBox" id="toolsView_Box">
             <property name="can-focus">False</property>
             <property name="no-show-all">True</property>
             <property name="margin-start">2</property>
@@ -403,22 +403,79 @@ Author: a2ohm
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkFrame" id="morphoView_frame">
+                  <object class="GtkPaned" id="toolsView_tools">
                     <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="margin-start">10</property>
-                    <property name="margin-end">10</property>
-                    <property name="label-xalign">0.019999999552965164</property>
-                    <property name="shadow-type">out</property>
+                    <property name="can-focus">True</property>
                     <child>
-                      <placeholder/>
-                    </child>
-                    <child type="label">
-                      <object class="GtkLabel">
+                      <object class="GtkFrame" id="morphoView_frame">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Morphologie</property>
+                        <property name="margin-start">10</property>
+                        <property name="margin-end">10</property>
+                        <property name="hexpand">True</property>
+                        <property name="label-xalign">0.019999999552965164</property>
+                        <property name="shadow-type">out</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child type="label">
+                          <object class="GtkLabel">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="label" translatable="yes">Morphologie</property>
+                          </object>
+                        </child>
                       </object>
+                      <packing>
+                        <property name="resize">False</property>
+                        <property name="shrink">True</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkExpander">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="expanded">True</property>
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="visible">True</property>
+                                <property name="can-focus">True</property>
+                                <property name="shadow-type">in</property>
+                                <child>
+                                  <object class="GtkTextView" id="myDicoView_textInput">
+                                    <property name="visible">True</property>
+                                    <property name="can-focus">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="input-purpose">alpha</property>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child type="label">
+                              <object class="GtkLabel" id="myDicoView_label">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="label" translatable="yes">Dictionnaire personnel</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="resize">False</property>
+                        <property name="shrink">False</property>
+                      </packing>
                     </child>
                   </object>
                   <packing>
