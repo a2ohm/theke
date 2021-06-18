@@ -39,9 +39,9 @@ class ThekeToolsView():
     def set_lemma(self, lemma):
         if lemma:
             self.lemma_label.set_label(lemma)
-            self.lemma_label.show()
+            self.lemma_box.show()
         else:
-            self.lemma_label.hide()
+            self.lemma_box.hide()
 
     def set_morph(self, word, morph):
         self.word_label.set_label(word)
