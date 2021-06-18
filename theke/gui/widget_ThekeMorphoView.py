@@ -10,22 +10,8 @@ import theke.morphology
 class ThekeMorphoView():
     def __init__(self, builder):
         self.morphoView_frame = builder.get_object("morphoView_frame")
-
-        # #####
-        # TODO: Déplacer tout ce qui suit dans le fichier glade
-        hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, margin_start=10, margin_bottom=5)
-        hbox.set_homogeneous(False)
-
-        self.label_morph_raw = Gtk.Label(label="-", xalign=0)
-        self.label_morph_raw.set_selectable(True)
-        hbox.pack_start(self.label_morph_raw, False, False, 0)
-
-        self.label_morph_parsed = Gtk.Label(xalign=0, margin_left=10)
-        hbox.pack_start(self.label_morph_parsed, False, False, 0)
-
-        self.morphoView_frame.add(hbox)
-        self.morphoView_frame.show_all()
-        # #####
+        self.label_morph_raw = builder.get_object("morphoView_rawMorph")
+        self.label_morph_parsed = builder.get_object("morphoView_parsedMorph")
 
     def set_morph(self, word, morph):
         analysis = theke.morphology.parse(morph)
