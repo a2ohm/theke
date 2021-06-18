@@ -69,12 +69,12 @@ class ThekeToolsView():
     def reduce(self):
         self.isReduce = True
         self.toolView_tools.hide()
-        self.reduceExpand_image.set_from_icon_name("go-up-symbolic", Gtk.IconSize.BUTTON)
+        self.reduceExpand_image.set_from_icon_name("pan-up-symbolic", Gtk.IconSize.BUTTON)
     
     def expand(self):
         self.isReduce = False
         self.toolView_tools.show()
-        self.reduceExpand_image.set_from_icon_name("go-down-symbolic", Gtk.IconSize.BUTTON)
+        self.reduceExpand_image.set_from_icon_name("pan-down-symbolic", Gtk.IconSize.BUTTON)
 
     def handle_reduceExpand_button_clicked(self, button):
         if self.isReduce:
