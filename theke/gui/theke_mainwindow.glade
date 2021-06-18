@@ -179,7 +179,7 @@ Author: a2ohm
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">1</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                         <child>
@@ -193,7 +193,7 @@ Author: a2ohm
                               <object class="GtkImage" id="searchPane_reduceExpand_image">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="icon-name">go-next-symbolic</property>
+                                <property name="icon-name">pan-end-symbolic</property>
                               </object>
                             </child>
                           </object>
@@ -201,6 +201,28 @@ Author: a2ohm
                             <property name="expand">False</property>
                             <property name="fill">True</property>
                             <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="searchPane_close_button">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="focus-on-click">False</property>
+                            <property name="receives-default">True</property>
+                            <property name="relief">none</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="icon-name">window-close-symbolic</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="pack-type">end</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                       </object>
@@ -383,7 +405,7 @@ Author: a2ohm
                           <object class="GtkImage" id="toolsView_reduceExpand_image">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="icon-name">go-down-symbolic</property>
+                            <property name="icon-name">pan-down-symbolic</property>
                           </object>
                         </child>
                       </object>

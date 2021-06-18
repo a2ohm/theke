@@ -29,6 +29,7 @@ class ThekeSearchPane(GObject.Object):
         self.searchPane_resultsWindow = builder.get_object("searchPane_resultsWindow")
         self.searchPane_title = builder.get_object("searchPane_title")
         self.results_treeView = builder.get_object("searchPanel_resultsTreeView")
+        self.close_button = builder.get_object("searchPane_close_button")
         self.reduceExpand_button = builder.get_object("searchPane_reduceExpand_button")
         self.reduceExpand_image = builder.get_object("searchPane_reduceExpand_image")
 
@@ -39,6 +40,7 @@ class ThekeSearchPane(GObject.Object):
 
         self.results_treeView.get_selection().connect("changed", self.handle_results_selection_changed)
         self.reduceExpand_button.connect("clicked", self.handle_reduceExpand_button_clicked)
+        self.close_button.connect("clicked", self.handle_close_button_clocked)
 
     def search_start(self, moduleName, keyword):
         self.emit("start", moduleName, keyword)
@@ -62,13 +64,22 @@ class ThekeSearchPane(GObject.Object):
         self.isReduce = False
         self.searchPane_resultsWindow.show()
         self.searchPane_title.show()
-        self.reduceExpand_image.set_from_icon_name("go-next-symbolic", Gtk.IconSize.BUTTON)
+        self.close_button.show()
+        self.reduceExpand_image.set_from_icon_name("pan-end-symbolic", Gtk.IconSize.BUTTON)
+
+    def hide(self):
+        self.searchPane_frame.hide()
+        self.isReduce = True
 
     def reduce(self):
         self.isReduce = True
         self.searchPane_resultsWindow.hide()
         self.searchPane_title.hide()
-        self.reduceExpand_image.set_from_icon_name("go-previous-symbolic", Gtk.IconSize.BUTTON)
+        self.close_button.hide()
+        self.reduceExpand_image.set_from_icon_name("pan-start-symbolic", Gtk.IconSize.BUTTON)
+
+    def handle_close_button_clocked(self, button):
+        self.hide()
 
     def handle_reduceExpand_button_clicked(self, button):
         if self.isReduce:
