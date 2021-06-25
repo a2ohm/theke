@@ -46,7 +46,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _top_box.pack_end(self.historybar, True, True, 1)
 
         # CONTENT
-        self.contentPane = builder.get_object("contentPane")
+        _contentPane = builder.get_object("contentPane")
 
         #   ... TOC
         self.tocPanel_frame = builder.get_object("tocPanel_frame")
@@ -87,13 +87,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
-        self.contentPane.connect("notify::max-position", self.handle_maxPosition_changed)
+        _contentPane.connect("notify::max-position", self.handle_maxPosition_changed)
         
         # BOTTOM
-        bottomBox = builder.get_object("bottomBox")
+        _bottomBox = builder.get_object("bottomBox")
         #   ... status bar
         self.statusbar = Gtk.Statusbar()
-        bottomBox.pack_start(self.statusbar, False, True, 0)
+        _bottomBox.pack_start(self.statusbar, False, True, 0)
 
         # Set the focus on the webview
         self.webview.grab_focus()
