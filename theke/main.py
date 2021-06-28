@@ -3,6 +3,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gio
 from gi.repository import Gtk
+from gi.repository import GLib
 
 import Sword
 
@@ -12,22 +13,41 @@ import theke.templates
 import theke.navigator
 import theke.gui.mainwindow
 
+import logging
+logger = logging.getLogger(__name__)
+
 class ThekeApp(Gtk.Application):
     def __init__(self):
+        logger.debug("ThekeApp - Create a new instance")
+
         Gtk.Application.__init__(self,
                                  application_id="com.github.a2ohm.theke",
                                  flags=Gio.ApplicationFlags.FLAGS_NONE)
+
+        self.add_main_option(
+            "debug",
+            ord("d"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.NONE,
+            "Print debug messages",
+            None,
+        )
 
         self.window = None
         self.navigator = theke.navigator.ThekeNavigator()
 
     def do_startup(self):
+        logger.debug("ThekeApp - Do startup")
+
         Gtk.Application.do_startup(self)
 
         self.SwordLibrary = theke.sword.SwordLibrary()
 
     def do_activate(self):
+        logger.debug("ThekeApp - Do activate")
+
         if not self.window:
+            logger.debug("ThekeApp - Create a new window")
             self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator, application=self, title="Theke")
 
         self.window.show_all()
