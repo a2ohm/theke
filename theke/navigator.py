@@ -139,7 +139,7 @@ class ThekeNavigator(GObject.Object):
 
         elif uri.path[1] == theke.uri.SWORD_SIGNAL:
             logger.debug("ThekeNavigator - Catch a sword signal: {}".format(uri))
-            
+
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)
                 html = ""
@@ -160,7 +160,7 @@ class ThekeNavigator(GObject.Object):
         defaultSource = self.ref.source if self.ref else sword_default_module
         ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
 
-        mod = theke.sword.SwordBible(ref.source)
+        mod = theke.sword.SwordLibrary().get_bible_module(ref.source)
 
         if self.ref is None or self.ref.type == theke.reference.TYPE_UNKNOWN or ref.bookName != self.ref.bookName:
             self.set_property("toc", mod.get_TOC(ref.bookName))
@@ -190,7 +190,7 @@ class ThekeNavigator(GObject.Object):
             moduleName = uri.path[2]
             parID = 'Couverture'
             
-            mod = theke.sword.SwordBook(moduleName)
+            mod = theke.sword.SwordLibrary().get_book_module(moduleName)
             text = mod.get_paragraph(parID)
 
             self.set_property("shortTitle", '{}'.format(mod.get_short_repr()))
@@ -198,7 +198,7 @@ class ThekeNavigator(GObject.Object):
             moduleName = uri.path[2]
             parID = uri.path[3]
 
-            mod = theke.sword.SwordBook(moduleName)
+            mod = theke.sword.SwordLibrary().get_book_module(moduleName)
             text = mod.get_paragraph_and_siblings(parID)
 
             self.set_property("shortTitle", '{} {}'.format(mod.get_short_repr(), parID))

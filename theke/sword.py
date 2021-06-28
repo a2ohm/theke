@@ -12,6 +12,9 @@ import re
 import theke.uri
 import theke.tableofcontent
 
+import logging
+logger = logging.getLogger(__name__)
+
 MODTYPE_BIBLES = Sword.SWMgr().MODTYPE_BIBLES
 MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
@@ -19,25 +22,39 @@ pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
 class SwordLibrary():
     def __init__(self, markup = Sword.FMT_HTML):
+        logger.debug("SwordLibrary - Create a new instance")
         self.markup = Sword.MarkupFilterMgr(markup)
         self.markup.thisown = False
 
         self.mgr = Sword.SWMgr(self.markup)
 
     def get_modules(self):
-        return self.mgr.getModules().items()
+        for moduleName in self.mgr.getModules():
+            yield moduleName, SwordModule(str(moduleName), self.mgr)
 
     def get_module(self, moduleName):
-        return self.mgr.getModule(moduleName)
+        return SwordModule(moduleName, self.mgr)
+
+    def get_bible_module(self, moduleName):
+        self.mgr.setGlobalOption("Strong's Numbers", "On")
+        self.mgr.setGlobalOption("Cross-references", "Off")
+        self.mgr.setGlobalOption("Lemmas", "On")
+        self.mgr.setGlobalOption("Morphological Tags", "On")
+        self.mgr.setGlobalOption("Hebrew Vowel Points", "On")
+
+        return SwordBible(moduleName, self.mgr)
 
     def get_book_module(self, moduleName):
-        return Sword.SWGenBook_castTo(self.get_module(moduleName))
+        return SwordBook(moduleName, self.mgr)
 
 class SwordModule():
-    def __init__(self, moduleName):
+    def __init__(self, moduleName, mgr):
         self.moduleName = moduleName
-        self.library = SwordLibrary()
-        self.mod = self.library.get_module(moduleName)
+        self.mod = mgr.getModule(moduleName)
+
+        # Trick: keep a reference to the SwordManager
+        #        otherwise, the Sword library crashes
+        self.mgr = mgr
 
         if not self.mod:
             raise ValueError("Unknown module: {}.".format(moduleName))
@@ -60,19 +77,24 @@ class SwordModule():
     def get_short_repr(self):
         return self.mod.getName()
 
+    def get_type(self):
+        return self.mod.getType()
+
+    def get_version(self):
+        return self.mod.getConfigEntry("Version")
+
+    def has_entry(self, key):
+        return self.mod.hasEntry(key)
+
 class SwordBible(SwordModule):
-    def __init__(self, moduleName):
-        super().__init__(moduleName)
+    def __init__(self, *argv, **kwargs):
+        logger.debug("SwordBible - Create a new instance")
+
+        super().__init__(*argv, **kwargs)
 
         self.key = Sword.VerseKey_castTo(self.mod.getKey())
         self.key.setPersist(True)
         self.key.setVersificationSystem(self.mod.getConfigEntry("Versification"))
-
-        self.library.mgr.setGlobalOption("Strong's Numbers", "On")
-        self.library.mgr.setGlobalOption("Cross-references", "Off")
-        self.library.mgr.setGlobalOption("Lemmas", "On")
-        self.library.mgr.setGlobalOption("Morphological Tags", "On")
-        self.library.mgr.setGlobalOption("Hebrew Vowel Points", "On")
 
     def get_verse(self, bookName, chapter, verse):
         """
@@ -123,9 +145,12 @@ class SwordBible(SwordModule):
         return toc
 
 class SwordBook(SwordModule):
-    def __init__(self, moduleName):
-        super().__init__(moduleName)
+    def __init__(self, *argv, **kwargs):
+        logger.debug("SwordBook - Create a new instance")
 
+        super().__init__(*argv, **kwargs)
+
+        self.mod = Sword.SWGenBook_castTo(self.mod)
         self.key = Sword.TreeKey_castTo(self.mod.getKey())
 
     def get_short_repr(self):
@@ -197,7 +222,7 @@ class SwordBook(SwordModule):
             pass
 
 def bibleSearch_keyword_async(moduleName, keyword, callback):
-    mod = SwordBible(moduleName)
+    mod = SwordLibrary().get_bible_module(moduleName)
     
     def do_search():
         rawResults = mod.mod.doSearch(keyword)
