@@ -7,8 +7,13 @@ from gi.repository import WebKit2
 
 import theke.uri
 
+import logging
+logger = logging.getLogger(__name__)
+
 class ThekeWebView(WebKit2.WebView):
     def __init__(self, navigator, *args, **kwargs):
+        logger.debug("ThekeWebView - Create a new instance")
+        
         WebKit2.WebView.__init__(self, *args, **kwargs)
 
         self.navigator = navigator

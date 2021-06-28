@@ -12,6 +12,9 @@ import theke.sword
 import theke.templates
 import theke.reference
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Config
 # ... for sword
 sword_default_module = "MorphGNT"
@@ -50,6 +53,8 @@ class ThekeNavigator(GObject.Object):
 
 
     def __init__(self, *args, **kwargs):
+        logger.debug("ThekeNavigator - Create a new instance")
+
         super().__init__(*args, **kwargs)
 
         self.webview = None
@@ -66,6 +71,8 @@ class ThekeNavigator(GObject.Object):
         @parm uri: (string or ThekeUri)
         """
         if reload or uri != self.uri:
+            logger.debug("ThekeNavigator - Goto: {}".format(uri))
+
             if isinstance(uri, str):
                 self.webview.load_uri(uri)
             elif isinstance(uri, theke.uri.ThekeURI):
@@ -91,6 +98,9 @@ class ThekeNavigator(GObject.Object):
         @param uri: (ThekeUri)
         @param request: a WebKit2.URISchemeRequest
         """
+        
+        logger.debug("ThekeNavigator - Load as a theke uri: {}".format(uri))
+
         if uri.path[0] == '':
             # Case 1.
             f = Gio.File.new_for_path('./assets' + '/'.join(uri.path))
@@ -118,13 +128,18 @@ class ThekeNavigator(GObject.Object):
         @param uri: (ThekeUri) uri of the sword document (eg. sword:/bible/John 1:1?source=MorphGNT)
         @param request: (WebKit2.URISchemeRequest)
         '''
+
         if uri.path[1] == theke.uri.SWORD_BIBLE:
+            logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): {}".format(uri))
             html = self.load_sword_bible(uri)
 
         elif uri.path[1] == theke.uri.SWORD_BOOK:
+            logger.debug("ThekeNavigator - Load as a sword uri (BOOK): {}".format(uri))
             html = self.load_sword_book(uri)
 
         elif uri.path[1] == theke.uri.SWORD_SIGNAL:
+            logger.debug("ThekeNavigator - Catch a sword signal: {}".format(uri))
+            
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)
                 html = ""

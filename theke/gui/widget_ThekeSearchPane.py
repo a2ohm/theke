@@ -10,6 +10,9 @@ import theke.sword
 
 from collections import namedtuple
 
+import logging
+logger = logging.getLogger(__name__)
+
 resultData = namedtuple('resultData', ['reference'])
 
 class ThekeSearchPane(GObject.Object):
@@ -23,6 +26,8 @@ class ThekeSearchPane(GObject.Object):
         }
 
     def __init__(self, builder, *args, **kwargs):
+        logger.debug("ThekeSearchPane - Create a new instance")
+
         super().__init__(*args, **kwargs)
 
         self.searchPane_frame = builder.get_object("searchFrame")
@@ -44,15 +49,19 @@ class ThekeSearchPane(GObject.Object):
 
     def search_start(self, moduleName, keyword):
         self.emit("start", moduleName, keyword)
+        logger.debug("ThekeSearchPane - Start a search: {} in {}".format(keyword, moduleName))
         theke.sword.bibleSearch_keyword_async(moduleName, keyword, self.search_callback)
 
     def search_callback(self, results):
+        logger.debug("ThekeSearchPane - Load search results in the SearchPane")
+
         self.results = theke.searchResults.ThekeSearchResults()
         self.results_treeView.set_model(self.results)
 
         for bookName, rawReferences in results.items():
             self.results.add(bookName, rawReferences)
 
+        logger.debug("ThekeSearchPane - End of the search")
         self.emit("finish")
 
     def show(self):
