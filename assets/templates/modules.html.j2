@@ -36,8 +36,27 @@
             {% endfor %}
         </table>
         {% else %}
-        <p class="center">⚠️ <em>Aucun module n'est installé.</em> ⚠️</p>
+        <p class="center">⚠️ <em>Aucun module biblique n'est installé.</em> ⚠️</p>
         <p>Vous trouverez dans l'<a href="theke:help#modules">aide</a> quelques indications sur l'installation des modules.</p>
+        {% endif %}
+
+        {% if BookMods %}
+        <h3>Autres modules</h3>
+        <p>Tableau des autres modules installés sur votre ordinateur et qui sont accessibles depuis Theke.</p>
+        
+        <table>
+            <tr>
+                <th>Nom</th>
+                <th>Description</th>
+            </tr>
+            
+            {% for mod in BookMods %}
+            <tr>
+                <td>{{ mod.name }}</td>
+                <td>{{ mod.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
         {% endif %}
 
     </body>

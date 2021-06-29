@@ -63,6 +63,7 @@ class ThekeApp(Gtk.Application):
 
         # ... load the list of modules
         bible_mods = thekeIndex.list_modules(moduleType = theke.sword.MODTYPE_BIBLES)
+        book_mods = thekeIndex.list_modules(moduleType = theke.sword.MODTYPE_GENBOOKS)
 
         # ... populate the gotobar autocompletion list
         for documentData in thekeIndex.list_documents():
@@ -74,7 +75,7 @@ class ThekeApp(Gtk.Application):
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})
-        theke.templates.build_template('modules', {'BibleMods': bible_mods})
+        theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
 
         # Load the main screen
         uri = theke.uri.parse("theke:welcome", isEncoded=True)
