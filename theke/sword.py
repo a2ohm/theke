@@ -30,7 +30,7 @@ class SwordLibrary():
 
     def get_modules(self):
         for moduleName in self.mgr.getModules():
-            yield moduleName, SwordModule(str(moduleName), self.mgr)
+            yield str(moduleName), SwordModule(str(moduleName), self.mgr)
 
     def get_module(self, moduleName):
         return SwordModule(moduleName, self.mgr)
