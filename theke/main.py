@@ -5,9 +5,8 @@ from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import GLib
 
-import Sword
-
 import theke.sword
+import theke.index
 import theke.uri
 import theke.templates
 import theke.navigator
@@ -43,7 +42,9 @@ class ThekeApp(Gtk.Application):
 
         Gtk.Application.do_startup(self)
 
-        self.SwordLibrary = theke.sword.SwordLibrary()
+        # Index sword modules
+        indexBuilder = theke.index.ThekeIndexBuilder()
+        indexBuilder.build(force = False)
 
     def do_activate(self):
         """Shows the default first window of the application (like a new document).
@@ -57,28 +58,15 @@ class ThekeApp(Gtk.Application):
 
         self.window.show_all()
 
-        # Parse Sword modules
-        bible_mods = []
+        # From the index ...
+        thekeIndex = theke.index.ThekeIndex()
 
-        for mod_name, mod in self.SwordLibrary.get_modules():
-            if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-                bible_mods.append({'name': mod_name, 'type': mod.get_type(), 'description': mod.get_description()})
-                
-                # Register books present in this Bible source into the GotoBar
-                # TODO: Y a-t-il une façon plus propre de faire la même chose ?
-                vk = Sword.VerseKey()
-                
-                for itestament in [1, 2]:
-                    vk.setTestament(itestament)
-                    for ibook in range(1, vk.getBookMax() +1):
-                        vk.setBook(ibook)
-                        if mod.has_entry(vk):
-                            self.window.gotobar.autoCompletionlist.append((vk.getBookName(), mod.get_name(), 'powder blue'))
+        # ... load the list of modules
+        bible_mods = thekeIndex.list_modules(moduleType = theke.sword.MODTYPE_BIBLES)
 
-            elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-                # Only works for gen books
-                #tkey = Sword.TreeKey_castTo(mod.getKey())
-                pass     
+        # ... populate the gotobar autocompletion list
+        for documentData in thekeIndex.list_documents():
+            self.window.gotobar.autoCompletionlist.append((documentData.name, documentData.moduleName, 'powder blue'))
 
         # Register application screens in the GotoBar
         for inAppUriKey in theke.uri.inAppURI.keys():
