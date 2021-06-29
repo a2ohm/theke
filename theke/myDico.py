@@ -12,7 +12,7 @@ class myDico:
     def __init__(self) -> None:
         logger.debug("myDico - Create a new instance")
 
-        logger.debug("myDico - Open the database file")
+        logger.debug("myDico - Connect to the database")
         self.con = sqlite3.connect('data/myDico.tdic')
 
         logger.debug("myDico - Initiate the database (if necessary)")
