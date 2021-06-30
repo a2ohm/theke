@@ -49,6 +49,7 @@ class Reference():
 
     def __init__(self, rawReference, **kwargs):
         self.reference = get_standard_reference(rawReference)
+        self.documentName = ""
         self.source = kwargs.get('source', None)
         self.tags = kwargs.get('tags', [])
         self.type = TYPE_UNKNOWN
@@ -71,6 +72,7 @@ class BiblicalReference(Reference):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)
+        self.documentName = self.bookName
         self.type = TYPE_BIBLE
 
     def get_repr(self):
