@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3.dbapi2 import Cursor
-from typing import Any
+from typing import Any, Dict
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,13 +36,22 @@ class ThekeIndex:
     def commit(self) -> None:
         self.con.commit()
 
-    def get_document_id(self, documentName) -> Any:
+    def get_document_id(self, documentName) -> int:
         rawId = self.con.execute("""SELECT id
             FROM documents
             WHERE swordName=?;""",
             (documentName,)).fetchone()
 
-        return None if rawId is None else rawId[0]
+        return -1 if rawId is None else rawId[0]
+
+    def get_document_nbOfSections(self, documentName) -> int:
+        rawNbOfSections = self.con.execute("""SELECT nbOfSections
+            FROM documentDetails
+            INNER JOIN documents ON documentDetails.id_document = documents.id
+            WHERE documents.swordName=?;""",
+            (documentName,)).fetchone()
+
+        return -1 if rawNbOfSections is None else rawNbOfSections[0]
 
     def get_module_version(self, moduleName) -> str:
         """Return the version a of sword module
@@ -100,6 +109,13 @@ class ThekeIndexBuilder:
             FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
             );""")
 
+        # ... documentDetails
+        self.index.execute("""CREATE TABLE IF NOT EXISTS documentDetails (
+            id_document integer NOT NULL,
+            nbOfSections int NOT NULL,
+            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
+            );""")
+
         # ... modules
         self.index.execute("""CREATE TABLE IF NOT EXISTS modules (
             id integer PRIMARY KEY,
@@ -154,6 +170,7 @@ class ThekeIndexBuilder:
     def index_module(self, mod) -> None:
         logger.debug("ThekeIndexBuilder - Index {}".format(mod.get_name()))
 
+        # Add the module in the index
         moduleId = self.index.execute_returning_id("""INSERT INTO modules (name, type, version)
                 VALUES(?, ?, ?) 
                 ON CONFLICT(name)
@@ -163,13 +180,15 @@ class ThekeIndexBuilder:
         if moduleId is None:
             raise sqlite3.Error("Fails to index the module {}".format(mod.get_name()))
 
+        # Add the module description in the index
         self.index.execute_returning_id("""INSERT INTO moduleDescriptions (id_module, description)
                 VALUES(?, ?);
                 """,
             (moduleId, mod.get_description()))
 
         self.index.commit()
-            
+        
+        # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
             self.index_biblical_module(mod, moduleId)
 
@@ -182,7 +201,7 @@ class ThekeIndexBuilder:
     def index_biblical_module(self, mod, moduleId) -> None:
         logger.debug("ThekeIndexBuilder - Index {} as a Bible (id: {})".format(mod.get_name(), moduleId))
 
-        # Register books present in this Bible source into the GotoBar
+        # Index each of the biblical books of this module
         # TODO: Y a-t-il une façon plus propre de faire la même chose ?
         vk = Sword.VerseKey()
         
@@ -198,11 +217,15 @@ class ThekeIndexBuilder:
 
                     documentId = self.index.get_document_id(vk.getBookName())
 
-                    if documentId is None:
+                    if documentId < 0:
                         raise sqlite3.Error("Entry not found, even if it should be there...")
 
                     self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_module (id_document, id_module)
                             VALUES(?, ?);""",
                         (documentId, moduleId))
+
+                    self.index.execute("""INSERT OR IGNORE INTO documentDetails (id_document, nbOfSections)
+                            VALUES(?, ?);""",
+                            (documentId, vk.getChapterMax()))
         
         self.index.commit()
