@@ -54,7 +54,7 @@ Il ne vous reste plus qu'à télécharger le code source de Theke.
 
 ### Dépôts Sword
 
-Theke ne sait pas encore télécharger et installer les modules Sword. Il faut passer par un logiciel tiers pour le faire (ex. [Xiphos](https://xiphos.org/)).
+Theke ne sait pas encore télécharger et installer les modules Sword. Il faut passer par un logiciel tiers pour le faire (ex. [Xiphos](https://xiphos.org/)). Vous trouverez les informations nécessaires dans la page d'aide de Theke.
 
 **Modules d'intérêts.**
 
