@@ -8,9 +8,11 @@ from gi.repository import GObject
 import re
 
 import theke.uri
+import theke.index
 import theke.sword
 import theke.templates
 import theke.reference
+import theke.tableofcontent
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,6 +41,7 @@ class ThekeNavigator(GObject.Object):
 
     uri = GObject.Property(type=object)
     ref = GObject.Property(type=object)
+    sources = GObject.Property(type=object)
 
     title = GObject.Property(type=str, default="")
     shortTitle = GObject.Property(type=str, default="")
@@ -122,8 +125,8 @@ class ThekeNavigator(GObject.Object):
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
             request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
-    def load_sword_uri(self, uri, request):
-        '''Load an sword document given its uri and return it as a html string.
+    def load_sword_uri(self, uri, request) -> None:
+        '''Load an sword document given its uri and push it as a stream to request.
 
         @param uri: (ThekeUri) uri of the sword document (eg. sword:/bible/John 1:1?source=MorphGNT)
         @param request: (WebKit2.URISchemeRequest)
@@ -153,30 +156,52 @@ class ThekeNavigator(GObject.Object):
         request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def load_sword_bible(self, uri):
-        # Get the reference of the biblical document from the uri
-        # The default source is, by order:
-        #   - the source of the current document ;
-        #   - a hardcoded default source.
-        defaultSource = self.ref.source if self.ref else sword_default_module
-        ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
-
-        mod = theke.sword.SwordLibrary().get_bible_module(ref.source)
-
-        if self.ref is None or self.ref.type == theke.reference.TYPE_UNKNOWN or ref.bookName != self.ref.bookName:
-            self.set_property("toc", mod.get_TOC(ref.bookName))
-        
+        # Update the context
         self.set_property("uri", uri)
+
+        #   1. Get sources of the document to display
+        #   Sources are choosen, by order:
+        #       - from the uri
+        #       - from the current context
+        #       - from a hardcoded default source
+        sources = uri.params.get('sources', None)
+        if sources is not None:
+            self.set_property("sources", sources.split(";"))
+        elif self.sources is None:
+            self.set_property("sources", [sword_default_module])
+
+        #   2. Get metadata from the reference
+        ref = theke.reference.get_reference_from_uri(uri)
+
+        if self.ref is None or ref.documentName != self.ref.documentName:
+            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
+
         self.set_property("ref", ref)
         self.set_property("title", ref.get_repr())
         self.set_property("shortTitle", ref.get_short_repr())
-        self.set_property("isMorphAvailable", "OSISMorph" in mod.get_global_option_filter())
+
+        documents = []
+        verses = []
+        isMorphAvailable = False
+
+        for source in self.sources:
+            mod = theke.sword.SwordLibrary().get_bible_module(source)
+            documents.append({
+                'lang' : mod.get_lang(),
+                'source': source
+            })
+            verses.append(mod.get_chapter(ref.bookName, ref.chapter))
+
+            isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
+        
+        self.set_property("isMorphAvailable", isMorphAvailable)
         self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
-            'lang': mod.get_lang(),
-            'ref': ref,
-            'verses': mod.get_chapter(ref.bookName, ref.chapter)
-            })
+            'documents': documents,
+            'verses': verses,
+            'ref': ref
+        })
 
     def load_sword_book(self, uri):
         """Load a sword book.

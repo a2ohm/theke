@@ -1,9 +1,25 @@
+.content-row {
+    display: block;
+    width: 100%;
+}
+
+.content-col {
+    display: inline-block;
+    vertical-align: top;
+    margin: 0;
+}
+
 #content sup {
     color: #f00;
 }
 
-#content p.em {
+#content .em {
     background-color: #84adff45;
+}
+
+#content h2 {
+    margin-bottom: 0.5em;
+    color: rgb(84, 84, 84);
 }
 
 #content p {

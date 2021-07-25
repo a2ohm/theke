@@ -5,15 +5,35 @@
         <link rel="stylesheet" href="theke:/bible.css" type="text/css">
 
         <title>{{ ref.bookName }} {{ ref.chapter }}</title>
+
+        <style>
+            .content-col {width: {{ 100//documents|length - 5 }}%}
+        </style>
     </head>
+
     <body>
         <h1>{{ ref.bookName }} {{ ref.chapter }}</h1>
 
-        <bdi id="content" lang="{{ lang }}">
-        {% for verse in verses %}
-        <p  id="verse-{{ loop.index }}"><sup>{{ loop.index }}</sup>{{ verse }}</p>
+        <div id="content">
+
+        <div class='content-row'>
+        {% for doc in documents %}
+            <h2 class='content-col'>{{ doc.source }}</h2>
         {% endfor %}
-        </bdi>
+        </div>
+
+        {% for verse in zip(*verses) %}
+        {% set outer_loop = loop %}
+        <div id="verse-{{ outer_loop.index }}" class='content-row'>
+        {% for v in verse %}
+            <div class='content-col'>
+            <bdi lang="{{ documents[loop.index0].lang }}">
+                <p><sup>{{ outer_loop.index }}</sup>{{ v }}</p>
+            </bdi></div>
+        {% endfor %}
+        </div>
+        {% endfor %}
+        </div>
 
         <script src="theke:/bible.js"></script>
     </body>

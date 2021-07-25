@@ -13,6 +13,7 @@ env = Environment(
     loader = FileSystemLoader(templates_path),
     autoescape = select_autoescape(['html', 'xml'])
 )
+env.globals.update(zip=zip)
 
 def build_template(template_name, template_data):
     '''Build an asset file from its template.
