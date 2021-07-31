@@ -12,6 +12,7 @@ from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
+from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 class ThekeWindow(Gtk.ApplicationWindow):
@@ -44,9 +45,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         _top_box.pack_end(self.gotobar, False, False, 1)
         _top_box.pack_end(self.historybar, True, True, 1)
-
-        # CONTENT
-        _contentPane = builder.get_object("contentPane")
 
         #   ... TOC
         self.tocPanel_frame = builder.get_object("tocPanel_frame")
@@ -87,13 +85,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
         self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
-        _contentPane.connect("notify::max-position", self.handle_maxPosition_changed)
-        
         # BOTTOM
-        _bottomBox = builder.get_object("bottomBox")
         #   ... status bar
-        self.statusbar = Gtk.Statusbar()
-        _bottomBox.pack_start(self.statusbar, False, True, 0)
+        self.statusbar = builder.get_object("Statusbar")
+        #   ... sources bar
+        self.sourcesBar = ThekeSourcesBar(builder)
+        self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
         # Set the focus on the webview
         self.webview.grab_focus()
@@ -113,6 +110,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #TOFIX. Suppose that the content of the gotobar is a valid biblical reference
         ref = theke.reference.Reference(entry.get_text().strip(), source = self.selectedSource)
         self.navigator.goto_ref(ref)
+
+    def handle_availableSources_updated(self, object, param) -> None:
+        self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
@@ -134,6 +134,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Hide the morphoView, if necessary
             if not self.navigator.isMorphAvailable:
                 self.toolsView.hide()
+
+            # Show the sourcesBar, if necessary
+            if self.navigator.ref and self.navigator.ref.type == theke.reference.TYPE_BIBLE:
+                self.sourcesBar.show()
+                self.statusbar.hide()
+            else:
+                self.sourcesBar.hide()
+                self.statusbar.show()
 
             if self.navigator.ref and self.navigator.ref.type == theke.reference.TYPE_BIBLE and self.navigator.ref.verse is not None:
                 self.webview.scroll_to_verse(self.navigator.ref.verse)
