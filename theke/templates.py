@@ -6,8 +6,8 @@ Build and manage templates.
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 # Config
-templates_path = '../theke/assets/templates'
-assets_path = '../theke/assets'
+templates_path = './assets/templates'
+assets_path = './assets'
 
 env = Environment(
     loader = FileSystemLoader(templates_path),
