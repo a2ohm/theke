@@ -91,6 +91,14 @@ class ThekeNavigator(GObject.Object):
         """
         self.goto_uri(ref.get_uri())
 
+    def add_source(self, sourceName):
+        if sourceName not in self.sources:
+            logger.debug("ThekeNavigator - Add source {}".format(sourceName))
+
+            self.sources += [sourceName]
+            self.uri.params["sources"] = ";".join(self.sources)
+            self.goto_uri(self.uri, reload = True)
+
     def load_theke_uri(self, uri, request):
         """Return a stream to the file pointed by the theke uri.
         Case 1. The uri gives a path to a file
@@ -135,7 +143,9 @@ class ThekeNavigator(GObject.Object):
 
         if uri.path[1] == theke.uri.SWORD_BIBLE:
             logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): {}".format(uri))
-            html = self.load_sword_bible(uri)
+            if uri != self.uri:
+                self.load_sword_bible_properties(uri)
+            html = self.load_sword_bible_content()
 
         elif uri.path[1] == theke.uri.SWORD_BOOK:
             logger.debug("ThekeNavigator - Load as a sword uri (BOOK): {}".format(uri))
@@ -156,8 +166,10 @@ class ThekeNavigator(GObject.Object):
 
         request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
-    def load_sword_bible(self, uri):
-        # Update the context
+    def load_sword_bible_properties(self, uri):
+        """Update navigator properties from the uri.
+        """
+        logger.debug("ThekeNavigator - Update local properties")
         self.set_property("uri", uri)
 
         #   1. Get sources of the document to display
@@ -182,6 +194,33 @@ class ThekeNavigator(GObject.Object):
         self.set_property("title", ref.get_repr())
         self.set_property("shortTitle", ref.get_short_repr())
 
+    def load_sword_bible_content(self):
+        # self.set_property("uri", uri)
+
+        # #   1. Get sources of the document to display
+        # #   Sources are choosen, by order:
+        # #       - from the uri
+        # #       - from the current context
+        # #       - from a hardcoded default source
+        # sources = uri.params.get('sources', None)
+        # if sources is not None:
+        #     self.set_property("sources", sources.split(";"))
+        # elif self.sources is None:
+        #     self.set_property("sources", [sword_default_module])
+
+        # #   2. Get metadata from the reference
+        # ref = theke.reference.get_reference_from_uri(uri)
+
+        # if self.ref is None or ref.documentName != self.ref.documentName:
+        #     self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
+
+        # self.set_property("ref", ref)
+        # self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
+        # self.set_property("title", ref.get_repr())
+        # self.set_property("shortTitle", ref.get_short_repr())
+
+        logger.debug("ThekeNavigator - Load content")
+
         documents = []
         verses = []
         isMorphAvailable = False
@@ -192,7 +231,7 @@ class ThekeNavigator(GObject.Object):
                 'lang' : mod.get_lang(),
                 'source': source
             })
-            verses.append(mod.get_chapter(ref.bookName, ref.chapter))
+            verses.append(mod.get_chapter(self.ref.bookName, self.ref.chapter))
 
             isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
         
@@ -202,7 +241,7 @@ class ThekeNavigator(GObject.Object):
         return theke.templates.render('bible', {
             'documents': documents,
             'verses': verses,
-            'ref': ref
+            'ref': self.ref
         })
 
     def load_sword_book(self, uri):
@@ -298,14 +337,14 @@ class ThekeNavigator(GObject.Object):
             # Catch a navigation action to a biblical reference where only the verse number change
             if (self.ref and
                 self.ref.type == theke.reference.TYPE_BIBLE and
-                self.ref.source == ref.source and
                 self.ref.bookName == ref.bookName and
-                self.ref.chapter == ref.chapter):
+                self.ref.chapter == ref.chapter and
+                self.ref.verse != ref.verse):
 
-                self.set_property("uri", uri)
-                self.set_property("ref", ref)
-                self.set_property("title", ref.get_repr())
-                self.set_property("shortTitle", ref.get_short_repr())
+                # self.set_property("uri", uri)
+                # self.set_property("ref", ref)
+                # self.set_property("title", ref.get_repr())
+                # self.set_property("shortTitle", ref.get_short_repr())
 
                 decision.ignore()
                 self.webview.scroll_to_verse(ref.verse)

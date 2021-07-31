@@ -90,6 +90,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.statusbar = builder.get_object("Statusbar")
         #   ... sources bar
         self.sourcesBar = ThekeSourcesBar(builder)
+        self.sourcesBar.connect("source-requested", self.handle_source_requested)
+        self.navigator.connect("notify::sources", self.handle_sources_updated)
         self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
         # Set the focus on the webview
@@ -188,6 +190,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.set_strongs(self.navigator.strong)
 
         self.toolsView.show()
+
+    def handle_source_requested(self, object, sourceName):
+        self.navigator.add_source(sourceName)
+
+    def handle_sources_updated(self, object, params) -> None:
+        self.sourcesBar.updateSources(self.navigator.sources)
 
     def handle_toc_selection_changed(self, tree_selection):
         model, treeIter = tree_selection.get_selected()
