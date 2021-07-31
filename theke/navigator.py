@@ -42,6 +42,7 @@ class ThekeNavigator(GObject.Object):
     uri = GObject.Property(type=object)
     ref = GObject.Property(type=object)
     sources = GObject.Property(type=object)
+    availableSources = GObject.Property(type=object)
 
     title = GObject.Property(type=str, default="")
     shortTitle = GObject.Property(type=str, default="")
@@ -177,6 +178,7 @@ class ThekeNavigator(GObject.Object):
             self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
 
         self.set_property("ref", ref)
+        self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
         self.set_property("title", ref.get_repr())
         self.set_property("shortTitle", ref.get_short_repr())
 
@@ -238,6 +240,8 @@ class ThekeNavigator(GObject.Object):
 
         self.set_property("uri", uri)
         self.set_property("ref", None)
+        self.set_property("availableSources", None)
+
         self.set_property("toc", None)
         self.set_property("title", mod.get_name())
         self.set_property("isMorphAvailable", False)
@@ -255,6 +259,7 @@ class ThekeNavigator(GObject.Object):
 
         self.set_property("uri", uri)
         self.set_property("ref", None)
+        self.set_property("availableSources", None)
 
         self.set_property("title", self.webview.get_title())
         self.set_property("shortTitle", uri.netlock)
