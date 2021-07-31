@@ -108,6 +108,9 @@ Author: a2ohm
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="headers-visible">False</property>
+                                    <child internal-child="selection">
+                                      <object class="GtkTreeSelection"/>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -248,6 +251,9 @@ Author: a2ohm
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="headers-visible">False</property>
+                                <child internal-child="selection">
+                                  <object class="GtkTreeSelection"/>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -302,6 +308,10 @@ Author: a2ohm
                       <object class="GtkBox" id="sourcesBar_Box">
                         <property name="can-focus">False</property>
                         <property name="no-show-all">True</property>
+                        <property name="margin-start">2</property>
+                        <property name="margin-top">2</property>
+                        <property name="margin-bottom">2</property>
+                        <property name="spacing">4</property>
                         <child>
                           <object class="GtkButton" id="sourcesBar_addButton">
                             <property name="visible">True</property>
@@ -327,6 +337,7 @@ Author: a2ohm
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
                             <property name="spacing">4</property>
+                            <property name="homogeneous">True</property>
                             <property name="layout-style">start</property>
                             <child>
                               <placeholder/>
@@ -334,7 +345,7 @@ Author: a2ohm
                           </object>
                           <packing>
                             <property name="expand">False</property>
-                            <property name="fill">True</property>
+                            <property name="fill">False</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
