@@ -62,12 +62,12 @@ class ThekeApp(Gtk.Application):
         thekeIndex = theke.index.ThekeIndex()
 
         # ... load the list of modules
-        bible_mods = thekeIndex.list_modules(moduleType = theke.sword.MODTYPE_BIBLES)
-        book_mods = thekeIndex.list_modules(moduleType = theke.sword.MODTYPE_GENBOOKS)
+        bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
+        book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
 
         # ... populate the gotobar autocompletion list
-        for documentData in thekeIndex.list_documents():
-            self.window.gotobar.autoCompletionlist.append((documentData.name, documentData.moduleName, 'powder blue'))
+        # for documentData in thekeIndex.list_documents():
+        #     self.window.gotobar.autoCompletionlist.append((documentData.name, documentData.moduleName, 'powder blue'))
 
         # Register application screens in the GotoBar
         for inAppUriKey in theke.uri.inAppURI.keys():
