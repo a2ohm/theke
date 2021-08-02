@@ -99,6 +99,20 @@ class ThekeNavigator(GObject.Object):
             self.uri.params["sources"] = ";".join(self.sources)
             self.goto_uri(self.uri, reload = True)
 
+    def delete_source(self, sourceName):
+        if sourceName in self.sources:
+            logger.debug("ThekeNavigator - Delete source {}".format(sourceName))
+
+            self.sources.remove(sourceName)
+
+            if len(self.sources) == 0:
+                self.set_property("sources", [sword_default_module])
+            else:
+                self.notify("sources")
+
+            self.uri.params["sources"] = ";".join(self.sources)
+            self.goto_uri(self.uri, reload = True)
+
     def load_theke_uri(self, uri, request):
         """Return a stream to the file pointed by the theke uri.
         Case 1. The uri gives a path to a file
@@ -178,10 +192,11 @@ class ThekeNavigator(GObject.Object):
         #       - from the current context
         #       - from a hardcoded default source
         sources = uri.params.get('sources', None)
-        if sources is not None:
-            self.set_property("sources", sources.split(";"))
-        elif self.sources is None:
+        if sources is None or sources == '':
             self.set_property("sources", [sword_default_module])
+        else:
+            self.set_property("sources", sources.split(";"))
+            
 
         #   2. Get metadata from the reference
         ref = theke.reference.get_reference_from_uri(uri)

@@ -91,6 +91,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... sources bar
         self.sourcesBar = ThekeSourcesBar(builder)
         self.sourcesBar.connect("source-requested", self.handle_source_requested)
+        self.sourcesBar.connect("delete-source", self.handle_delete_source)
         self.navigator.connect("notify::sources", self.handle_sources_updated)
         self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
@@ -115,6 +116,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_availableSources_updated(self, object, param) -> None:
         self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
+
+    def handle_delete_source(self, object, sourceName):
+        self.navigator.delete_source(sourceName)
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
