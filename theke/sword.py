@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 MODTYPE_BIBLES = Sword.SWMgr().MODTYPE_BIBLES
 MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
+FMT_HTML = Sword.FMT_HTML
+FMT_PLAIN = Sword.FMT_PLAIN
+
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
 class SwordLibrary():
