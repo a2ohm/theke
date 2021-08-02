@@ -19,6 +19,9 @@ doc/specifications
 assets/welcome.html
 assets/modules.html
 
+# pylint
+.pylintrc
+
 # Data
 data/myDico.tdic
 data/thekeIndex.db
