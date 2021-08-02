@@ -30,7 +30,7 @@ class ThekeNavigator(GObject.Object):
     """Load content and provide metadata.
 
     The ThekeNavigator loads any data requested by the webview.
-    It provides metadata about the current view (eg. to be used in the UI).
+    It provides metadata about the current view (=context) (eg. to be used in the UI).
     Outside of the webview workflow, it has to be called to open an uri or a reference.
     """
 
@@ -93,6 +93,8 @@ class ThekeNavigator(GObject.Object):
         """
         self.goto_uri(ref.get_uri())
 
+    ### Edit the context
+
     def add_source(self, sourceName) -> None:
         if self.ref.add_source(sourceName):
             self.notify("sources")
@@ -102,6 +104,43 @@ class ThekeNavigator(GObject.Object):
         if self.ref.remove_source(sourceName, defaultSource = sword_default_module):
             self.notify("sources")
             self.goto_uri(self.ref.get_uri(), reload = True)
+
+    ### Update context (from URI)
+
+    def update_context_from_theke_uri(self, uri) -> None:
+        """Update the local context according to this theke uri.
+        """
+        logger.debug("ThekeNavigator - Update context from theke uri")
+        self.set_property("ref", theke.reference.get_reference_from_uri(uri))
+
+        self.set_property("toc", None)
+        self.set_property("isMorphAvailable", False)
+        self.set_property("morph", "-")
+
+    def update_context_from_sword_uri(self, uri) -> None:
+        """Update navigator properties from the uri.
+        """
+        logger.debug("ThekeNavigator - Update context from sword uri")
+
+        ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
+
+        if self.ref is None or ref.documentName != self.ref.documentName:
+            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
+        else:
+            self.set_property("toc", None)
+
+        self.set_property("ref", ref)
+
+        if self.ref.type == theke.reference.TYPE_BIBLE:
+            self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
+            self.notify("sources")
+
+        else:
+            self.set_property("availableSources", None)
+            self.set_property("isMorphAvailable", False)
+            self.set_property("morph", "-")
+
+    ### Get content
 
     def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the file pointed by the theke uri.
@@ -246,39 +285,6 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
-    def update_context_from_theke_uri(self, uri) -> None:
-        """Update the local context according to this theke uri.
-        """
-        logger.debug("ThekeNavigator - Update context from theke uri")
-        self.set_property("ref", theke.reference.get_reference_from_uri(uri))
-
-        self.set_property("toc", None)
-        self.set_property("isMorphAvailable", False)
-        self.set_property("morph", "-")
-
-    def update_context_from_sword_uri(self, uri) -> None:
-        """Update navigator properties from the uri.
-        """
-        logger.debug("ThekeNavigator - Update context from sword uri")
-
-        ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
-
-        if self.ref is None or ref.documentName != self.ref.documentName:
-            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
-        else:
-            self.set_property("toc", None)
-
-        self.set_property("ref", ref)
-
-        if self.ref.type == theke.reference.TYPE_BIBLE:
-            self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
-            self.notify("sources")
-
-        else:
-            self.set_property("availableSources", None)
-            self.set_property("isMorphAvailable", False)
-            self.set_property("morph", "-")
-
     def register_web_uri(self, uri) -> None:
         """Update properties according to this web page data.
         """
@@ -294,6 +300,8 @@ class ThekeNavigator(GObject.Object):
 
         self.set_property("isMorphAvailable", False)
         self.set_property("morph", "-")
+
+    ### Signals handling
 
     def do_click_on_word(self, uri) -> None:
         """Do what should be do when a new word is selected in the webview
