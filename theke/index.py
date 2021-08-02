@@ -112,7 +112,7 @@ class ThekeIndex:
         for rawDocumentData in rawDocumentsData:
             yield documentData._make(rawDocumentData)
 
-    def list_document_sources(self, documentName):
+    def list_document_sources(self, documentName) -> Any:
         documentId = self.get_document_id(documentName)
 
         return [rawDocumentSource[0] for rawDocumentSource in self.con.execute("""SELECT sources.name
