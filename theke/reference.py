@@ -16,13 +16,18 @@ def get_reference_from_uri(uri, defaultSource = None):
     if uri.scheme == 'theke':
         return InAppReference(uri.path[0])
 
-    if uri.scheme != 'sword':
-        raise ValueError('Unsupported scheme: {}.'.format(uri.scheme))
-
-    if uri.path[1] != 'bible':
-        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))
-
-    return BiblicalReference(uri.path[2], source = uri.params.get('source', defaultSource))
+    elif uri.scheme == 'sword':
+        if uri.path[1] == theke.uri.SWORD_BIBLE:
+            return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSource))
+        
+        elif uri.path[1] == theke.uri.SWORD_BOOK:
+            if len(uri.path) == 3:
+                return BookReference(uri.path[2], section = 0)
+            else:
+                return BookReference(uri.path[2], section = uri.path[3])
+        
+        else:
+            raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
 
 def parse_biblical_reference(rawReference):
     """Extract book name, chapter and verse from a raw reference
@@ -44,6 +49,7 @@ def parse_biblical_reference(rawReference):
 TYPE_UNKNOWN = 0
 TYPE_BIBLE = 1
 TYPE_INAPP = 2
+TYPE_BOOK = 3
 
 class Reference():
     '''Reference of any document readable by Theke.
@@ -79,8 +85,36 @@ class BiblicalReference(Reference):
         self.type = TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
         self.documentName = self.bookName
-        self.source = kwargs.get('source', None)
+
+        self.sources = kwargs.get('rawSources', None).split(';')
         self.tags = kwargs.get('tags', [])
+
+    def add_source(self, source) -> bool:
+        """Append a source to the reference
+        Return True if the source was added
+        """
+        if source not in self.sources:
+            logger.debug("ThekeReference - Add source {}".format(source))
+            self.sources.append(source)
+            return True
+
+        return False
+
+    def remove_source(self, source, defaultSource) -> bool:
+        """Remove a source
+        As self.sources can not be empty, a default source shoud be given
+        """
+        if source not in self.sources:
+            return False
+
+        logger.debug("ThekeReference - Remove source {}".format(source))
+        self.sources.remove(source)
+
+        if len(self.sources) == 0:
+            logger.debug("ThekeReference - Set source to default {}".format(defaultSource))
+            self.sources.append(defaultSource)
+
+        return True
 
     def get_repr(self):
         """Return a long representation of the biblical reference
@@ -99,11 +133,32 @@ class BiblicalReference(Reference):
         return "{} {}".format(self.bookName, self.chapter)
 
     def get_uri(self):
-        if self.source is None:
+        if self.sources is None:
             return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference])
         
         return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference],
-            {'sources': self.source})
+            sources = self.sources)
+
+class BookReference(Reference):
+    def __init__(self, rawReference, section = 0, **kwargs):
+        super().__init__(rawReference, **kwargs)
+
+        self.type = TYPE_BOOK
+        self.bookName = self.rawReference
+        self.section = section
+        self.documentName = self.bookName
+
+    def get_repr(self) -> str:
+        if self.section == 0:
+            return "{}".format(self.bookName)
+        else:
+            return "{} {}".format(self.bookName, self.section)
+
+    def get_short_repr(self) -> str:
+        return "{}".format(self.bookName)
+
+    def get_uri(self):
+        return theke.uri.build('sword', ['', theke.uri.SWORD_BOOK, self.rawReference])
 
 class InAppReference(Reference):
     def __init__(self, rawReference, *args, **kwargs):

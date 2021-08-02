@@ -20,7 +20,7 @@ def get_toc_from_ref(ref):
     toc = theke.tableofcontent.ThekeTOC()
 
     for i in range(nbOfChapters):
-        uri = theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, '{} {}'.format(ref.documentName, i+1)])
+        uri = theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, '{} {}'.format(ref.documentName, i+1)], sources = ref.sources)
         toc.append(str(i+1), uri.get_encoded_URI())
 
     return toc

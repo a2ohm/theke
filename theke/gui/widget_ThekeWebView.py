@@ -48,7 +48,7 @@ class ThekeWebView(WebKit2.WebView):
 
     def handle_sword_uri(self, request, *user_data):
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
-        self.navigator.load_sword_uri(uri, request)
+        self.navigator.get_content_from_sword_uri(uri, request)
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
