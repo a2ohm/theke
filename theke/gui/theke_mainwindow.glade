@@ -315,7 +315,7 @@ Author: a2ohm
                         <child>
                           <object class="GtkButton" id="sourcesBar_addButton">
                             <property name="visible">True</property>
-                            <property name="can-focus">True</property>
+                            <property name="can-focus">False</property>
                             <property name="receives-default">True</property>
                             <property name="tooltip-text" translatable="yes">Ajouter une source</property>
                             <child>
