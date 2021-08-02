@@ -58,11 +58,18 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
         try:
             historyIndex = list(self.history.keys()).index(label)
+            button = self.get_children()[historyIndex+1]
 
             # The visited uri is already in the history,
             # move its button at the end of the bar
             self.history.move_to_end(label)
-            self.reorder_child(self.get_children()[historyIndex+1], -1)
+            self.reorder_child(button, -1)
+
+            # Update the uri
+            # (necessary if, for example, sources changed)
+            self.history[label] = uri
+            button.uri = uri
+            button.set_tooltip_text(str(uri))
 
         except ValueError:
             # This uri does not exist in the history
