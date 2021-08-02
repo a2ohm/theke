@@ -28,6 +28,8 @@ def render(template_name, template_data):
     '''Fill a template with given data and return the str.
     '''
     template = env.get_template('{}.html.j2'.format(template_name))
+    # TMP. Uncomment to quickly export a rendered template
+    # template.stream(template_data).dump('{}.html'.format(template_name))
     return template.render(template_data)
 
 if __name__ == '__main__':
