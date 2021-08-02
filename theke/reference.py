@@ -1,5 +1,11 @@
-import theke.uri
 import re
+import logging
+
+from typing import Any
+
+import theke.uri
+
+logger = logging.getLogger(__name__)
 
 def get_reference_from_uri(uri, defaultSource = None):
     '''Return a reference according to an uri.
@@ -7,6 +13,9 @@ def get_reference_from_uri(uri, defaultSource = None):
 
         @param uri: (ThekeUri)
     '''
+    if uri.scheme == 'theke':
+        return InAppReference(uri.path[0])
+
     if uri.scheme != 'sword':
         raise ValueError('Unsupported scheme: {}.'.format(uri.scheme))
 
@@ -15,18 +24,11 @@ def get_reference_from_uri(uri, defaultSource = None):
 
     return BiblicalReference(uri.path[2], source = uri.params.get('source', defaultSource))
 
-def get_standard_reference(rawReference):
-    '''Try to standadize a reference.
-    If it is biblical reference, return it in a valid OSIS format.
-
-    @param rawReference: raw reference (string)
-    @return: standardized reference.
-    '''
-    return rawReference
-
-def parse_biblical_reference(reference):
+def parse_biblical_reference(rawReference):
+    """Extract book name, chapter and verse from a raw reference
+    """
     pattern_br_EN = re.compile(r'^([\w\s]+) (\d+)(:(\d+))?$')
-    match_br_EN = pattern_br_EN.match(reference)
+    match_br_EN = pattern_br_EN.match(rawReference)
 
     if match_br_EN is not None:
         if match_br_EN.group(4) is None:
@@ -41,6 +43,7 @@ def parse_biblical_reference(reference):
 
 TYPE_UNKNOWN = 0
 TYPE_BIBLE = 1
+TYPE_INAPP = 2
 
 class Reference():
     '''Reference of any document readable by Theke.
@@ -48,38 +51,80 @@ class Reference():
     '''
 
     def __init__(self, rawReference, **kwargs):
-        self.reference = get_standard_reference(rawReference)
-        self.documentName = ""
-        self.source = kwargs.get('source', None)
-        self.tags = kwargs.get('tags', [])
+        self.rawReference = rawReference
+        self.documentName = ''
         self.type = TYPE_UNKNOWN
 
-    def get_uri(self):
-        if self.source is None:
-            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference])
-        elif self.source == 'Theke':
-            return theke.uri.build('theke', [self.reference])
-        else:
-            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.reference], {'source': self.source})
-
     def get_repr(self):
-        return self.reference
+        """Representation of the reference
+        eg. long title
+        """
+        return self.rawReference
 
     def get_short_repr(self):
-        return self.reference
+        """Short representation of the refenrece
+        eg. short title
+        """
+        return self.rawReference
+
+    def get_uri(self):
+        raise NotImplementedError
 
 class BiblicalReference(Reference):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.bookName, self.chapter, self.verse = parse_biblical_reference(self.reference)
-        self.documentName = self.bookName
+
+        logger.debug("Reference − Create a biblical reference")
+
         self.type = TYPE_BIBLE
+        self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
+        self.documentName = self.bookName
+        self.source = kwargs.get('source', None)
+        self.tags = kwargs.get('tags', [])
 
     def get_repr(self):
+        """Return a long representation of the biblical reference
+        eg. John 1:1
+        """
         if self.verse == 0:
             return "{} {}".format(self.bookName, self.chapter)
-        else:
-            return "{} {}:{}".format(self.bookName, self.chapter, self.verse)
+        
+        return "{} {}:{}".format(self.bookName, self.chapter, self.verse)
 
     def get_short_repr(self):
+        """Return a short representation of the biblical reference
+        (without verse number)
+        eg. John 1
+        """
         return "{} {}".format(self.bookName, self.chapter)
+
+    def get_uri(self):
+        if self.source is None:
+            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference])
+        
+        return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference],
+            {'sources': self.source})
+
+class InAppReference(Reference):
+    def __init__(self, rawReference, *args, **kwargs):
+        super().__init__(rawReference, *args, **kwargs)
+
+        logger.debug("Reference − Create a inApp reference")
+
+        self.type = TYPE_INAPP
+        self.inAppUriData = theke.uri.inAppURI[self.rawReference]
+
+    def get_uri(self) -> Any:
+        return theke.uri.build('theke', [self.rawReference])
+
+    def get_repr(self) -> str:
+        """Long representation
+        (title of the page)
+        """
+        return self.inAppUriData.title
+
+    def get_short_repr(self) -> str:
+        """ Short representation
+        (short title)
+        """
+        return self.inAppUriData.shortTitle

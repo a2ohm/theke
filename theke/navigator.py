@@ -44,8 +44,8 @@ class ThekeNavigator(GObject.Object):
     sources = GObject.Property(type=object)
     availableSources = GObject.Property(type=object)
 
-    title = GObject.Property(type=str, default="")
-    shortTitle = GObject.Property(type=str, default="")
+    #title = GObject.Property(type=str, default="")
+    #shortTitle = GObject.Property(type=str, default="")
 
     toc = GObject.Property(type=object)
 
@@ -64,6 +64,8 @@ class ThekeNavigator(GObject.Object):
         self.webview = None
 
     def register_webview(self, webview) -> None:
+        """Register a reference to the webview this navigator is going to interact with.
+        """
         self.webview = webview
 
     def goto_uri(self, uri, reload = False) -> None:
@@ -113,7 +115,7 @@ class ThekeNavigator(GObject.Object):
             self.uri.params["sources"] = ";".join(self.sources)
             self.goto_uri(self.uri, reload = True)
 
-    def load_theke_uri(self, uri, request) -> None:
+    def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the file pointed by the theke uri.
         Case 1. The uri gives a path to a file
             eg. uri = theke:/default.css
@@ -123,6 +125,8 @@ class ThekeNavigator(GObject.Object):
 
         @param uri: (ThekeUri)
         @param request: a WebKit2.URISchemeRequest
+
+        This function is only called by a webview.
         """
         
         logger.debug("ThekeNavigator - Load as a theke uri: {}".format(uri))
@@ -134,16 +138,15 @@ class ThekeNavigator(GObject.Object):
 
         else:
             # Case 2.
-            inAppUriData = theke.uri.inAppURI[uri.path[0]]
-            ref = theke.reference.Reference(uri.path[0])
+            if self.ref is None or uri != self.ref.get_uri():
+                self.update_context_from_theke_uri(uri)
 
+            inAppUriData = theke.uri.inAppURI[uri.path[0]]
+
+            ###
+            logger.info("This reference to uri should be removed")
             self.set_property("uri", uri)
-            self.set_property("title", inAppUriData.title)
-            self.set_property("shortTitle", inAppUriData.shortTitle)
-            self.set_property("toc", None)
-            self.set_property("ref", ref)
-            self.set_property("isMorphAvailable", False)
-            self.set_property("morph", "-")
+            ###
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
             request.finish(f.read(), -1, 'text/html; charset=utf-8')
@@ -202,7 +205,7 @@ class ThekeNavigator(GObject.Object):
         ref = theke.reference.get_reference_from_uri(uri)
 
         if self.ref is None or ref.documentName != self.ref.documentName:
-            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
+            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref, self.sources))
 
         self.set_property("ref", ref)
         self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
@@ -283,6 +286,15 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
+    def update_context_from_theke_uri(self, uri) -> None:
+        """Update the local context according to this theke uri.
+        """
+        self.set_property("ref", theke.reference.get_reference_from_uri(uri))
+
+        self.set_property("toc", None)
+        self.set_property("isMorphAvailable", False)
+        self.set_property("morph", "-")
+
     def register_web_uri(self, uri) -> None:
         """Update properties according to this web page data.
         """
@@ -342,3 +354,15 @@ class ThekeNavigator(GObject.Object):
                 return True
 
         return False
+
+    @GObject.Property(type=str)
+    def title(self):
+        """Title of the current documment
+        """
+        return self.ref.get_repr()
+
+    @GObject.Property(type=str)
+    def shortTitle(self):
+        """Short title of the current documment
+        """
+        return self.ref.get_short_repr()

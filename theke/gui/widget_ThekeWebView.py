@@ -44,7 +44,7 @@ class ThekeWebView(WebKit2.WebView):
 
     def handle_theke_uri(self, request, *user_data):
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
-        self.navigator.load_theke_uri(uri, request)
+        self.navigator.get_content_from_theke_uri(uri, request)
 
     def handle_sword_uri(self, request, *user_data):
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
