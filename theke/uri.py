@@ -18,14 +18,27 @@ SWORD_BOOK = 'book'
 
 SWORD_SIGNAL = 'signal'
 
-def build(scheme, path, params = {}, fragment=''):
+def build(scheme, path, params = {}, fragment='', sources = None):
+    """Build an uri from seperate elements.
+
+    @param scheme: (str) eg. 'sword', 'theke'
+    @param path: (list) eg. ['/', 'bible', 'John 1:1']
+    @param params: (dict)
+    @param fragment
+    @param sources: (list) eg. ['MorphGNT', 'FreCrampon']
+
+    Sources are added to params.
+    """
+    if sources is not None:
+        params.update({'sources': ";".join(sources)})
+
     return ThekeURI(scheme, '', path, params, fragment)
 
 def parse(uri, isEncoded = True):
     '''Parse an uri and return a ThekeURI instance.
 
     Valids uri are (for example):
-        sword:/bible/John 1:1?source=MorphGNT
+        sword:/bible/John 1:1?sources=MorphGNT
         theke:welcome
         theke:/default.css
     '''
