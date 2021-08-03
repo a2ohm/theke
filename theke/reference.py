@@ -17,18 +17,17 @@ def get_reference_from_uri(uri, defaultSource = None):
     if uri.scheme == 'theke':
         return InAppReference(uri.path[0])
 
-    elif uri.scheme == 'sword':
+    if uri.scheme == 'sword':
         if uri.path[1] == theke.uri.SWORD_BIBLE:
             return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSource))
-        
-        elif uri.path[1] == theke.uri.SWORD_BOOK:
+
+        if uri.path[1] == theke.uri.SWORD_BOOK:
             if len(uri.path) == 3:
                 return BookReference(uri.path[2], section = 0)
-            else:
-                return BookReference(uri.path[2], section = uri.path[3])
-        
-        else:
-            raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
+
+            return BookReference(uri.path[2], section = uri.path[3])
+
+        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
 
 def parse_biblical_reference(rawReference):
     """Extract book name, chapter and verse from a raw reference
@@ -57,7 +56,7 @@ class Reference():
     (application screen, Sword reference)
     '''
 
-    def __init__(self, rawReference, **kwargs):
+    def __init__(self, rawReference):
         self.rawReference = rawReference
         self.documentTitle = rawReference
         self.documentShortTitle = rawReference
@@ -79,8 +78,8 @@ class Reference():
         raise NotImplementedError
 
 class BiblicalReference(Reference):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, rawReference, rawSources = None, tags = None):
+        super().__init__(rawReference)
 
         logger.debug("Reference − Create a biblical reference")
 
@@ -89,15 +88,15 @@ class BiblicalReference(Reference):
         self.documentTitle = self.bookName
         self.documentShortTitle = self.bookName
 
-        self.sources = kwargs.get('rawSources', None).split(';')
-        self.tags = kwargs.get('tags', [])
+        self.sources = rawSources.split(';') if rawSources is not None else None
+        self.tags = tags
 
     def add_source(self, source) -> bool:
         """Append a source to the reference
         Return True if the source was added
         """
         if source not in self.sources:
-            logger.debug("ThekeReference - Add source {}".format(source))
+            logger.debug("ThekeReference - Add source %s", source)
             self.sources.append(source)
             return True
 
@@ -110,11 +109,11 @@ class BiblicalReference(Reference):
         if source not in self.sources:
             return False
 
-        logger.debug("ThekeReference - Remove source {}".format(source))
+        logger.debug("ThekeReference - Remove source %s", source)
         self.sources.remove(source)
 
         if len(self.sources) == 0:
-            logger.debug("ThekeReference - Set source to default {}".format(defaultSource))
+            logger.debug("ThekeReference - Set source to default %s", defaultSource)
             self.sources.append(defaultSource)
 
         return True
@@ -125,7 +124,7 @@ class BiblicalReference(Reference):
         """
         if self.verse == 0:
             return "{} {}".format(self.documentTitle, self.chapter)
-        
+
         return "{} {}:{}".format(self.documentTitle, self.chapter, self.verse)
 
     def get_short_repr(self):
@@ -138,13 +137,13 @@ class BiblicalReference(Reference):
     def get_uri(self):
         if self.sources is None:
             return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference])
-        
+
         return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference],
             sources = self.sources)
 
 class BookReference(Reference):
-    def __init__(self, rawReference, section = 0, **kwargs):
-        super().__init__(rawReference, **kwargs)
+    def __init__(self, rawReference, section = 0):
+        super().__init__(rawReference)
 
         self.type = TYPE_BOOK
         self.documentTitle = self.rawReference
@@ -163,8 +162,8 @@ class BookReference(Reference):
         return theke.uri.build('sword', ['', theke.uri.SWORD_BOOK, self.rawReference])
 
 class InAppReference(Reference):
-    def __init__(self, rawReference, *args, **kwargs):
-        super().__init__(rawReference, *args, **kwargs)
+    def __init__(self, rawReference):
+        super().__init__(rawReference)
 
         logger.debug("Reference − Create a inApp reference")
 
