@@ -12,6 +12,7 @@ def get_reference_from_uri(uri, defaultSource = None):
         sword:/bible/John 1:1 --> biblical reference to Jn 1,1
 
         @param uri: (ThekeUri)
+        @param defaultSource: (str)
     '''
     if uri.scheme == 'theke':
         return InAppReference(uri.path[0])
@@ -58,20 +59,21 @@ class Reference():
 
     def __init__(self, rawReference, **kwargs):
         self.rawReference = rawReference
-        self.documentName = ''
+        self.documentTitle = rawReference
+        self.documentShortTitle = rawReference
         self.type = TYPE_UNKNOWN
 
     def get_repr(self):
         """Representation of the reference
         eg. long title
         """
-        return self.rawReference
+        return self.documentTitle
 
     def get_short_repr(self):
         """Short representation of the refenrece
         eg. short title
         """
-        return self.rawReference
+        return self.documentShortTitle
 
     def get_uri(self):
         raise NotImplementedError
@@ -84,7 +86,8 @@ class BiblicalReference(Reference):
 
         self.type = TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
-        self.documentName = self.bookName
+        self.documentTitle = self.bookName
+        self.documentShortTitle = self.bookName
 
         self.sources = kwargs.get('rawSources', None).split(';')
         self.tags = kwargs.get('tags', [])
@@ -121,16 +124,16 @@ class BiblicalReference(Reference):
         eg. John 1:1
         """
         if self.verse == 0:
-            return "{} {}".format(self.bookName, self.chapter)
+            return "{} {}".format(self.documentTitle, self.chapter)
         
-        return "{} {}:{}".format(self.bookName, self.chapter, self.verse)
+        return "{} {}:{}".format(self.documentTitle, self.chapter, self.verse)
 
     def get_short_repr(self):
         """Return a short representation of the biblical reference
         (without verse number)
         eg. John 1
         """
-        return "{} {}".format(self.bookName, self.chapter)
+        return "{} {}".format(self.documentShortTitle, self.chapter)
 
     def get_uri(self):
         if self.sources is None:
@@ -144,18 +147,17 @@ class BookReference(Reference):
         super().__init__(rawReference, **kwargs)
 
         self.type = TYPE_BOOK
-        self.bookName = self.rawReference
+        self.documentTitle = self.rawReference
         self.section = section
-        self.documentName = self.bookName
 
     def get_repr(self) -> str:
         if self.section == 0:
-            return "{}".format(self.bookName)
+            return "{}".format(self.documentTitle)
         else:
-            return "{} {}".format(self.bookName, self.section)
+            return "{} {}".format(self.documentTitle, self.section)
 
     def get_short_repr(self) -> str:
-        return "{}".format(self.bookName)
+        return "{}".format(self.documentShortTitle)
 
     def get_uri(self):
         return theke.uri.build('sword', ['', theke.uri.SWORD_BOOK, self.rawReference])
@@ -168,18 +170,8 @@ class InAppReference(Reference):
 
         self.type = TYPE_INAPP
         self.inAppUriData = theke.uri.inAppURI[self.rawReference]
+        self.documentTitle = self.inAppUriData.title
+        self.documentShortTitle = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
         return theke.uri.build('theke', [self.rawReference])
-
-    def get_repr(self) -> str:
-        """Long representation
-        (title of the page)
-        """
-        return self.inAppUriData.title
-
-    def get_short_repr(self) -> str:
-        """ Short representation
-        (short title)
-        """
-        return self.inAppUriData.shortTitle

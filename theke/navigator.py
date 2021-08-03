@@ -110,35 +110,53 @@ class ThekeNavigator(GObject.Object):
     def update_context_from_theke_uri(self, uri) -> None:
         """Update the local context according to this theke uri.
         """
-        logger.debug("ThekeNavigator - Update context from theke uri")
-        self.set_property("ref", theke.reference.get_reference_from_uri(uri))
+        if self.ref is None or uri != self.ref.get_uri():
+            logger.debug("ThekeNavigator - Update context from theke uri")
 
-        self.set_property("toc", None)
-        self.set_property("isMorphAvailable", False)
-        self.set_property("morph", "-")
+            self.set_property("ref", theke.reference.get_reference_from_uri(uri))
 
-    def update_context_from_sword_uri(self, uri) -> None:
+            self.set_property("toc", None)
+            self.set_property("isMorphAvailable", False)
+            self.set_property("morph", "-")
+
+        else:
+            logger.debug("ThekeNavigator - Update context from theke uri (skip)")
+
+    def update_context_from_sword_uri_BIBLE(self, uri) -> None:
         """Update navigator properties from the uri.
         """
-        logger.debug("ThekeNavigator - Update context from sword uri")
+        if self.ref is None or uri != self.ref.get_uri():
+            logger.debug("ThekeNavigator - Update context from sword uri [BIBLE]")
 
-        ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
+            ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
 
-        if self.ref is None or ref.documentName != self.ref.documentName:
-            self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
-        else:
-            self.set_property("toc", None)
+            if self.ref is None or ref.documentTitle != self.ref.documentTitle:
+                self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
 
-        self.set_property("ref", ref)
+            self.set_property("ref", ref)
 
-        if self.ref.type == theke.reference.TYPE_BIBLE:
-            self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentName))
+            self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentTitle))
             self.notify("sources")
 
         else:
+            logger.debug("ThekeNavigator - Update context from sword uri [BIBLE] (skip)")
+
+    def update_context_from_sword_uri_BOOK(self, uri) -> None:
+        """Update navigator properties from the uri.
+        """
+        if self.ref is None or uri != self.ref.get_uri():
+            logger.debug("ThekeNavigator - Update context from sword uri (BOOK)")
+
+            ref = theke.reference.get_reference_from_uri(uri)
+
+            self.set_property("ref", ref)
+            self.set_property("toc", None)
             self.set_property("availableSources", None)
             self.set_property("isMorphAvailable", False)
             self.set_property("morph", "-")
+
+        else:
+            logger.debug("ThekeNavigator - Update context from sword uri [BOOK] (skip)")
 
     ### Get content
 
@@ -159,15 +177,13 @@ class ThekeNavigator(GObject.Object):
         logger.debug("ThekeNavigator - Load as a theke uri: {}".format(uri))
 
         if uri.path[0] == '':
-            # Case 1.
+            # Case 1. Path to a file
             f = Gio.File.new_for_path('./assets' + '/'.join(uri.path))
             request.finish(f.read(), -1, None)
 
         else:
-            # Case 2.
-            if self.ref is None or uri != self.ref.get_uri():
-                self.update_context_from_theke_uri(uri)
-
+            # Case 2. InApp uri
+            self.update_context_from_theke_uri(uri)
             inAppUriData = theke.uri.inAppURI[uri.path[0]]
 
             ###
@@ -193,9 +209,6 @@ class ThekeNavigator(GObject.Object):
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)
                 html = ""
-        
-        if uri != self.ref.get_uri():
-            self.update_context_from_sword_uri(uri)
 
         ###
         logger.info("This reference to uri should be removed")
@@ -203,10 +216,14 @@ class ThekeNavigator(GObject.Object):
         ###
 
         if uri.path[1] == theke.uri.SWORD_BIBLE:
+            self.update_context_from_sword_uri_BIBLE(uri)
+
             logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
             html = self.get_sword_bible_content()
 
         elif uri.path[1] == theke.uri.SWORD_BOOK:
+            self.update_context_from_sword_uri_BOOK(uri)
+
             logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
             html = self.get_sword_book(uri)
 
@@ -259,7 +276,8 @@ class ThekeNavigator(GObject.Object):
             mod = theke.sword.SwordLibrary().get_book_module(moduleName)
             text = mod.get_paragraph(parID)
 
-            #self.set_property("shortTitle", '{}'.format(mod.get_short_repr()))
+            self.ref.documentShortTitle = '{}'.format(mod.get_short_repr())
+
         elif len(uri.path) > 3:
             moduleName = uri.path[2]
             parID = uri.path[3]
@@ -267,7 +285,8 @@ class ThekeNavigator(GObject.Object):
             mod = theke.sword.SwordLibrary().get_book_module(moduleName)
             text = mod.get_paragraph_and_siblings(parID)
 
-            #self.set_property("shortTitle", '{} {}'.format(mod.get_short_repr(), parID))
+            self.ref.documentShortTitle = '{} {}'.format(mod.get_short_repr(), parID)
+
         else:
             raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
 
@@ -277,7 +296,7 @@ class ThekeNavigator(GObject.Object):
         else:
             text = format_sword_syntax(text)
 
-        #self.set_property("title", mod.get_name())
+        self.ref.documentTitle = mod.get_name()
 
         return theke.templates.render('book', {
             'title': mod.get_name(),
@@ -326,7 +345,7 @@ class ThekeNavigator(GObject.Object):
 
         if uri.scheme == 'sword':
 
-            defaultSource = self.ref.source if self.ref else sword_default_module
+            defaultSource = ";".join(self.ref.sources) if self.ref and self.ref.type == theke.reference.TYPE_BIBLE else sword_default_module
             ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
 
             # Catch a navigation action to a biblical reference where only the verse number change
@@ -346,7 +365,7 @@ class ThekeNavigator(GObject.Object):
                 return True
 
         return False
-
+    
     @GObject.Property(type=str)
     def title(self):
         """Title of the current documment
