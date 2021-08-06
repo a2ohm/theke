@@ -18,7 +18,7 @@ SWORD_BOOK = 'book'
 
 SWORD_SIGNAL = 'signal'
 
-def build(scheme, path, params = {}, fragment='', sources = None):
+def build(scheme, path, params = None, fragment='', sources = None):
     """Build an uri from seperate elements.
 
     @param scheme: (str) eg. 'sword', 'theke'
@@ -29,6 +29,10 @@ def build(scheme, path, params = {}, fragment='', sources = None):
 
     Sources are added to params.
     """
+
+    if params is None:
+        params = {}
+
     if sources is not None:
         params.update({'sources': ";".join(sources)})
 
