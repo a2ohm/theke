@@ -13,6 +13,7 @@ from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
+from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
 from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 class ThekeWindow(Gtk.ApplicationWindow):
@@ -47,17 +48,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         _top_box.pack_end(self.historybar, True, True, 1)
 
         #   ... TOC
-        self.tocPanel_frame = builder.get_object("tocPanel_frame")
-        #   ... TOC > title
-        self.tocPanel_title = builder.get_object("tocPanel_title")
-        #   ... TOC > content
-        self.tocPanel_toc = builder.get_object("tocPanel_toc")
-
-        renderer = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn("Chapitre", renderer, text=0)
-        self.tocPanel_toc.append_column(column)
-
-        self.tocPanel_toc.get_selection().connect("changed", self.handle_toc_selection_changed)
+        self.tableOfContent = ThekeTableOfContent(builder)
+        self.tableOfContent.connect("selection-changed", self.handle_toc_selection_changed)
         
         #   ... document view
         _scrolled_window = builder.get_object("webview_scrolledWindow")
@@ -131,11 +123,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # Update the table of content
             if self.navigator.toc is None:
-                self.tocPanel_frame.hide()
+                self.tableOfContent.hide()
             else:
-                self.tocPanel_title.set_text(self.navigator.ref.documentTitle)
-                self.tocPanel_toc.set_model(self.navigator.toc.toc)
-                self.tocPanel_frame.show()
+                self.tableOfContent.set_title(self.navigator.ref.documentTitle)
+                self.tableOfContent.set_content(self.navigator.toc.toc)
+                self.tableOfContent.show()
 
             # Hide the morphoView, if necessary
             if not self.navigator.isMorphAvailable:
@@ -201,7 +193,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def handle_sources_updated(self, object, params) -> None:
         self.sourcesBar.updateSources(self.navigator.sources)
 
-    def handle_toc_selection_changed(self, tree_selection):
+    def handle_toc_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()
 
         if treeIter is not None:
