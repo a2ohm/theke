@@ -99,6 +99,7 @@ class ThekeNavigator(GObject.Object):
             # tocData (int): chapter
             if self.ref.chapter != tocData:
                 self.ref.chapter = tocData
+                self.ref.verse = 0
                 self.goto_uri(self.ref.get_uri(), reload = True)
 
         else:

@@ -135,10 +135,13 @@ class BiblicalReference(Reference):
         return "{} {}".format(self.documentShortTitle, self.chapter)
 
     def get_uri(self):
-        if self.sources is None:
-            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference])
-
-        return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, self.rawReference],
+        if self.verse == 0:
+            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+                "{} {}".format(self.bookName, self.chapter)],
+                sources = self.sources)
+        
+        return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+            "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
             sources = self.sources)
 
 class BookReference(Reference):
