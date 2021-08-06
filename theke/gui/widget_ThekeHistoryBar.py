@@ -52,9 +52,10 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         @param label: (string) label to print in the HistoryBar
         @param uri: (ThekeUri) Uri of the new item
         """
+
         if uri == home_uri:
             # The home uri is not added to the history as it is alway here.
-            return            
+            return
 
         try:
             historyIndex = list(self.history.keys()).index(label)
@@ -80,14 +81,14 @@ class ThekeHistoryBar(Gtk.ButtonBox):
             self.history[label] = uri
             
             button = Gtk.Button(label=label, use_underline=False)
-            button.set_tooltip_text(str(uri))
             button.uri = uri
+            button.set_tooltip_text(str(uri))
 
             button.connect('button-release-event', self.on_button_release)
             button.connect('clicked', self.on_button_clicked)
             button.show_all()
 
-            self.pack_start(button, False, False, 0)         
+            self.pack_start(button, False, False, 0)
 
     def on_button_release(self, button, event):
         if event.type == Gdk.EventType.BUTTON_RELEASE:
