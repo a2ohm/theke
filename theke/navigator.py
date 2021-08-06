@@ -85,9 +85,24 @@ class ThekeNavigator(GObject.Object):
         self.webview.grab_focus()
 
     def goto_ref(self, ref) -> None:
-        """Ask the webview to load a given reference.
+        """Ask the webview to load a given reference
         """
         self.goto_uri(ref.get_uri())
+
+    def goto_section(self, tocData) -> None:
+        """Ask the webview to load a document section
+        """
+
+        logger.debug("ThekeNavigator - Goto section: %s", tocData)
+
+        if self.toc.type == theke.tableofcontent.BIBLE_TOC_TYPE:
+            # tocData (int): chapter
+            if self.ref.chapter != tocData:
+                self.ref.chapter = tocData
+                self.goto_uri(self.ref.get_uri(), reload = True)
+
+        else:
+            logging.error("This type of TOC (%s) is not supported yet.", self.toc.type)
 
     ### Edit the context
 
@@ -108,7 +123,7 @@ class ThekeNavigator(GObject.Object):
         """
         if self.ref is None or uri != self.ref.get_uri():
             logger.debug("ThekeNavigator - Update context from theke uri")
-            
+
             self.set_property("ref", theke.reference.get_reference_from_uri(uri))
 
             self.set_property("toc", None)
