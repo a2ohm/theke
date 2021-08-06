@@ -210,12 +210,7 @@ class ThekeNavigator(GObject.Object):
                 self.emit("click_on_word", uri)
                 html = ""
 
-        ###
-        logger.info("This reference to uri should be removed")
-        self.set_property("uri", uri)
-        ###
-
-        if uri.path[1] == theke.uri.SWORD_BIBLE:
+        elif uri.path[1] == theke.uri.SWORD_BIBLE:
             self.update_context_from_sword_uri_BIBLE(uri)
 
             logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
