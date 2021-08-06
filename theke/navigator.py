@@ -131,7 +131,7 @@ class ThekeNavigator(GObject.Object):
             ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
 
             if self.ref is None or ref.documentTitle != self.ref.documentTitle:
-                self.set_property("toc", theke.tableofcontent.get_toc_from_ref(ref))
+                self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
             self.set_property("ref", ref)
 
@@ -237,7 +237,7 @@ class ThekeNavigator(GObject.Object):
         verses = []
         isMorphAvailable = False
 
-        for source in self.sources:
+        for source in self.ref.sources:
             mod = theke.sword.SwordLibrary().get_bible_module(source)
             documents.append({
                 'lang' : mod.get_lang(),
