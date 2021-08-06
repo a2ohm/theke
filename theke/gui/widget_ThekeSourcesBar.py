@@ -78,7 +78,6 @@ class ThekeSourcesBar(GObject.Object):
         self.menuItem_deleteSource.sourceName = button.get_label()
 
     def handle_sourceItem_delete(self, menu_item):
-        print(menu_item.sourceName)
         self.emit("delete-source", menu_item.sourceName)
 
     def handle_sourceItem_request(self, menu_item):
