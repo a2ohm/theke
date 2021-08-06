@@ -7,19 +7,19 @@ import theke.uri
 
 logger = logging.getLogger(__name__)
 
-def get_reference_from_uri(uri, defaultSource = None):
+def get_reference_from_uri(uri, defaultSources = None):
     '''Return a reference according to an uri.
         sword:/bible/John 1:1 --> biblical reference to Jn 1,1
 
         @param uri: (ThekeUri)
-        @param defaultSource: (str)
+        @param defaultSources: (str)
     '''
     if uri.scheme == 'theke':
         return InAppReference(uri.path[0])
 
     if uri.scheme == 'sword':
         if uri.path[1] == theke.uri.SWORD_BIBLE:
-            return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSource))
+            return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSources))
 
         if uri.path[1] == theke.uri.SWORD_BOOK:
             if len(uri.path) == 3:
@@ -81,7 +81,7 @@ class BiblicalReference(Reference):
     def __init__(self, rawReference, rawSources = None, tags = None):
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a biblical reference")
+        logger.debug("Reference − Create a biblical reference : %s", rawReference)
 
         self.type = TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
@@ -165,7 +165,7 @@ class InAppReference(Reference):
     def __init__(self, rawReference):
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a inApp reference")
+        logger.debug("Reference − Create a inApp reference : %s", rawReference)
 
         self.type = TYPE_INAPP
         self.inAppUriData = theke.uri.inAppURI[self.rawReference]

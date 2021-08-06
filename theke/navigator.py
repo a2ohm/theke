@@ -39,13 +39,9 @@ class ThekeNavigator(GObject.Object):
                       (object,))
         }
 
-    uri = GObject.Property(type=object)
+    #uri = GObject.Property(type=object)
     ref = GObject.Property(type=object)
-    #sources = GObject.Property(type=object)
     availableSources = GObject.Property(type=object)
-
-    #title = GObject.Property(type=str, default="")
-    #shortTitle = GObject.Property(type=str, default="")
 
     toc = GObject.Property(type=object)
 
@@ -112,7 +108,7 @@ class ThekeNavigator(GObject.Object):
         """
         if self.ref is None or uri != self.ref.get_uri():
             logger.debug("ThekeNavigator - Update context from theke uri")
-
+            
             self.set_property("ref", theke.reference.get_reference_from_uri(uri))
 
             self.set_property("toc", None)
@@ -128,7 +124,7 @@ class ThekeNavigator(GObject.Object):
         if self.ref is None or uri != self.ref.get_uri():
             logger.debug("ThekeNavigator - Update context from sword uri [BIBLE]")
 
-            ref = theke.reference.get_reference_from_uri(uri, defaultSource = sword_default_module)
+            ref = theke.reference.get_reference_from_uri(uri, defaultSources = sword_default_module)
 
             if self.ref is None or ref.documentTitle != self.ref.documentTitle:
                 self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
@@ -186,10 +182,10 @@ class ThekeNavigator(GObject.Object):
             self.update_context_from_theke_uri(uri)
             inAppUriData = theke.uri.inAppURI[uri.path[0]]
 
-            ###
-            logger.info("This reference to uri should be removed")
-            self.set_property("uri", uri)
-            ###
+            # ###
+            # logger.info("This reference to uri should be removed")
+            # self.set_property("uri", uri)
+            # ###
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
             request.finish(f.read(), -1, 'text/html; charset=utf-8')
@@ -307,8 +303,8 @@ class ThekeNavigator(GObject.Object):
         self.set_property("ref", None)
         self.set_property("availableSources", None)
 
-        self.set_property("title", self.webview.get_title())
-        self.set_property("shortTitle", uri.netlock)
+        # self.set_property("title", self.webview.get_title())
+        # self.set_property("shortTitle", uri.netlock)
 
         self.set_property("toc", None)
 
@@ -341,7 +337,7 @@ class ThekeNavigator(GObject.Object):
         if uri.scheme == 'sword':
 
             defaultSource = ";".join(self.ref.sources) if self.ref and self.ref.type == theke.reference.TYPE_BIBLE else sword_default_module
-            ref = theke.reference.get_reference_from_uri(uri, defaultSource = defaultSource)
+            ref = theke.reference.get_reference_from_uri(uri, defaultSources = defaultSource)
 
             # Catch a navigation action to a biblical reference where only the verse number change
             if (self.ref and
@@ -349,11 +345,6 @@ class ThekeNavigator(GObject.Object):
                 self.ref.bookName == ref.bookName and
                 self.ref.chapter == ref.chapter and
                 self.ref.verse != ref.verse):
-
-                # self.set_property("uri", uri)
-                # self.set_property("ref", ref)
-                # self.set_property("title", ref.get_repr())
-                # self.set_property("shortTitle", ref.get_short_repr())
 
                 decision.ignore()
                 self.webview.scroll_to_verse(ref.verse)
@@ -378,3 +369,9 @@ class ThekeNavigator(GObject.Object):
         """Short title of the current documment
         """
         return self.ref.sources
+
+    @GObject.Property(type=str)
+    def uri(self):
+        """URI of the current documment
+        """
+        return self.ref.get_uri()
