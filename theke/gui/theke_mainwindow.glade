@@ -63,14 +63,13 @@ Author: a2ohm
                 <property name="position">450</property>
                 <property name="position-set">True</property>
                 <child>
-                  <object class="GtkPaned">
+                  <object class="GtkPaned" id="tocPane">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="position">150</property>
                     <property name="position-set">True</property>
                     <child>
                       <object class="GtkFrame" id="tocPane_frame">
-                        <property name="width-request">100</property>
                         <property name="can-focus">False</property>
                         <property name="no-show-all">True</property>
                         <property name="label-xalign">0</property>
@@ -89,6 +88,8 @@ Author: a2ohm
                                   <object class="GtkLabel" id="tocPane_title">
                                     <property name="visible">True</property>
                                     <property name="can-focus">False</property>
+                                    <property name="margin-start">5</property>
+                                    <property name="margin-end">5</property>
                                     <property name="label" translatable="yes">TOC</property>
                                   </object>
                                   <packing>
@@ -100,8 +101,10 @@ Author: a2ohm
                                 <child>
                                   <object class="GtkButton" id="tocPane_reduceExpand_button">
                                     <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
+                                    <property name="can-focus">False</property>
+                                    <property name="focus-on-click">False</property>
                                     <property name="receives-default">True</property>
+                                    <property name="relief">none</property>
                                     <child>
                                       <object class="GtkImage" id="tocPane_reduceExpand_image">
                                         <property name="visible">True</property>
@@ -125,7 +128,7 @@ Author: a2ohm
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkScrolledWindow">
+                              <object class="GtkScrolledWindow" id="tocPane_tocWindow">
                                 <property name="name">tocPanel_scrolledWindow</property>
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
@@ -138,6 +141,7 @@ Author: a2ohm
                                     <property name="visible">True</property>
                                     <property name="can-focus">True</property>
                                     <property name="headers-visible">False</property>
+                                    <property name="enable-search">False</property>
                                     <child internal-child="selection">
                                       <object class="GtkTreeSelection"/>
                                     </child>
@@ -157,7 +161,7 @@ Author: a2ohm
                         </child>
                       </object>
                       <packing>
-                        <property name="resize">False</property>
+                        <property name="resize">True</property>
                         <property name="shrink">False</property>
                       </packing>
                     </child>

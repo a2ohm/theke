@@ -69,8 +69,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPane.connect("finish", self.handle_search_finish)
 
         # Set size.
-        _searchPanel_pane = builder.get_object("searchPane")
-        _searchPanel_pane.connect("notify::max-position", self.handle_maxPosition_changed)
+        builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
+        builder.get_object("tocPane").connect("notify::min-position", self.handle_minPosition_changed)
+
 
         # ... tools view
         self.toolsView = ThekeToolsView(builder)
@@ -201,9 +202,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.navigator.goto_uri(uri)
 
     def handle_maxPosition_changed(self, object, param):
-        """Move the pane to its maximal value.
+        """Move the pane to its maximal value
         """
         object.set_position(object.props.max_position)
+
+    def handle_minPosition_changed(self, object, param):
+        """Move the pane to its minimal value
+        """
+        object.set_position(object.props.min_position)
 
     def on_history_button_clicked(self, button):
         self.navigator.goto_uri(button.uri)
