@@ -3,7 +3,9 @@ import logging
 
 from typing import Any
 
+import theke
 import theke.uri
+import theke.index
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,24 @@ def get_reference_from_uri(uri, defaultSources = None):
             return BookReference(uri.path[2], section = uri.path[3])
 
         raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
+
+def parse_reference(rawReference):
+    """Parse a raw reference
+    """
+    pattern_r = re.compile(r'^(\D+)(.*)')
+    match_r = pattern_r.match(rawReference)
+
+    if match_r is not None:
+        documentName = match_r.group(1).strip()
+        documentType = theke.index.ThekeIndex().get_document_type(documentName)
+
+        if documentType == theke.TYPE_BIBLE:
+            return BiblicalReference(rawReference)
+
+        if documentType == theke.TYPE_BOOK:
+            return BookReference(documentName, match_r.group(2))
+
+    return Reference(rawReference)
 
 def parse_biblical_reference(rawReference):
     """Extract book name, chapter and verse from a raw reference
