@@ -21,12 +21,12 @@ MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 FMT_HTML = Sword.FMT_HTML
 FMT_PLAIN = Sword.FMT_PLAIN
 
-MARKUP = {"FreCrampon": FMT_PLAIN, "2TGreek": FMT_PLAIN}
+MARKUP = {"MorphGNT": FMT_HTML, "OSHB": FMT_HTML}
 
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
 class SwordLibrary():
-    def __init__(self, markup = Sword.FMT_HTML):
+    def __init__(self, markup = Sword.FMT_PLAIN):
         logger.debug("SwordLibrary - Create a new instance")
         self.markup = Sword.MarkupFilterMgr(markup)
         self.markup.thisown = False
