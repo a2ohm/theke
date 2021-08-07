@@ -7,6 +7,7 @@ gi.require_version('WebKit2', '4.0')
 from gi.repository import Gtk
 from gi.repository import WebKit2
 
+import theke
 import theke.reference
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
@@ -26,9 +27,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.set_icon_from_file("./assets/theke-logo.svg")
 
         self.navigator = navigator
-
-        # State variables
-        self.selectedSource = ''
 
         # UI BUILDING
         builder = Gtk.Builder()
@@ -106,9 +104,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         '''@param entry: the object which received the signal.
         '''
 
-        #TOFIX. Suppose that the content of the gotobar is a valid biblical reference
-        ref = theke.reference.Reference(entry.get_text().strip(), source = self.selectedSource)
-        self.navigator.goto_ref(ref)
+        ref = theke.reference.parse_reference(entry.get_text().strip())
+        if ref.type != theke.TYPE_UNKNOWN:
+            self.navigator.goto_ref(ref)
 
     def handle_availableSources_updated(self, object, param) -> None:
         self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
@@ -152,9 +150,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # TODO: give name to column (and dont use a numerical value)
         # Update the text in the GotoBar
         self.gotobar.set_text("{} ".format(model.get_value(iter, 0)))
-
-        # Save in a hidden variable the selected source.
-        self.selectedSource = model.get_value(iter, 1)
 
         # Move the cursor to the end
         self.gotobar.set_position(-1)

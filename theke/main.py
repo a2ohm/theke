@@ -5,12 +5,13 @@ from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import GLib
 
-import theke.sword
-import theke.index
-import theke.uri
-import theke.templates
-import theke.navigator
+import theke
 import theke.gui.mainwindow
+import theke.index
+import theke.navigator
+import theke.sword
+import theke.templates
+import theke.uri
 
 import logging
 logger = logging.getLogger(__name__)
@@ -66,12 +67,12 @@ class ThekeApp(Gtk.Application):
         book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
 
         # ... populate the gotobar autocompletion list
-        # for documentData in thekeIndex.list_documents():
-        #     self.window.gotobar.autoCompletionlist.append((documentData.name, documentData.moduleName, 'powder blue'))
+        for documentData in thekeIndex.list_documents():
+            self.window.gotobar.autoCompletionlist.append((documentData.name, 'powder blue'))
 
         # Register application screens in the GotoBar
-        for inAppUriKey in theke.uri.inAppURI.keys():
-            self.window.gotobar.autoCompletionlist.append((inAppUriKey, 'Theke', 'sandy brown'))
+        # for inAppUriKey in theke.uri.inAppURI.keys():
+        #     self.window.gotobar.autoCompletionlist.append((inAppUriKey, 'sandy brown'))
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})

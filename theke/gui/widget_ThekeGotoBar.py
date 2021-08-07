@@ -15,14 +15,14 @@ class ThekeGotoBar(Gtk.SearchEntry):
         self.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "go-next")
 
         # Set the autocompletion
+        #   0: name of the document
+        #   1: color name use as background color
         self.autoCompletion = Gtk.EntryCompletion()
-        self.autoCompletionlist = Gtk.ListStore(str, str, str)
+        self.autoCompletionlist = Gtk.ListStore(str, str)
         self.autoCompletion.set_model(self.autoCompletionlist)
         self.autoCompletion.set_text_column(0)
 
-        renderer = Gtk.CellRendererText()
-        self.autoCompletion.pack_start (renderer, True)
-        self.autoCompletion.add_attribute(renderer, 'text', 1)
-        self.autoCompletion.add_attribute(renderer, 'background', 2)
+        renderer = self.autoCompletion.get_cells()[0]
+        self.autoCompletion.add_attribute(renderer, 'background', 1)
 
         self.set_completion(self.autoCompletion)
