@@ -5,6 +5,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GObject
 
+import theke.reference
 import theke.searchResults
 import theke.sword
 
@@ -13,7 +14,7 @@ from collections import namedtuple
 import logging
 logger = logging.getLogger(__name__)
 
-resultData = namedtuple('resultData', ['reference'])
+ResultData = namedtuple('resultData', ['reference', 'referenceType'])
 
 class ThekeSearchPane(GObject.Object):
     __gsignals__ = {
@@ -47,6 +48,8 @@ class ThekeSearchPane(GObject.Object):
         self.reduceExpand_button.connect("clicked", self.handle_reduceExpand_button_clicked)
         self.close_button.connect("clicked", self.handle_close_button_clocked)
 
+        self.results = None
+
     def search_start(self, moduleName, keyword):
         self.emit("start", moduleName, keyword)
         logger.debug("ThekeSearchPane - Start a search: {} in {}".format(keyword, moduleName))
@@ -59,7 +62,7 @@ class ThekeSearchPane(GObject.Object):
         self.results_treeView.set_model(self.results)
 
         for bookName, rawReferences in results.items():
-            self.results.add(bookName, rawReferences)
+            self.results.add(bookName, rawReferences, theke.reference.TYPE_BIBLE)
 
         logger.debug("ThekeSearchPane - End of the search")
         self.emit("finish")
@@ -103,4 +106,4 @@ class ThekeSearchPane(GObject.Object):
             if model.iter_has_child(treeIter):
                 tree_selection.unselect_all()
             else:
-                self.emit("selection-changed", resultData(*model[treeIter]))
+                self.emit("selection-changed", ResultData(*model[treeIter]))

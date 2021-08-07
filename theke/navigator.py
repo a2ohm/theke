@@ -1,3 +1,4 @@
+from collections import namedtuple
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -20,6 +21,8 @@ logger = logging.getLogger(__name__)
 # Config
 # ... for sword
 sword_default_module = "MorphGNT"
+
+SelectedWord = namedtuple('selectedWord',['word','lemma','strong','morph','source'])
 
 def format_sword_syntax(text) -> str:
     '''Format rendered text from sword into a theke comprehensible syntax
@@ -46,11 +49,7 @@ class ThekeNavigator(GObject.Object):
     toc = GObject.Property(type=object)
 
     isMorphAvailable  = GObject.Property(type=bool, default=False)
-    word = GObject.Property(type=str)
-    lemma = GObject.Property(type=str)
-    strong = GObject.Property(type=str)
-    morph = GObject.Property(type=str)
-
+    selectedWord = GObject.Property(type=object)
 
     def __init__(self, *args, **kwargs) -> None:
         logger.debug("ThekeNavigator - Create a new instance")
@@ -129,7 +128,6 @@ class ThekeNavigator(GObject.Object):
 
             self.set_property("toc", None)
             self.set_property("isMorphAvailable", False)
-            self.set_property("morph", "-")
 
         else:
             logger.debug("ThekeNavigator - Update context from theke uri (skip)")
@@ -165,7 +163,6 @@ class ThekeNavigator(GObject.Object):
             self.set_property("toc", None)
             self.set_property("availableSources", None)
             self.set_property("isMorphAvailable", False)
-            self.set_property("morph", "-")
 
         else:
             logger.debug("ThekeNavigator - Update context from sword uri [BOOK] (skip)")
@@ -260,7 +257,6 @@ class ThekeNavigator(GObject.Object):
             isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
         
         self.set_property("isMorphAvailable", isMorphAvailable)
-        self.set_property("morph", "-")
 
         return theke.templates.render('bible', {
             'documents': documents,
@@ -325,7 +321,6 @@ class ThekeNavigator(GObject.Object):
         self.set_property("toc", None)
 
         self.set_property("isMorphAvailable", False)
-        self.set_property("morph", "-")
 
     ### Signals handling
 
@@ -337,11 +332,13 @@ class ThekeNavigator(GObject.Object):
         pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong>\w\d+))?')
         match_signal_clickOnWord = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
 
-        self.lemma = match_signal_clickOnWord.group('lemma')
-        self.strong = match_signal_clickOnWord.group('strong')
-
-        self.set_property("morph", uri.params.get('morph', '-'))
-        self.set_property("word", uri.params.get('word', '?'))
+        self.set_property("selectedWord", SelectedWord(
+            uri.params.get('word', '?'),
+            match_signal_clickOnWord.group('lemma'),
+            match_signal_clickOnWord.group('strong'),
+            uri.params.get('morph', '-'),
+            uri.params.get('source')
+        ))
 
     def handle_navigation_action(self, decision) -> bool:
         """Decide if the webview should execute a navigation action.

@@ -1,3 +1,4 @@
+import logging
 import gi
 
 gi.require_version('Gtk', '3.0')
@@ -15,6 +16,8 @@ from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
 from theke.gui.widget_ThekeToolsView import ThekeToolsView
+
+logger = logging.getLogger(__name__)
 
 class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, navigator, *args, **kwargs):
@@ -168,11 +171,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPane.show()
-        self.searchPane.search_start(self.navigator.ref.source, self.navigator.strong)
+        self.searchPane.search_start(self.navigator.selectedWord.source, self.navigator.selectedWord.strong)
 
     def handle_searchResults_selection_changed(self, object, result):
-        ref = theke.reference.Reference(result.reference)
-        self.navigator.goto_ref(ref)
+        if result.referenceType == theke.reference.TYPE_BIBLE:
+            ref = theke.reference.BiblicalReference(result.reference)
+            self.navigator.goto_ref(ref)
+        else:
+            logger.error("Reference type not supported in search results: %s", result.referenceType)
 
     def handle_search_start(self, object, moduleName, lemma):
         self.toolsView.search_button.set_sensitive(False)
@@ -181,10 +187,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
-        self.toolsView.set_morph(self.navigator.word, self.navigator.morph)
+        w = self.navigator.selectedWord
 
-        self.toolsView.set_lemma(self.navigator.lemma)
-        self.toolsView.set_strongs(self.navigator.strong)
+        self.toolsView.set_morph(w.word, w.morph)
+
+        self.toolsView.set_lemma(w.lemma)
+        self.toolsView.set_strongs(w.strong)
 
         self.toolsView.show()
 
