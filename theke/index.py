@@ -6,12 +6,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 import Sword
+import theke
 import theke.sword
 
 from collections import namedtuple
 
 sourceData = namedtuple('sourceData',['name', 'type', 'contentType', 'description'])
-documentData = namedtuple('documentData',['name', 'moduleName'])
+DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
 
@@ -54,6 +55,15 @@ class ThekeIndex:
             (documentName,)).fetchone()
 
         return -1 if rawNbOfSections is None else rawNbOfSections[0]
+
+    def get_document_type(self, documentName) -> int:
+        rawTypes = self.con.execute("""SELECT type
+            FROM documents
+            INNER JOIN documentNames ON documents.id = documentNames.id_document
+            WHERE documentNames.name=?;""",
+            (documentName,)).fetchone()
+
+        return -1 if rawTypes is None else rawTypes[0]
 
     def get_edition_id(self, editionName) -> int:
         rawId = self.con.execute("""SELECT id
@@ -104,13 +114,12 @@ class ThekeIndex:
             yield sourceData._make(rawSourceData)
 
     def list_documents(self):
-        rawDocumentsData = self.con.execute("""SELECT documents.swordName, modules.name
-                FROM documents
-                INNER JOIN link_document_module ON documents.id = link_document_module.id_document
-                INNER JOIN modules ON link_document_module.id_module = modules.id;""")
+        rawDocumentsData = self.con.execute("""SELECT documentNames.name, documents.type
+                FROM documentNames
+                INNER JOIN documents ON documentNames.id_document = documents.id;""")
 
         for rawDocumentData in rawDocumentsData:
-            yield documentData._make(rawDocumentData)
+            yield DocumentData._make(rawDocumentData)
 
     def list_document_sources(self, documentName) -> Any:
         documentId = self.get_document_id(documentName)
@@ -130,7 +139,7 @@ class ThekeIndexBuilder:
         # ... documents
         self.index.execute("""CREATE TABLE IF NOT EXISTS documents (
             id integer PRIMARY KEY,
-            type text NOT NULL,
+            type integer NOT NULL,
             nbOfSections DEFAULT 0
             );""")
 
@@ -199,7 +208,7 @@ class ThekeIndexBuilder:
         for moduleName, mod in swordLibrary.get_modules():
             if force or (mod.get_version() > self.index.get_source_version(moduleName)):
                 self.index_swordModule(swordEditionId, mod)
-    
+
     def index_swordModule(self, swordEditionId, mod) -> None:
         logger.debug("ThekeIndexBuilder - Index {}".format(mod.get_name()))
 
@@ -237,7 +246,7 @@ class ThekeIndexBuilder:
         # Index each of the biblical books of this module
         # TODO: Y a-t-il une façon plus propre de faire la même chose ?
         vk = Sword.VerseKey()
-        
+
         for itestament in [1, 2]:
             vk.setTestament(itestament)
 
@@ -251,7 +260,7 @@ class ThekeIndexBuilder:
                         # No, so create a new document entry
                         documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
                             VALUES(?, ?);""",
-                        (theke.sword.MODTYPE_BIBLES, vk.getChapterMax()))
+                        (theke.TYPE_BIBLE, vk.getChapterMax()))
 
                         # and save its name
                         self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
@@ -261,5 +270,5 @@ class ThekeIndexBuilder:
                     self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
                             VALUES(?, ?);""",
                         (documentId, sourceId))
-        
+
         self.index.commit()
