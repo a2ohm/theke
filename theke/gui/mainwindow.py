@@ -42,8 +42,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         #   ... gotobar: entry to open any document
         self.gotobar = ThekeGotoBar()
-        self.gotobar.connect("activate", self.handle_goto)
-        self.gotobar.autoCompletion.connect("match-selected", self.handle_match_selected)
+        self.gotobar.connect("activate", self.handle_gotobar_activate)
+        self.gotobar.autoCompletion.connect("match-selected", self.handle_gotobar_match_selected)
 
         _top_box.pack_end(self.gotobar, False, False, 1)
         _top_box.pack_end(self.historybar, True, True, 1)
@@ -100,7 +100,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
-    def handle_goto(self, entry):
+    def handle_availableSources_updated(self, object, param) -> None:
+        self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
+
+    def handle_delete_source(self, object, sourceName):
+        self.navigator.delete_source(sourceName)
+
+    def handle_gotobar_activate(self, entry):
         '''@param entry: the object which received the signal.
         '''
 
@@ -108,11 +114,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if ref.type != theke.TYPE_UNKNOWN:
             self.navigator.goto_ref(ref)
 
-    def handle_availableSources_updated(self, object, param) -> None:
-        self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
+    def handle_gotobar_match_selected(self, entry_completion, model, iter):
+        # TODO: give name to column (and dont use a numerical value)
+        # Update the text in the GotoBar
+        self.gotobar.set_text("{} ".format(model.get_value(iter, 0)))
 
-    def handle_delete_source(self, object, sourceName):
-        self.navigator.delete_source(sourceName)
+        # Move the cursor to the end
+        self.gotobar.set_position(-1)
+        return True
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
@@ -145,15 +154,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
                 self.webview.scroll_to_verse(self.navigator.ref.verse)
-
-    def handle_match_selected(self, entry_completion, model, iter):
-        # TODO: give name to column (and dont use a numerical value)
-        # Update the text in the GotoBar
-        self.gotobar.set_text("{} ".format(model.get_value(iter, 0)))
-
-        # Move the cursor to the end
-        self.gotobar.set_position(-1)
-        return True
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():

@@ -42,7 +42,6 @@ class ThekeNavigator(GObject.Object):
                       (object,))
         }
 
-    #uri = GObject.Property(type=object)
     ref = GObject.Property(type=object)
     availableSources = GObject.Property(type=object)
 
@@ -72,7 +71,7 @@ class ThekeNavigator(GObject.Object):
         @parm uri: (string or ThekeUri)
         """
         if reload or self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator - Goto: {}".format(uri))
+            logger.debug("ThekeNavigator - Goto: %s", uri)
 
             if isinstance(uri, str):
                 self.webview.load_uri(uri)
@@ -182,8 +181,8 @@ class ThekeNavigator(GObject.Object):
 
         This function is only called by a webview.
         """
-        
-        logger.debug("ThekeNavigator - Load as a theke uri: {}".format(uri))
+
+        logger.debug("ThekeNavigator - Load as a theke uri: %s", uri)
 
         if uri.path[0] == '':
             # Case 1. Path to a file
@@ -194,11 +193,6 @@ class ThekeNavigator(GObject.Object):
             # Case 2. InApp uri
             self.update_context_from_theke_uri(uri)
             inAppUriData = theke.uri.inAppURI[uri.path[0]]
-
-            # ###
-            # logger.info("This reference to uri should be removed")
-            # self.set_property("uri", uri)
-            # ###
 
             f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
             request.finish(f.read(), -1, 'text/html; charset=utf-8')
@@ -256,7 +250,7 @@ class ThekeNavigator(GObject.Object):
             verses.append(mod.get_chapter(self.ref.bookName, self.ref.chapter))
 
             isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
-        
+
         self.set_property("isMorphAvailable", isMorphAvailable)
 
         return theke.templates.render('bible', {
@@ -276,7 +270,7 @@ class ThekeNavigator(GObject.Object):
         if len(uri.path) == 3:
             moduleName = uri.path[2]
             parID = 'Couverture'
-            
+
             mod = theke.sword.SwordLibrary().get_book_module(moduleName)
             text = mod.get_paragraph(parID)
 
@@ -315,9 +309,6 @@ class ThekeNavigator(GObject.Object):
         self.set_property("uri", uri)
         self.set_property("ref", None)
         self.set_property("availableSources", None)
-
-        # self.set_property("title", self.webview.get_title())
-        # self.set_property("shortTitle", uri.netlock)
 
         self.set_property("toc", None)
 
@@ -365,7 +356,7 @@ class ThekeNavigator(GObject.Object):
                 return True
 
         return False
-    
+
     @GObject.Property(type=str)
     def title(self):
         """Title of the current documment
