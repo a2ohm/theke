@@ -1,6 +1,19 @@
 var currentWord;
 var currentVerse;
 
+function upTo(el, id) {
+    // Find first ancestor of el with class
+
+    while (el && el.parentNode) {
+        el = el.parentNode;
+        if (el.className && el.className == id) {
+            return el;
+        }
+    }
+
+    return null;
+  }
+
 function jump_to_verse(verseTag) {
     var verse_to_scroll_to = document.getElementById(verseTag);
 
@@ -36,8 +49,12 @@ function handle_click_on_word(evt) {
         currentWord = evt.target;
         currentWord.classList.add("selected");
 
+        // Get the source of this word
+        parentCol = upTo(currentWord, "content-col")
+        source = parentCol.getAttribute("source")
+
         // Send its morphology out of the webview
-        r = "sword:/signal/click_on_word?word=" + word + "&morph=" + morph + "&lemma=" + lemma;
+        r = "sword:/signal/click_on_word?word=" + word + "&morph=" + morph + "&lemma=" + lemma + "&source=" + source;
         fetch(r);
     }
 }

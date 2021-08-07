@@ -24,9 +24,9 @@
 
         {% for verse in zip(*verses) %}
         {% set outer_loop = loop %}
-        <div id="verse-{{ outer_loop.index }}" class='content-row'>
+        <div id="verse-{{ outer_loop.index }}" class="content-row">
         {% for v in verse %}
-            <div class='content-col'>
+            <div class="content-col" source="{{ documents[loop.index0].source }}">
             <bdi lang="{{ documents[loop.index0].lang }}">
                 <p><sup>{{ outer_loop.index }}</sup>{{ v }}</p>
             </bdi></div>
