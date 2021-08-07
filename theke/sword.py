@@ -1,18 +1,15 @@
+import logging
+import threading
+import re
+
+import Sword
+
 import gi
 
 gi.require_version('Gtk', '3.0')
 
 from gi.repository import GLib
 
-import Sword
-
-import threading
-import re
-
-import theke.uri
-import theke.tableofcontent
-
-import logging
 logger = logging.getLogger(__name__)
 
 MODTYPE_BIBLES = Sword.SWMgr().MODTYPE_BIBLES
@@ -34,13 +31,19 @@ class SwordLibrary():
         self.mgr = Sword.SWMgr(self.markup)
 
     def get_modules(self):
+        """Return iterator through available modules
+        """
         for moduleName in self.mgr.getModules():
             yield str(moduleName), SwordModule(str(moduleName), self.mgr)
 
     def get_module(self, moduleName):
+        """Return a module given its name
+        """
         return SwordModule(moduleName, self.mgr)
 
     def get_bible_module(self, moduleName):
+        """Return a biblical module given its name
+        """
         self.mgr.setGlobalOption("Strong's Numbers", "On")
         self.mgr.setGlobalOption("Cross-references", "Off")
         self.mgr.setGlobalOption("Lemmas", "On")
@@ -50,6 +53,8 @@ class SwordLibrary():
         return SwordBible(moduleName, self.mgr)
 
     def get_book_module(self, moduleName):
+        """Return a general book module given its name
+        """
         return SwordBook(moduleName, self.mgr)
 
 class SwordModule():
@@ -65,30 +70,48 @@ class SwordModule():
             raise ValueError("Unknown module: {}.".format(moduleName))
 
     def get_name(self):
+        """Return the name of the module
+        """
         return self.mod.getName()
 
     def get_description(self):
+        """Return the description of the module
+        """
         return self.mod.getDescription()
 
     def get_global_option_filter(self):
+        """Return a list of global option filter
+        """
         return [str(value) for key, value in self.mod.getConfigMap().items() if str(key) == "GlobalOptionFilter"]
 
     def get_lang(self):
+        """Return the language of the module
+        """
         return self.mod.getConfigEntry("Lang")
 
     def get_repr(self):
+        """Return a string reprsentation of the module
+        """
         return self.mod.getName()
 
     def get_short_repr(self):
+        """Return a short string representation of the module
+        """
         return self.mod.getName()
 
     def get_type(self):
+        """Return the type of the module
+        """
         return self.mod.getType()
 
     def get_version(self):
+        """Return the version of the module
+        """
         return self.mod.getConfigEntry("Version")
 
     def has_entry(self, key):
+        """True if key is valid for this module
+        """
         return self.mod.hasEntry(key)
 
 class SwordBible(SwordModule):
@@ -110,9 +133,9 @@ class SwordBible(SwordModule):
         self.key.setBookName(bookName)
         self.key.setChapter(chapter)
         self.key.setVerse(verse)
-        
+
         self.mod.setKey(self.key)
-        
+
         return self.mod.renderText()
 
     def get_chapter(self, bookName, chapter):
@@ -123,7 +146,7 @@ class SwordBible(SwordModule):
         self.key.setBookName(bookName)
         self.key.setChapter(chapter)
         self.key.setVerse(1)
-        
+
         self.mod.setKey(self.key)
 
         verses = []
@@ -147,16 +170,22 @@ class SwordBook(SwordModule):
         self.key = Sword.TreeKey_castTo(self.mod.getKey())
 
     def get_short_repr(self):
+        """Return a short string representation of the module
+        """
         abbr = self.mod.getConfigEntry("Abbreviation")
         return abbr if abbr is not None else self.mod.getName()
 
     def get_paragraph(self, parID):
+        """Return a paragraph given its id
+        """
         isParagraphFound, text = self.do_get_paragraph(self.key, parID)
         self.do_reset_key(self.key)
 
         return text if isParagraphFound else None
 
     def get_paragraph_and_siblings(self, parID):
+        """Return a paragraph with its surrounding given its id
+        """
         isParagraphFound, text = self.do_get_paragraph(self.key, parID, doGetSiblings=True)
         self.do_reset_key(self.key)
 
@@ -204,7 +233,7 @@ class SwordBook(SwordModule):
 
                 if not tk.nextSibling():
                     break
-            
+
             tk.parent()
             return (isParagraphFound, text)
 
@@ -215,11 +244,13 @@ class SwordBook(SwordModule):
             pass
 
 def bibleSearch_keyword_async(moduleName, keyword, callback):
+    """Do a asynchronous search in a biblical module
+    """
     mod = SwordLibrary().get_bible_module(moduleName)
-    
+
     def do_search():
         rawResults = mod.mod.doSearch(keyword)
-        
+
         # rawResults cannot be pass to callback (weird bug)
         # so it is copied in a dictionnary
         # In addition, results are sort by book
