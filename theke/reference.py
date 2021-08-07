@@ -66,11 +66,6 @@ def parse_biblical_reference(rawReference):
     # This is not a biblical reference
     return None
 
-TYPE_UNKNOWN = 0
-TYPE_BIBLE = 1
-TYPE_INAPP = 2
-TYPE_BOOK = 3
-
 class Reference():
     '''Reference of any document readable by Theke.
     (application screen, Sword reference)
@@ -80,7 +75,7 @@ class Reference():
         self.rawReference = rawReference
         self.documentTitle = rawReference
         self.documentShortTitle = rawReference
-        self.type = TYPE_UNKNOWN
+        self.type = theke.TYPE_UNKNOWN
 
     def get_repr(self):
         """Representation of the reference
@@ -103,7 +98,7 @@ class BiblicalReference(Reference):
 
         logger.debug("Reference − Create a biblical reference : %s", rawReference)
 
-        self.type = TYPE_BIBLE
+        self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
         self.documentTitle = self.bookName
         self.documentShortTitle = self.bookName
@@ -168,7 +163,7 @@ class BookReference(Reference):
     def __init__(self, rawReference, section = 0):
         super().__init__(rawReference)
 
-        self.type = TYPE_BOOK
+        self.type = theke.TYPE_BOOK
         self.documentTitle = self.rawReference
         self.section = section
 
@@ -190,7 +185,7 @@ class InAppReference(Reference):
 
         logger.debug("Reference − Create a inApp reference : %s", rawReference)
 
-        self.type = TYPE_INAPP
+        self.type = theke.TYPE_INAPP
         self.inAppUriData = theke.uri.inAppURI[self.rawReference]
         self.documentTitle = self.inAppUriData.title
         self.documentShortTitle = self.inAppUriData.shortTitle

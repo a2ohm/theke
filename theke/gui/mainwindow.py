@@ -136,14 +136,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self.toolsView.hide()
 
             # Show the sourcesBar, if necessary
-            if self.navigator.ref and self.navigator.ref.type == theke.reference.TYPE_BIBLE:
+            if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE:
                 self.sourcesBar.show()
                 self.statusbar.hide()
             else:
                 self.sourcesBar.hide()
                 self.statusbar.show()
 
-            if self.navigator.ref and self.navigator.ref.type == theke.reference.TYPE_BIBLE and self.navigator.ref.verse is not None:
+            if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
                 self.webview.scroll_to_verse(self.navigator.ref.verse)
 
     def handle_match_selected(self, entry_completion, model, iter):
@@ -169,7 +169,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPane.search_start(self.navigator.selectedWord.source, self.navigator.selectedWord.strong)
 
     def handle_searchResults_selection_changed(self, object, result):
-        if result.referenceType == theke.reference.TYPE_BIBLE:
+        if result.referenceType == theke.TYPE_BIBLE:
             ref = theke.reference.BiblicalReference(result.reference)
             self.navigator.goto_ref(ref)
         else:

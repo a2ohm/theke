@@ -350,12 +350,12 @@ class ThekeNavigator(GObject.Object):
 
         if uri.scheme == 'sword':
 
-            defaultSource = ";".join(self.ref.sources) if self.ref and self.ref.type == theke.reference.TYPE_BIBLE else sword_default_module
+            defaultSource = ";".join(self.ref.sources) if self.ref and self.ref.type == theke.TYPE_BIBLE else sword_default_module
             ref = theke.reference.get_reference_from_uri(uri, defaultSources = defaultSource)
 
             # Catch a navigation action to a biblical reference where only the verse number change
             if (self.ref and
-                self.ref.type == theke.reference.TYPE_BIBLE and
+                self.ref.type == theke.TYPE_BIBLE and
                 self.ref.bookName == ref.bookName and
                 self.ref.chapter == ref.chapter and
                 self.ref.verse != ref.verse):

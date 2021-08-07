@@ -5,7 +5,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 from gi.repository import GObject
 
-import theke.reference
+import theke
 import theke.searchResults
 import theke.sword
 
@@ -62,7 +62,7 @@ class ThekeSearchPane(GObject.Object):
         self.results_treeView.set_model(self.results)
 
         for bookName, rawReferences in results.items():
-            self.results.add(bookName, rawReferences, theke.reference.TYPE_BIBLE)
+            self.results.add(bookName, rawReferences, theke.TYPE_BIBLE)
 
         logger.debug("ThekeSearchPane - End of the search")
         self.emit("finish")
