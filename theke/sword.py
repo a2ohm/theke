@@ -21,6 +21,8 @@ MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 FMT_HTML = Sword.FMT_HTML
 FMT_PLAIN = Sword.FMT_PLAIN
 
+MARKUP = {"FreCrampon": FMT_PLAIN, "2TGreek": FMT_PLAIN}
+
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
 class SwordLibrary():

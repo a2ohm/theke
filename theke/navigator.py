@@ -247,7 +247,8 @@ class ThekeNavigator(GObject.Object):
         isMorphAvailable = False
 
         for source in self.ref.sources:
-            mod = theke.sword.SwordLibrary().get_bible_module(source)
+            markup = theke.sword.MARKUP.get(source, theke.sword.FMT_HTML)
+            mod = theke.sword.SwordLibrary(markup=markup).get_bible_module(source)
             documents.append({
                 'lang' : mod.get_lang(),
                 'source': source
