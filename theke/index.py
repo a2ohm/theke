@@ -1,35 +1,39 @@
-import sqlite3
-from sqlite3.dbapi2 import Cursor
-from typing import Any, Dict
+from collections import namedtuple
+from typing import Any
 
 import logging
-logger = logging.getLogger(__name__)
+import sqlite3
+from sqlite3.dbapi2 import Cursor
 
 import Sword
 import theke
 import theke.sword
 
-from collections import namedtuple
+logger = logging.getLogger(__name__)
 
-sourceData = namedtuple('sourceData',['name', 'type', 'contentType', 'description'])
+SourceData = namedtuple('sourceData',['name', 'type', 'contentType', 'description'])
 DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
 
-index_path = 'data/thekeIndex.db'
+INDEX_PATH = 'data/thekeIndex.db'
 
 class ThekeIndex:
     def __init__(self) -> None:
         logger.debug("ThekeIndex - Create a new instance")
         logger.debug("ThekeIndex - Connect to the database")
-        self.con = sqlite3.connect(index_path)
+        self.con = sqlite3.connect(INDEX_PATH)
 
     def execute(self, sql, parameters = ()) -> Cursor:
+        """Execute a sql query
+        """
+
         return self.con.execute(sql, parameters)
 
     def execute_returning_id(self, sql, parameters = ()) -> Any:
         """Insert an entry and return the row id
         """
+
         cur = self.con.cursor()
         cur.execute(sql, parameters)
         #self.con.commit()
@@ -37,9 +41,14 @@ class ThekeIndex:
         return cur.lastrowid
 
     def commit(self) -> None:
+        """Commit modifications
+        """
         self.con.commit()
 
     def get_document_id(self, documentName) -> int:
+        """Return the id of document given its name
+        """
+
         rawId = self.con.execute("""SELECT id_document
             FROM documentNames
             WHERE name=?;""",
@@ -48,6 +57,11 @@ class ThekeIndex:
         return -1 if rawId is None else rawId[0]
 
     def get_document_nbOfSections(self, documentName) -> int:
+        """Return the number of sections of document given its name
+
+         - For a biblical book, this is the number of chapters.
+        """
+
         rawNbOfSections = self.con.execute("""SELECT nbOfSections
             FROM documents
             INNER JOIN documentNames ON documents.id = documentNames.id_document
@@ -57,6 +71,9 @@ class ThekeIndex:
         return -1 if rawNbOfSections is None else rawNbOfSections[0]
 
     def get_document_type(self, documentName) -> int:
+        """Return the type of a document given its name
+        """
+
         rawTypes = self.con.execute("""SELECT type
             FROM documents
             INNER JOIN documentNames ON documents.id = documentNames.id_document
@@ -66,6 +83,9 @@ class ThekeIndex:
         return -1 if rawTypes is None else rawTypes[0]
 
     def get_edition_id(self, editionName) -> int:
+        """Return the id of an edition given its name
+        """
+
         rawId = self.con.execute("""SELECT id
             FROM editions
             WHERE name=?;""",
@@ -76,6 +96,7 @@ class ThekeIndex:
     def get_source_version(self, sourceName) -> str:
         """Return the version a source
         """
+
         rawVersion = self.con.execute("""SELECT version
             FROM sources
             WHERE name=?;""",
@@ -84,6 +105,11 @@ class ThekeIndex:
         return '0' if rawVersion is None else rawVersion[0]
 
     def list_sources(self, sourceType = None, contentType = None):
+        """List sources
+        
+        @param sourceType: SOURCETYPE_SWORD
+        @param contentType: MODTYPE_BIBLES, MODTYPE_GENBOOKS
+        """
         if sourceType is None and contentType is None:
             rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
                 FROM sources
@@ -111,9 +137,12 @@ class ThekeIndex:
                 (sourceType, contentType))
 
         for rawSourceData in rawSourcesData:
-            yield sourceData._make(rawSourceData)
+            yield SourceData._make(rawSourceData)
 
     def list_documents(self):
+        """List all documents
+        """
+
         rawDocumentsData = self.con.execute("""SELECT documentNames.name, documents.type
                 FROM documentNames
                 INNER JOIN documents ON documentNames.id_document = documents.id;""")
@@ -122,6 +151,9 @@ class ThekeIndex:
             yield DocumentData._make(rawDocumentData)
 
     def list_document_sources(self, documentName) -> Any:
+        """List sources where a document can be found
+        """
+
         documentId = self.get_document_id(documentName)
 
         return [rawDocumentSource[0] for rawDocumentSource in self.con.execute("""SELECT sources.name
@@ -207,10 +239,13 @@ class ThekeIndexBuilder:
 
         for moduleName, mod in swordLibrary.get_modules():
             if force or (mod.get_version() > self.index.get_source_version(moduleName)):
-                self.index_swordModule(swordEditionId, mod)
+                self.index_sword_module(swordEditionId, mod)
 
-    def index_swordModule(self, swordEditionId, mod) -> None:
-        logger.debug("ThekeIndexBuilder - Index {}".format(mod.get_name()))
+    def index_sword_module(self, swordEditionId, mod) -> None:
+        """Index a sword module
+        """
+
+        logger.debug("ThekeIndexBuilder - Index %s", mod.get_name())
 
         # Add the module in the index
         sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version)
@@ -229,19 +264,22 @@ class ThekeIndexBuilder:
             (sourceId, mod.get_description()))
 
         self.index.commit()
-        
+
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
             self.index_biblical_module(swordEditionId, sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-            logger.debug("ThekeIndexBuilder - [Index {} as a book]".format(mod.get_name()))
+            logger.debug("ThekeIndexBuilder - [Index %s as a book]", mod.get_name())
 
         else:
-            logger.debug("ThekeIndexBuilder - Unknown type ({}) of {}".format(mod.get_type(), mod.get_name()))
+            logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
     def index_biblical_module(self, swordEditionId, sourceId, mod) -> None:
-        logger.debug("ThekeIndexBuilder - Index {} as a Bible (id: {})".format(mod.get_name(), sourceId))
+        """Index a sword biblical module
+        """
+
+        logger.debug("ThekeIndexBuilder - Index %s as a Bible (id: %s)", mod.get_name(), sourceId)
 
         # Index each of the biblical books of this module
         # TODO: Y a-t-il une façon plus propre de faire la même chose ?
