@@ -223,7 +223,7 @@ class ThekeNavigator(GObject.Object):
             self.update_context_from_sword_uri_BOOK(uri)
 
             logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
-            html = self.get_sword_book(uri)
+            html = self.get_sword_book_content(uri)
 
         else:
             raise ValueError('Unknown sword book type: {}.'.format(uri.path[1]))
@@ -259,7 +259,7 @@ class ThekeNavigator(GObject.Object):
             'ref': self.ref
         })
 
-    def get_sword_book(self, uri) -> str:
+    def get_sword_book_content(self, uri) -> str:
         """Load a sword book.
 
         @param uri: (ThekeUri) a theke.uri matching "sword:/book/moduleName/parID"
