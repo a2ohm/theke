@@ -21,7 +21,3 @@ assets/modules.html
 
 # pylint
 .pylintrc
-
-# Data
-data/myDico.tdic
-data/thekeIndex.db
