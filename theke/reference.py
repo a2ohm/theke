@@ -29,7 +29,7 @@ def get_reference_from_uri(uri, defaultSources = None):
 
             return BookReference(uri.path[2], section = uri.path[3])
 
-        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
+        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))
 
 def parse_reference(rawReference):
     """Parse a raw reference
@@ -192,3 +192,17 @@ class InAppReference(Reference):
 
     def get_uri(self) -> Any:
         return theke.uri.build('theke', [self.rawReference])
+
+class ExternalReference(Reference):
+    def __init__(self, uri, title):
+        super().__init__(rawReference = repr(uri))
+
+        logger.debug("Reference − Create an external reference : %s", title)
+
+        self.type = theke.TYPE_EXTERNAL
+        self.uri = uri
+        self.documentTitle = title
+        self.documentShortTitle = title
+
+    def get_uri(self) -> Any:
+        return self.uri
