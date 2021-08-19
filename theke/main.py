@@ -5,6 +5,7 @@ from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import GLib
 
+import os
 import theke
 import theke.gui.mainwindow
 import theke.index
@@ -42,6 +43,12 @@ class ThekeApp(Gtk.Application):
         logger.debug("ThekeApp - Do startup")
 
         Gtk.Application.do_startup(self)
+
+        # Create some directories
+        for path in [theke.PATH_ROOT, theke.PATH_DATA, theke.PATH_EXTERNAL]:
+            if not os.path.isdir(path):
+                logger.debug("ThekeApp − Make dir : %s", path)
+                os.mkdir(path)
 
         # Index sword modules
         indexBuilder = theke.index.ThekeIndexBuilder()

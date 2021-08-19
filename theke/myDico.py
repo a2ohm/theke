@@ -1,19 +1,25 @@
+import logging
+
+import os
 import sqlite3
 from typing import Any
 
 from collections import namedtuple
 
-import logging
+import theke
+
 logger = logging.getLogger(__name__)
 
 dicoEntry = namedtuple('dicoEntry',['id','strongsNb','lemma', 'definition'])
+
+DICO_PATH = os.path.join(theke.PATH_DATA, 'myDico.tdic')
 
 class myDico:
     def __init__(self) -> None:
         logger.debug("myDico - Create a new instance")
 
         logger.debug("myDico - Connect to the database")
-        self.con = sqlite3.connect('data/myDico.tdic')
+        self.con = sqlite3.connect(DICO_PATH)
 
         logger.debug("myDico - Initiate the database (if necessary)")
         self.con.execute("""CREATE TABLE IF NOT EXISTS dictionary (

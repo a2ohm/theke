@@ -2,6 +2,7 @@ from collections import namedtuple
 from typing import Any
 
 import logging
+import os
 import sqlite3
 from sqlite3.dbapi2 import Cursor
 
@@ -16,7 +17,7 @@ DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
 
-INDEX_PATH = 'data/thekeIndex.db'
+INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 
 class ThekeIndex:
     def __init__(self) -> None:
