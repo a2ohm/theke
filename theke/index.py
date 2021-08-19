@@ -227,6 +227,8 @@ class ThekeIndexBuilder:
             FOREIGN KEY(id_source) REFERENCES sources(id) ON DELETE CASCADE
             );""")
 
+    ### Index building
+
     def build(self, force = False) -> None:
         """Build the index.
         """
@@ -248,13 +250,20 @@ class ThekeIndexBuilder:
             if force or (mod.get_version() > self.index.get_source_version(moduleName)):
                 self.index_sword_module(swordEditionId, mod)
 
+    def index_external_sources(self, force = False) -> None:
+        """Index external sources
+        """
+        pass
+
+    ### Index sword modules
+
     def index_sword_module(self, swordEditionId, mod) -> None:
         """Index a sword module
         """
 
         logger.debug("ThekeIndexBuilder - Index %s", mod.get_name())
 
-        # Add the module in the index
+        # Add the module to the index
         sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version)
                 VALUES(?, ?, ?, ?) 
                 ON CONFLICT(name)
@@ -264,7 +273,7 @@ class ThekeIndexBuilder:
         if sourceId is None:
             raise sqlite3.Error("Fails to index the module {}".format(mod.get_name()))
 
-        # Add the module description in the index
+        # Add the module description to the index
         self.index.execute_returning_id("""INSERT INTO sourceDescriptions (id_source, description)
                 VALUES(?, ?);
                 """,
@@ -274,7 +283,7 @@ class ThekeIndexBuilder:
 
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-            self.index_biblical_module(swordEditionId, sourceId, mod)
+            self.index_sword_biblical_module(swordEditionId, sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
             logger.debug("ThekeIndexBuilder - [Index %s as a book]", mod.get_name())
@@ -282,7 +291,7 @@ class ThekeIndexBuilder:
         else:
             logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
-    def index_biblical_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_sword_biblical_module(self, swordEditionId, sourceId, mod) -> None:
         """Index a sword biblical module
         """
 
