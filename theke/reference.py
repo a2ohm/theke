@@ -194,15 +194,28 @@ class InAppReference(Reference):
         return theke.uri.build('theke', [self.rawReference])
 
 class ExternalReference(Reference):
-    def __init__(self, uri, title):
-        super().__init__(rawReference = repr(uri))
+    def __init__(self, title, section = 0, uri = None):
+        super().__init__(rawReference = title)
 
         logger.debug("Reference − Create an external reference : %s", title)
 
         self.type = theke.TYPE_EXTERNAL
-        self.uri = uri
         self.documentTitle = title
         self.documentShortTitle = title
+        self.section = section
+        self.uri = uri
+
+    def get_repr(self) -> str:
+        if self.section == 0:
+            return "{}".format(self.documentTitle)
+
+        return "{} {}".format(self.documentTitle, self.section)
+
+    def get_short_repr(self) -> str:
+        if self.section == 0:
+            return "{}".format(self.documentShortTitle)
+
+        return "{} {}".format(self.documentShortTitle, self.section)
 
     def get_uri(self) -> Any:
         return self.uri

@@ -307,7 +307,7 @@ class ThekeNavigator(GObject.Object):
         """
 
         self.set_property("uri", uri)
-        self.set_property("ref", theke.reference.ExternalReference(uri, title))
+        self.set_property("ref", theke.reference.ExternalReference(title, uri = uri))
         self.set_property("availableSources", None)
 
         self.set_property("toc", None)
