@@ -230,6 +230,12 @@ class ThekeIndexBuilder:
     def build(self, force = False) -> None:
         """Build the index.
         """
+        self.index_sword_modules(force)
+
+    def index_sword_modules(self, force = False) -> None:
+        """Index sword modules.
+        """
+        logger.debug("ThekeIndexBuilder − Index sword modules")
         swordLibrary = theke.sword.SwordLibrary()
 
         self.index.execute("""INSERT OR IGNORE INTO editions (name, shortname, lang)
