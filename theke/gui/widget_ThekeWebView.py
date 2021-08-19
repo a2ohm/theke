@@ -57,4 +57,4 @@ class ThekeWebView(WebKit2.WebView):
             if uri.scheme in ['http', 'https']:
                 # Those uri are loaded out of the navigator scope
                 # so they have to be registered manually
-                self.navigator.register_web_uri(uri)
+                self.navigator.register_web_uri(uri, web_view.get_title())

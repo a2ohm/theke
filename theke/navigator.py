@@ -302,12 +302,12 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
-    def register_web_uri(self, uri) -> None:
+    def register_web_uri(self, uri, title) -> None:
         """Update properties according to this web page data.
         """
 
         self.set_property("uri", uri)
-        self.set_property("ref", None)
+        self.set_property("ref", theke.reference.ExternalReference(uri, title))
         self.set_property("availableSources", None)
 
         self.set_property("toc", None)
