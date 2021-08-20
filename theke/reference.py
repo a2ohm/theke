@@ -199,7 +199,7 @@ class ExternalReference(Reference):
 
         logger.debug("Reference − Create an external reference : %s", title)
 
-        self.type = theke.TYPE_EXTERNAL
+        self.type = theke.TYPE_EXTERN
         self.documentTitle = title
         self.documentShortTitle = title
         self.section = section
