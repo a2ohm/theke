@@ -13,10 +13,16 @@ inAppURI = {
     'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
 }
 
-SWORD_BIBLE = 'bible'
-SWORD_BOOK = 'book'
+# Uri segments
+SEGM_APP = 'app'
+SEGM_DOC = 'doc'
 
-SWORD_SIGNAL = 'signal'
+SEGM_ASSETS = 'assets'
+
+SEGM_BIBLE = 'bible'
+SEGM_BOOK = 'book'
+
+SEGM_SIGNAL = 'signal'
 
 def build(scheme, path, params = None, fragment='', sources = None):
     """Build an uri from seperate elements.

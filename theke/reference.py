@@ -17,14 +17,14 @@ def get_reference_from_uri(uri, defaultSources = None):
         @param uri: (ThekeUri)
         @param defaultSources: (str)
     '''
-    if uri.path[1] == 'app':
+    if uri.path[1] == theke.uri.SEGM_APP:
         return InAppReference(uri.path[2])
 
-    if uri.path[1] == 'doc':
-        if uri.path[2] == theke.uri.SWORD_BIBLE:
+    if uri.path[1] == theke.uri.SEGM_DOC:
+        if uri.path[2] == theke.uri.SEGM_BIBLE:
             return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', defaultSources))
 
-        if uri.path[2] == theke.uri.SWORD_BOOK:
+        if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
                 return BookReference(uri.path[3], section = 0)
 
@@ -152,11 +152,11 @@ class BiblicalReference(Reference):
 
     def get_uri(self):
         if self.verse == 0:
-            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
                 "{} {}".format(self.bookName, self.chapter)],
                 sources = self.sources)
         
-        return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
             sources = self.sources)
 
@@ -178,7 +178,7 @@ class BookReference(Reference):
         return "{}".format(self.documentShortTitle)
 
     def get_uri(self):
-        return theke.uri.build('sword', ['', theke.uri.SWORD_BOOK, self.rawReference])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
 
 class InAppReference(Reference):
     def __init__(self, rawReference):
@@ -192,4 +192,4 @@ class InAppReference(Reference):
         self.documentShortTitle = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
-        return theke.uri.build('theke', ['', 'app', self.rawReference])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
