@@ -192,7 +192,8 @@ class ThekeIndexBuilder:
             name text UNIQUE NOT NULL,
             type text NOT NULL,
             contentType text NOT NULL,
-            version text DEFAULT "0"
+            version text DEFAULT "0",
+            uri text DEFAULT ""
             );""")
 
         # ... sourceDescriptions
@@ -264,7 +265,7 @@ class ThekeIndexBuilder:
                 externalPath = os.path.join(theke.PATH_EXTERNAL, externalFilename)
                 externalData = yaml.safe_load(open(externalPath, 'r'))
 
-                if force or (externalData['version'] > self.index.get_source_version(externalSourceName)):
+                if force or (str(externalData['version']) > self.index.get_source_version(externalSourceName)):
                     self.index_external_source(externalSourceName, externalData)
 
     ### Index sword modules
@@ -347,11 +348,11 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as an external source", sourceName)
 
         # Add the external source to the index
-        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version)
-                VALUES(?, ?, ?, ?) 
+        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, uri)
+                VALUES(?, ?, ?, ?, ?) 
                 ON CONFLICT(name)
                 DO UPDATE SET version=excluded.version;""",
-            (sourceName, SOURCETYPE_EXTERN, data['type'], data['version']))
+            (sourceName, SOURCETYPE_EXTERN, data['type'], data['version'], data['uri']))
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
