@@ -129,12 +129,12 @@ class ThekeNavigator(GObject.Object):
 
             if ref.type == theke.TYPE_BIBLE:
                 # Update the table of content only if needed
-                if self.ref is None or ref.documentTitle != self.ref.documentTitle:
+                if self.ref is None or ref.documentName != self.ref.documentName:
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
                 self.set_property("ref", ref)
 
-                self.set_property("availableSources", self.index.list_document_sources(ref.documentTitle))
+                self.set_property("availableSources", self.index.list_document_sources(ref.documentName))
                 self.notify("sources")
 
             else:
@@ -276,7 +276,7 @@ class ThekeNavigator(GObject.Object):
         else:
             text = format_sword_syntax(text)
 
-        self.ref.documentTitle = mod.get_name()
+        self.ref.documentName = mod.get_name()
 
         return theke.templates.render('book', {
             'title': mod.get_name(),

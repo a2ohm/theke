@@ -74,26 +74,35 @@ class Reference():
 
     def __init__(self, rawReference):
         self.rawReference = rawReference
-        self.documentTitle = rawReference
-        self.documentShortTitle = rawReference
+        self.documentName = rawReference
+        self.documentShortName = rawReference
         self.type = theke.TYPE_UNKNOWN
 
     def get_repr(self):
         """Representation of the reference
         eg. long title
         """
-        return self.documentTitle
+        return self.documentName
 
     def get_short_repr(self):
         """Short representation of the refenrece
         eg. short title
         """
-        return self.documentShortTitle
+        return self.documentShortName
 
     def get_uri(self):
         raise NotImplementedError
 
-class BiblicalReference(Reference):
+class DocumentReference(Reference):
+    def __init__(self, rawReference):
+        super().__init__(rawReference)
+
+        self.availableSources = None
+
+    def update_available_sources(self) -> None:
+        self.availableSources = theke.index.ThekeIndex().list_document_sources(self.documentName)
+
+class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, tags = None):
         super().__init__(rawReference)
 
@@ -101,8 +110,8 @@ class BiblicalReference(Reference):
 
         self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
-        self.documentTitle = self.bookName
-        self.documentShortTitle = self.bookName
+        self.documentName = self.bookName
+        self.documentShortName = self.bookName
 
         self.sources = rawSources.split(';') if rawSources is not None else None
         self.tags = tags
@@ -139,16 +148,16 @@ class BiblicalReference(Reference):
         eg. John 1:1
         """
         if self.verse == 0:
-            return "{} {}".format(self.documentTitle, self.chapter)
+            return "{} {}".format(self.documentName, self.chapter)
 
-        return "{} {}:{}".format(self.documentTitle, self.chapter, self.verse)
+        return "{} {}:{}".format(self.documentName, self.chapter, self.verse)
 
     def get_short_repr(self):
         """Return a short representation of the biblical reference
         (without verse number)
         eg. John 1
         """
-        return "{} {}".format(self.documentShortTitle, self.chapter)
+        return "{} {}".format(self.documentShortName, self.chapter)
 
     def get_uri(self):
         if self.verse == 0:
@@ -160,22 +169,22 @@ class BiblicalReference(Reference):
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
             sources = self.sources)
 
-class BookReference(Reference):
+class BookReference(DocumentReference):
     def __init__(self, rawReference, section = 0):
         super().__init__(rawReference)
 
         self.type = theke.TYPE_BOOK
-        self.documentTitle = self.rawReference
+        self.documentName = self.rawReference
         self.section = section
 
     def get_repr(self) -> str:
         if self.section == 0:
-            return "{}".format(self.documentTitle)
+            return "{}".format(self.documentName)
         else:
-            return "{} {}".format(self.documentTitle, self.section)
+            return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
-        return "{}".format(self.documentShortTitle)
+        return "{}".format(self.documentShortName)
 
     def get_uri(self):
         return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
