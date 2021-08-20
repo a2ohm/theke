@@ -79,5 +79,5 @@ class ThekeApp(Gtk.Application):
         theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
 
         # Load the main screen
-        uri = theke.uri.parse("theke:welcome", isEncoded=True)
+        uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
         self.navigator.goto_uri(uri)

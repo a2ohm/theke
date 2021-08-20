@@ -11,25 +11,26 @@ logger = logging.getLogger(__name__)
 
 def get_reference_from_uri(uri, defaultSources = None):
     '''Return a reference according to an uri.
-        sword:/bible/John 1:1 --> biblical reference to Jn 1,1
+        theke:/app/welcome --> inApp reference to the welcome page
+        theke:/doc/bible/John 1:1 --> biblical reference to Jn 1,1
 
         @param uri: (ThekeUri)
         @param defaultSources: (str)
     '''
-    if uri.scheme == 'theke':
-        return InAppReference(uri.path[0])
+    if uri.path[1] == 'app':
+        return InAppReference(uri.path[2])
 
-    if uri.scheme == 'sword':
-        if uri.path[1] == theke.uri.SWORD_BIBLE:
-            return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSources))
+    if uri.path[1] == 'doc':
+        if uri.path[2] == theke.uri.SWORD_BIBLE:
+            return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', defaultSources))
 
-        if uri.path[1] == theke.uri.SWORD_BOOK:
-            if len(uri.path) == 3:
-                return BookReference(uri.path[2], section = 0)
+        if uri.path[2] == theke.uri.SWORD_BOOK:
+            if len(uri.path) == 4:
+                return BookReference(uri.path[3], section = 0)
 
-            return BookReference(uri.path[2], section = uri.path[3])
+            return BookReference(uri.path[3], section = uri.path[4])
 
-        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))  
+        raise ValueError('Unsupported book type: {}.'.format(uri.path[2]))  
 
 def parse_reference(rawReference):
     """Parse a raw reference
@@ -191,4 +192,4 @@ class InAppReference(Reference):
         self.documentShortTitle = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
-        return theke.uri.build('theke', [self.rawReference])
+        return theke.uri.build('theke', ['', 'app', self.rawReference])

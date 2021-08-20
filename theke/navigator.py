@@ -117,7 +117,7 @@ class ThekeNavigator(GObject.Object):
 
     ### Update context (from URI)
 
-    def update_context_from_theke_uri(self, uri) -> None:
+    def update_context_INAPP(self, uri) -> None:
         """Update the local context according to this theke uri.
         """
         if self.ref is None or uri != self.ref.get_uri():
@@ -170,11 +170,17 @@ class ThekeNavigator(GObject.Object):
 
     def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the file pointed by the theke uri.
-        Case 1. The uri gives a path to a file
-            eg. uri = theke:/default.css
+        Case 1. The uri is a path to an assets file
+            eg. uri = theke:/app/assets/default.css
 
-        Case 2. The uri gives an alias
-            eg. uri = theke:welcome
+        Case 2. The uri is a path to an inapp alias
+            eg. uri = theke:/app/welcome
+
+        Case 3. The uri is a path to a document
+            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
+
+        Case 4. The uri is a signal
+            eg. uri = theke:/signal/click_on_word?word=...
 
         @param uri: (ThekeUri)
         @param request: a WebKit2.URISchemeRequest
@@ -182,20 +188,24 @@ class ThekeNavigator(GObject.Object):
         This function is only called by a webview.
         """
 
-        logger.debug("ThekeNavigator - Load as a theke uri: %s", uri)
+        logger.debug("ThekeNavigator - Get content from a theke uri: %s", uri)
 
-        if uri.path[0] == '':
-            # Case 1. Path to a file
-            f = Gio.File.new_for_path('./assets' + '/'.join(uri.path))
-            request.finish(f.read(), -1, None)
+        if uri.path[1] == 'app':
+            if uri.path[2] == 'assets':
+                # Case 1. Path to an asset file
+                f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
+                request.finish(f.read(), -1, None)
 
-        else:
-            # Case 2. InApp uri
-            self.update_context_from_theke_uri(uri)
-            inAppUriData = theke.uri.inAppURI[uri.path[0]]
+            else:
+                # Case 2. InApp uri
+                self.update_context_INAPP(uri)
+                inAppUriData = theke.uri.inAppURI[uri.path[2]]
 
-            f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
-            request.finish(f.read(), -1, 'text/html; charset=utf-8')
+                f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
+                request.finish(f.read(), -1, 'text/html; charset=utf-8')
+
+        elif uri.path[1] == 'doc':
+            pass
 
     def get_content_from_sword_uri(self, uri, request) -> None:
         '''Load an sword document given its uri and return it as a stream to request.

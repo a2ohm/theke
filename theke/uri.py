@@ -1,7 +1,7 @@
 import urllib.parse
 from collections import namedtuple
 
-validSchemes = ['theke', 'sword', 'http', 'https']
+validSchemes = ['theke', 'http', 'https']
 
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 
@@ -42,9 +42,9 @@ def parse(uri, isEncoded = True):
     '''Parse an uri and return a ThekeURI instance.
 
     Valids uri are (for example):
-        sword:/bible/John 1:1?sources=MorphGNT
-        theke:welcome
-        theke:/default.css
+        theke:/app/welcome
+        theke:/app/assets/default.css
+        theke:/doc/bible/John 1:1?sources=MorphGNT
     '''
 
     # Parse the uri
