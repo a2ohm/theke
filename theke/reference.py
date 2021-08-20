@@ -77,6 +77,7 @@ class Reference():
         self.documentName = rawReference
         self.documentShortName = rawReference
         self.type = theke.TYPE_UNKNOWN
+        self.availableSources = None
 
     def get_repr(self):
         """Representation of the reference
@@ -97,8 +98,6 @@ class DocumentReference(Reference):
     def __init__(self, rawReference):
         super().__init__(rawReference)
 
-        self.availableSources = None
-
     def update_available_sources(self) -> None:
         self.availableSources = theke.index.ThekeIndex().list_document_sources(self.documentName)
 
@@ -115,6 +114,8 @@ class BiblicalReference(DocumentReference):
 
         self.sources = rawSources.split(';') if rawSources is not None else None
         self.tags = tags
+
+        self.update_available_sources()
 
     def add_source(self, source) -> bool:
         """Append a source to the reference
@@ -176,6 +177,8 @@ class BookReference(DocumentReference):
         self.type = theke.TYPE_BOOK
         self.documentName = self.rawReference
         self.section = section
+
+        self.update_available_sources()
 
     def get_repr(self) -> str:
         if self.section == 0:

@@ -44,7 +44,6 @@ class ThekeNavigator(GObject.Object):
         }
 
     ref = GObject.Property(type=object)
-    availableSources = GObject.Property(type=object)
 
     toc = GObject.Property(type=object)
 
@@ -133,15 +132,14 @@ class ThekeNavigator(GObject.Object):
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
                 self.set_property("ref", ref)
-
-                self.set_property("availableSources", self.index.list_document_sources(ref.documentName))
                 self.notify("sources")
 
             else:
                 self.set_property("ref", ref)
                 self.set_property("toc", None)
-                self.set_property("availableSources", None)
                 self.set_property("isMorphAvailable", False)
+
+            self.notify("availableSources")
 
         else:
             logger.debug("ThekeNavigator − Update context (skip)")
@@ -290,11 +288,12 @@ class ThekeNavigator(GObject.Object):
 
         self.set_property("uri", uri)
         self.set_property("ref", None)
-        self.set_property("availableSources", None)
 
         self.set_property("toc", None)
 
         self.set_property("isMorphAvailable", False)
+
+        self.notify("availableSources")
 
     ### Signals handling
 
@@ -338,6 +337,12 @@ class ThekeNavigator(GObject.Object):
                 return True
 
         return False
+
+    @GObject.Property(type=str)
+    def availableSources(self):
+        """Available sources of the current documment
+        """
+        return self.ref.availableSources
 
     @GObject.Property(type=str)
     def title(self):
