@@ -3,6 +3,7 @@ from typing import Any
 
 import logging
 import os
+import yaml
 import sqlite3
 from sqlite3.dbapi2 import Cursor
 
@@ -16,6 +17,7 @@ SourceData = namedtuple('sourceData',['name', 'type', 'contentType', 'descriptio
 DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
+SOURCETYPE_EXTERN = 'extern'
 
 INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 
@@ -233,6 +235,7 @@ class ThekeIndexBuilder:
         """Build the index.
         """
         self.index_sword_modules(force)
+        self.index_external_sources(force)
 
     def index_sword_modules(self, force = False) -> None:
         """Index sword modules.
@@ -253,7 +256,16 @@ class ThekeIndexBuilder:
     def index_external_sources(self, force = False) -> None:
         """Index external sources
         """
-        pass
+        logger.debug("ThekeIndexBuilder − Index external sources")
+
+        for externalFilename in os.listdir(theke.PATH_EXTERNAL):
+            if externalFilename.endswith('.yaml'):
+                externalSourceName = externalFilename[:-5]
+                externalPath = os.path.join(theke.PATH_EXTERNAL, externalFilename)
+                externalData = yaml.safe_load(open(externalPath, 'r'))
+
+                if force or (externalData['version'] > self.index.get_source_version(externalSourceName)):
+                    self.index_external_source(externalSourceName, externalData)
 
     ### Index sword modules
 
@@ -324,5 +336,65 @@ class ThekeIndexBuilder:
                     self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
                             VALUES(?, ?);""",
                         (documentId, sourceId))
+
+        self.index.commit()
+
+    ### Index exernal source
+
+    def index_external_source(self, sourceName, data) -> None:
+        """Index an external source
+        """
+        logger.debug("ThekeIndexBuilder - Index %s as an external source", sourceName)
+
+        # Add the external source to the index
+        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version)
+                VALUES(?, ?, ?, ?) 
+                ON CONFLICT(name)
+                DO UPDATE SET version=excluded.version;""",
+            (sourceName, SOURCETYPE_EXTERN, data['type'], data['version']))
+
+        if sourceId is None:
+            raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
+
+        # # Add the module description to the index
+        # self.index.execute_returning_id("""INSERT INTO sourceDescriptions (id_source, description)
+        #         VALUES(?, ?);
+        #         """,
+        #     (sourceId, data.get('description', '')))
+
+        # Add its edition
+        self.index.execute("""INSERT OR IGNORE INTO editions (name, shortname, lang)
+                VALUES(?, ?, ?);""",
+            (data['edition']['name'], data['edition']['shortname'], data['edition']['lang']))
+
+        editionId = self.index.get_edition_id(data['edition']['name'])
+
+        # Is this document already registered?
+        documentId = self.index.get_document_id(data['name'])
+
+        if documentId < 0:
+            # No, so create a new document entry
+            documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
+                VALUES(?, ?);""",
+            (theke.TYPE_EXTERN, 0))
+
+        # Add the document name and shortname
+        self.index.execute("""INSERT OR IGNORE INTO documentNames (id_document, id_edition, name)
+            VALUES(?, ?, ?);""",
+            (documentId, editionId, data['name']))
+
+        self.index.execute("""INSERT OR IGNORE INTO documentNames (id_document, id_edition, name, isShortName)
+            VALUES(?, ?, ?, ?);""",
+            (documentId, editionId, data['shortname'], True))
+
+        # Add its description
+        self.index.execute_returning_id("""INSERT OR IGNORE INTO documentDescriptions (id_document, description, lang)
+                VALUES(?, ?, ?);
+                """,
+            (documentId, data.get('description', ''), ''))
+
+        self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
+                VALUES(?, ?);""",
+            (documentId, sourceId))
 
         self.index.commit()
