@@ -8,6 +8,7 @@ from gi.repository import GObject
 
 import re
 
+import theke
 import theke.uri
 import theke.index
 import theke.sword
@@ -56,6 +57,7 @@ class ThekeNavigator(GObject.Object):
         super().__init__(*args, **kwargs)
 
         self.webview = None
+        self.index = theke.index.ThekeIndex()
 
     def register_webview(self, webview) -> None:
         """Register a reference to the webview this navigator is going to interact with.
@@ -117,70 +119,48 @@ class ThekeNavigator(GObject.Object):
 
     ### Update context (from URI)
 
-    def update_context_INAPP(self, uri) -> None:
-        """Update the local context according to this theke uri.
+    def update_context(self, uri) -> None:
+        """Update local context according to this uri
         """
         if self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator - Update context from theke uri")
-
-            self.set_property("ref", theke.reference.get_reference_from_uri(uri))
-
-            self.set_property("toc", None)
-            self.set_property("isMorphAvailable", False)
-
-        else:
-            logger.debug("ThekeNavigator - Update context from theke uri (skip)")
-
-    def update_context_from_sword_uri_BIBLE(self, uri) -> None:
-        """Update navigator properties from the uri.
-        """
-        if self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator - Update context from sword uri [BIBLE]")
+            logger.debug("ThekeNavigator − Update context")
 
             ref = theke.reference.get_reference_from_uri(uri, defaultSources = sword_default_module)
 
-            if self.ref is None or ref.documentTitle != self.ref.documentTitle:
-                self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
+            if ref.type == theke.TYPE_BIBLE:
+                # Update the table of content only if needed
+                if self.ref is None or ref.documentTitle != self.ref.documentTitle:
+                    self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
-            self.set_property("ref", ref)
+                self.set_property("ref", ref)
 
-            self.set_property("availableSources", theke.index.ThekeIndex().list_document_sources(ref.documentTitle))
-            self.notify("sources")
+                self.set_property("availableSources", self.index.list_document_sources(ref.documentTitle))
+                self.notify("sources")
 
-        else:
-            logger.debug("ThekeNavigator - Update context from sword uri [BIBLE] (skip)")
-
-    def update_context_from_sword_uri_BOOK(self, uri) -> None:
-        """Update navigator properties from the uri.
-        """
-        if self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator - Update context from sword uri (BOOK)")
-
-            ref = theke.reference.get_reference_from_uri(uri)
-
-            self.set_property("ref", ref)
-            self.set_property("toc", None)
-            self.set_property("availableSources", None)
-            self.set_property("isMorphAvailable", False)
+            else:
+                self.set_property("ref", ref)
+                self.set_property("toc", None)
+                self.set_property("availableSources", None)
+                self.set_property("isMorphAvailable", False)
 
         else:
-            logger.debug("ThekeNavigator - Update context from sword uri [BOOK] (skip)")
+            logger.debug("ThekeNavigator − Update context (skip)")
 
     ### Get content
 
     def get_content_from_theke_uri(self, uri, request) -> None:
-        """Return a stream to the file pointed by the theke uri.
+        """Return a stream to the content pointed by the theke uri.
         Case 1. The uri is a path to an assets file
             eg. uri = theke:/app/assets/default.css
 
         Case 2. The uri is a path to an inapp alias
             eg. uri = theke:/app/welcome
 
-        Case 3. The uri is a path to a document
-            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
-
-        Case 4. The uri is a signal
+        Case 3. The uri is a signal
             eg. uri = theke:/signal/click_on_word?word=...
+
+        Case 4. The uri is a path to a document
+            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
 
         @param uri: (ThekeUri)
         @param request: a WebKit2.URISchemeRequest
@@ -190,58 +170,50 @@ class ThekeNavigator(GObject.Object):
 
         logger.debug("ThekeNavigator - Get content from a theke uri: %s", uri)
 
-        if uri.path[1] == 'app':
-            if uri.path[2] == 'assets':
+        if uri.path[1] == theke.uri.SEGM_APP:
+            if uri.path[2] == theke.uri.SEGM_ASSETS:
                 # Case 1. Path to an asset file
                 f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
                 request.finish(f.read(), -1, None)
 
             else:
                 # Case 2. InApp uri
-                self.update_context_INAPP(uri)
+                self.update_context(uri)
                 inAppUriData = theke.uri.inAppURI[uri.path[2]]
 
                 f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
                 request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
-        elif uri.path[1] == 'doc':
-            pass
-
-    def get_content_from_sword_uri(self, uri, request) -> None:
-        '''Load an sword document given its uri and return it as a stream to request.
-
-        @param uri: (ThekeUri) uri of the sword document (eg. sword:/bible/John 1:1?source=MorphGNT)
-        @param request: (WebKit2.URISchemeRequest)
-
-        This function is only called by a webview.
-        '''
-
-        if uri.path[1] == theke.uri.SWORD_SIGNAL:
-            logger.debug("ThekeNavigator - Catch a sword signal: %s", uri)
-
-            if uri.path[2] == 'click_on_word':
-                self.emit("click_on_word", uri)
-                html = ""
-
-        elif uri.path[1] == theke.uri.SWORD_BIBLE:
-            self.update_context_from_sword_uri_BIBLE(uri)
-
-            logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
-            html = self.get_sword_bible_content()
-
-        elif uri.path[1] == theke.uri.SWORD_BOOK:
-            self.update_context_from_sword_uri_BOOK(uri)
-
-            logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
-            html = self.get_sword_book_content(uri)
-
         else:
-            raise ValueError('Unknown sword book type: {}.'.format(uri.path[1]))
+            if uri.path[1] == theke.uri.SEGM_SIGNAL:
+                # Case 3. The uri is a signal
+                logger.debug("ThekeNavigator - Catch a sword signal: %s", uri)
 
-        html_bytes = GLib.Bytes.new(html.encode('utf-8'))
-        tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
+                if uri.path[2] == 'click_on_word':
+                    self.emit("click_on_word", uri)
+                    html = ""
 
-        request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
+            elif uri.path[1] == theke.uri.SEGM_DOC:
+                # Case 4. The uri is a path to a document
+                if uri.path[2] == theke.uri.SEGM_BIBLE:
+                    self.update_context(uri)
+
+                    logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
+                    html = self.get_sword_bible_content()
+
+                elif uri.path[2] == theke.uri.SEGM_BOOK:
+                    self.update_context(uri)
+
+                    logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
+                    html = self.get_sword_book_content(uri)
+
+            else:
+                raise ValueError('Unsupported theke uri: {}.'.format(uri))
+
+            html_bytes = GLib.Bytes.new(html.encode('utf-8'))
+            tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
+
+            request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def get_sword_bible_content(self) -> str:
         logger.debug("ThekeNavigator - Load content")
