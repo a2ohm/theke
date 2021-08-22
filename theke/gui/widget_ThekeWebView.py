@@ -24,7 +24,7 @@ class ThekeWebView(WebKit2.WebView):
         
         context = self.get_context()
         context.register_uri_scheme('theke', self.handle_theke_uri, None)
-        context.register_uri_scheme('sword', self.handle_sword_uri, None)
+        #context.register_uri_scheme('sword', self.handle_sword_uri, None)
 
     def jump_to_anchor(self, anchor):
         script = """var element_to_scroll_to = document.getElementById('{}');
@@ -46,9 +46,9 @@ class ThekeWebView(WebKit2.WebView):
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
         self.navigator.get_content_from_theke_uri(uri, request)
 
-    def handle_sword_uri(self, request, *user_data):
-        uri = theke.uri.parse(request.get_uri(), isEncoded = True)
-        self.navigator.get_content_from_sword_uri(uri, request)
+    # def handle_sword_uri(self, request, *user_data):
+    #     uri = theke.uri.parse(request.get_uri(), isEncoded = True)
+    #     self.navigator.get_content_from_sword_uri(uri, request)
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
