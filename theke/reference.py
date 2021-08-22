@@ -117,8 +117,6 @@ class DocumentReference(Reference):
         self.documentName = documentNames['names'][0]
         self.documentShortName = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
 
-        print(documentNames['shortnames'])
-
         self.availableSources = index.list_document_sources(self.documentName)
 
 class BiblicalReference(DocumentReference):

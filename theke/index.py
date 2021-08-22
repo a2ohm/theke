@@ -320,7 +320,6 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
         
         #TOFIX: boucler sur les titres des livres contenus dans ce module.
-        print(mod.get_short_repr())
         self.index_document(mod.get_name(), mod.get_short_repr(), 0, swordEditionId, sourceId)
 
     def index_document(self, documentName, documentShortName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
