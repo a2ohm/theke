@@ -56,6 +56,24 @@ class ThekeIndex:
 
         return -1 if rawId is None else rawId[0]
 
+    def get_document_names(self, documentName) -> Any:
+        """From a name of a document, return all other names
+        """
+
+        documentId = self.get_document_id(documentName)
+        rawNames = self.con.execute("""SELECT name
+            FROM documentNames
+            WHERE id_document=?  AND isShortName=?;""",
+            (documentId, False)).fetchall()
+
+        rawShortnames = self.con.execute("""SELECT name
+            FROM documentNames
+            WHERE id_document=? AND isShortName=?;""",
+            (documentId, True)).fetchall()
+
+        return {'names': [n[0] for n in rawNames],
+                'shortnames': [n[0] for n in rawShortnames]}
+    
     def get_document_nbOfSections(self, documentName) -> int:
         """Return the number of sections of document given its name
 
@@ -292,7 +310,7 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    self.index_document(vk.getBookName(), vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
+                    self.index_document(vk.getBookName(), None, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
 
         self.index.commit()
 
@@ -302,12 +320,14 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
         
         #TOFIX: boucler sur les titres des livres contenus dans ce module.
-        self.index_document(mod.get_name(), 0, swordEditionId, sourceId)
+        print(mod.get_short_repr())
+        self.index_document(mod.get_name(), mod.get_short_repr(), 0, swordEditionId, sourceId)
 
-    def index_document(self, documentName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+    def index_document(self, documentName, documentShortName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
         """Index a document
 
         @param documentName: (str) name of the document
+        @param documentShortName: (str) shortnae of the document (eg. abbreviation of its title)
         @param nbOfSections: (int) for a bible book: number of chapters
         @param editionId: (int) id of the edition
         @param sourceId: (int) id of the source
@@ -325,6 +345,12 @@ class ThekeIndexBuilder:
             self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
                 VALUES(?, ?, ?);""",
                 (documentId, editionId, documentName))
+
+        # Save its shortname
+        if documentShortName is not None:
+            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name, isShortName)
+                VALUES(?, ?, ?, ?);""",
+                (documentId, editionId, documentShortName, True))
 
         self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
                 VALUES(?, ?);""",
