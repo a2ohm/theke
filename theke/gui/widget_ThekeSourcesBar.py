@@ -54,7 +54,7 @@ class ThekeSourcesBar(GObject.Object):
             self.addSourceMenu = Gtk.Menu()
 
             for source in availableSources:
-                menuItem_source = Gtk.MenuItem("{}".format(source.name))
+                menuItem_source = Gtk.MenuItem("{}".format(source))
                 menuItem_source.connect('activate', self.handle_sourceItem_request)
 
                 self.addSourceMenu.append(menuItem_source)

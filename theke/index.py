@@ -11,8 +11,7 @@ import theke.sword
 
 logger = logging.getLogger(__name__)
 
-SourceData = namedtuple('sourceData',['name', 'type'])
-SourceDataExtended = namedtuple('SourceDataExtended',['name', 'type', 'contentType', 'description'])
+SourceData = namedtuple('SourceData',['name', 'type', 'contentType', 'description'])
 DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
@@ -138,7 +137,7 @@ class ThekeIndex:
                 (sourceType, contentType))
 
         for rawSourceData in rawSourcesData:
-            yield SourceDataExtended._make(rawSourceData)
+            yield SourceData._make(rawSourceData)
 
     def list_documents(self):
         """List all documents
@@ -156,14 +155,13 @@ class ThekeIndex:
         """
 
         documentId = self.get_document_id(documentName)
-        rawDocumentSources = self.con.execute("""SELECT sources.name, sources.type
+        rawDocumentSources = self.con.execute("""SELECT sources.name
             FROM sources
             INNER JOIN link_document_source ON link_document_source.id_source = sources.id
             WHERE link_document_source.id_document = ?;""",
             (documentId,)).fetchall()
 
-        for rawDocumentSource in rawDocumentSources:
-            yield SourceData._make(rawDocumentSource)
+        return [rawDocumentSource[0] for rawDocumentSource in rawDocumentSources]
 
 class ThekeIndexBuilder:
     def __init__(self) -> None:
