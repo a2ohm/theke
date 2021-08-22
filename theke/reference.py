@@ -105,13 +105,15 @@ class Reference():
         raise NotImplementedError
 
 class DocumentReference(Reference):
-    def __init__(self, rawReference):
-        super().__init__(rawReference)
-
     def update_default_source(self) -> None:
+        """Update the default source of a reference
+        """
+        # TOFIX: la source par défaut serait à choisir depuis l'index
         self.defaultSource = self.availableSources[0]
     
     def update_data_from_index(self) -> None:
+        """Use the ThekeIndex to update this reference metadata
+        """
         index = theke.index.ThekeIndex()
         documentNames = index.get_document_names(self.documentName)
         self.documentName = documentNames['names'][0]
