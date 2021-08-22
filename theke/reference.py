@@ -9,20 +9,19 @@ import theke.index
 
 logger = logging.getLogger(__name__)
 
-def get_reference_from_uri(uri, defaultSources = None):
+def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
         theke:/app/welcome --> inApp reference to the welcome page
         theke:/doc/bible/John 1:1 --> biblical reference to Jn 1,1
 
         @param uri: (ThekeUri)
-        @param defaultSources: (str)
     '''
     if uri.path[1] == theke.uri.SEGM_APP:
         return InAppReference(uri.path[2])
 
     if uri.path[1] == theke.uri.SEGM_DOC:
         if uri.path[2] == theke.uri.SEGM_BIBLE:
-            return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', defaultSources))
+            return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', None))
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
@@ -77,7 +76,10 @@ class Reference():
         self.documentName = rawReference
         self.documentShortName = rawReference
         self.type = theke.TYPE_UNKNOWN
+
+        self.sources = None
         self.availableSources = None
+        self.defaultSource = None
 
     def get_repr(self):
         """Representation of the reference
@@ -101,6 +103,9 @@ class DocumentReference(Reference):
     def update_available_sources(self) -> None:
         self.availableSources = theke.index.ThekeIndex().list_document_sources(self.documentName)
 
+    def update_default_source(self) -> None:
+        self.defaultSource = self.availableSources[0]
+
 class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, tags = None):
         super().__init__(rawReference)
@@ -112,23 +117,29 @@ class BiblicalReference(DocumentReference):
         self.documentName = self.bookName
         self.documentShortName = self.bookName
 
-        self.sources = rawSources.split(';') if rawSources is not None else None
         self.tags = tags
 
         self.update_available_sources()
+        self.update_default_source()
+        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def add_source(self, source) -> bool:
         """Append a source to the reference
         Return True if the source was added
         """
+
+        if source not in self.availableSources:
+            logger.debug("ThekeReference − This document is not available in this source: %s", source)
+            return False
+        
         if source not in self.sources:
-            logger.debug("ThekeReference - Add source %s", source)
+            logger.debug("ThekeReference − Add source %s", source)
             self.sources.append(source)
             return True
 
         return False
 
-    def remove_source(self, source, defaultSource) -> bool:
+    def remove_source(self, source) -> bool:
         """Remove a source
         As self.sources can not be empty, a default source shoud be given
         """
@@ -139,8 +150,8 @@ class BiblicalReference(DocumentReference):
         self.sources.remove(source)
 
         if len(self.sources) == 0:
-            logger.debug("ThekeReference - Set source to default %s", defaultSource)
-            self.sources.append(defaultSource)
+            logger.debug("ThekeReference - Set source to default %s", self.defaultSource)
+            self.sources.append(self.defaultSource)
 
         return True
 
@@ -171,7 +182,7 @@ class BiblicalReference(DocumentReference):
             sources = self.sources)
 
 class BookReference(DocumentReference):
-    def __init__(self, rawReference, section = 0):
+    def __init__(self, rawReference, rawSources = None, section = 0):
         super().__init__(rawReference)
 
         self.type = theke.TYPE_BOOK
@@ -179,6 +190,8 @@ class BookReference(DocumentReference):
         self.section = section
 
         self.update_available_sources()
+        self.update_default_source()
+        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def get_repr(self) -> str:
         if self.section == 0:

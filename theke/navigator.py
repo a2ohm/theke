@@ -19,10 +19,6 @@ import theke.tableofcontent
 import logging
 logger = logging.getLogger(__name__)
 
-# Config
-# ... for sword
-sword_default_module = "MorphGNT"
-
 SelectedWord = namedtuple('selectedWord',['word','lemma','strong','morph','source'])
 
 def format_sword_syntax(text) -> str:
@@ -112,7 +108,7 @@ class ThekeNavigator(GObject.Object):
             self.goto_uri(self.ref.get_uri(), reload = True)
 
     def delete_source(self, sourceName) -> None:
-        if self.ref.remove_source(sourceName, defaultSource = sword_default_module):
+        if self.ref.remove_source(sourceName):
             self.notify("sources")
             self.goto_uri(self.ref.get_uri(), reload = True)
 
@@ -124,7 +120,7 @@ class ThekeNavigator(GObject.Object):
         if self.ref is None or uri != self.ref.get_uri():
             logger.debug("ThekeNavigator − Update context")
 
-            ref = theke.reference.get_reference_from_uri(uri, defaultSources = sword_default_module)
+            ref = theke.reference.get_reference_from_uri(uri)
 
             if ref.type == theke.TYPE_BIBLE:
                 # Update the table of content only if needed
@@ -322,8 +318,7 @@ class ThekeNavigator(GObject.Object):
 
         if uri.scheme == 'sword':
 
-            defaultSource = ";".join(self.ref.sources) if self.ref and self.ref.type == theke.TYPE_BIBLE else sword_default_module
-            ref = theke.reference.get_reference_from_uri(uri, defaultSources = defaultSource)
+            ref = theke.reference.get_reference_from_uri(uri)
 
             # Catch a navigation action to a biblical reference where only the verse number change
             if (self.ref and
