@@ -199,7 +199,7 @@ class ThekeNavigator(GObject.Object):
                     self.update_context(uri)
 
                     logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
-                    html = self.get_sword_book_content(uri)
+                    html = self.get_sword_book_content()
 
             else:
                 raise ValueError('Unsupported theke uri: {}.'.format(uri))
@@ -235,46 +235,21 @@ class ThekeNavigator(GObject.Object):
             'ref': self.ref
         })
 
-    def get_sword_book_content(self, uri) -> str:
+    def get_sword_book_content(self) -> str:
         """Load a sword book.
-
-        @param uri: (ThekeUri) a theke.uri matching "sword:/book/moduleName/parID"
-            moduleName (mandatory): a valid sword book name (eg. VeritatisSplendor)
-            parID: a paragraph id matching any osisID of the the sword book.
-        @param request: (WebKit2.URISchemeRequest)
         """
-        if len(uri.path) == 3:
-            moduleName = uri.path[2]
-            parID = 'Couverture'
 
-            mod = theke.sword.SwordLibrary().get_book_module(moduleName)
-            text = mod.get_paragraph(parID)
-
-            self.ref.documentShortTitle = '{}'.format(mod.get_short_repr())
-
-        elif len(uri.path) > 3:
-            moduleName = uri.path[2]
-            parID = uri.path[3]
-
-            mod = theke.sword.SwordLibrary().get_book_module(moduleName)
-            text = mod.get_paragraph_and_siblings(parID)
-
-            self.ref.documentShortTitle = '{} {}'.format(mod.get_short_repr(), parID)
-
-        else:
-            raise ValueError("Invalid uri for a Sword Book: {}".format(uri.get_decoded_URI()))
+        mod = theke.sword.SwordLibrary().get_book_module(self.ref.get_sources()[0])
+        text = mod.get_paragraph(self.ref.section)
 
         if text is None:
             text = """<p>Ce texte n'a pas été trouvé.</p>
-            <p>uri : {}</p>""".format(uri.get_decoded_URI())
+            <p>uri : {}</p>""".format(self.ref.get_uri())
         else:
             text = format_sword_syntax(text)
 
-        self.ref.documentName = mod.get_name()
-
         return theke.templates.render('book', {
-            'title': mod.get_name(),
-            'mod_name': mod.get_name(),
+            'ref': self.ref,
             'mod_description': mod.get_description(),
             'text': text})
 

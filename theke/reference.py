@@ -13,6 +13,7 @@ def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
         theke:/app/welcome --> inApp reference to the welcome page
         theke:/doc/bible/John 1:1 --> biblical reference to Jn 1,1
+        theke:/doc/book/VeritatisSplendor/1 --> book reference to VS 1
 
         @param uri: (ThekeUri)
     '''
@@ -25,7 +26,7 @@ def get_reference_from_uri(uri):
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
-                return BookReference(uri.path[3], section = 0)
+                return BookReference(uri.path[3], section = "Couverture")
 
             return BookReference(uri.path[3], section = uri.path[4])
 
@@ -88,10 +89,15 @@ class Reference():
         return self.documentName
 
     def get_short_repr(self):
-        """Short representation of the refenrece
+        """Short representation of the reference
         eg. short title
         """
         return self.documentShortName
+
+    def get_sources(self):
+        """List of sources designated by the reference
+        """
+        return self.sources if self.sources is not None else [self.defaultSource]
 
     def get_uri(self):
         raise NotImplementedError
