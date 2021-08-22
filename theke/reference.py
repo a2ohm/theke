@@ -106,11 +106,18 @@ class DocumentReference(Reference):
     def __init__(self, rawReference):
         super().__init__(rawReference)
 
-    def update_available_sources(self) -> None:
-        self.availableSources = theke.index.ThekeIndex().list_document_sources(self.documentName)
-
     def update_default_source(self) -> None:
         self.defaultSource = self.availableSources[0]
+    
+    def update_data_from_index(self) -> None:
+        index = theke.index.ThekeIndex()
+        documentNames = index.get_document_names(self.documentName)
+        self.documentName = documentNames['names'][0]
+        self.documentShortName = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+
+        print(documentNames['shortnames'])
+
+        self.availableSources = index.list_document_sources(self.documentName)
 
 class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, tags = None):
@@ -125,7 +132,7 @@ class BiblicalReference(DocumentReference):
 
         self.tags = tags
 
-        self.update_available_sources()
+        self.update_data_from_index()
         self.update_default_source()
         self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
@@ -195,7 +202,7 @@ class BookReference(DocumentReference):
         self.documentName = self.rawReference
         self.section = section
 
-        self.update_available_sources()
+        self.update_data_from_index()
         self.update_default_source()
         self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
