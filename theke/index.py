@@ -268,15 +268,15 @@ class ThekeIndexBuilder:
 
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-            self.index_biblical_module(swordEditionId, sourceId, mod)
+            self.index_biblical_sword_module(swordEditionId, sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-            logger.debug("ThekeIndexBuilder - [Index %s as a book]", mod.get_name())
+            self.index_book_sword_module(swordEditionId, sourceId, mod)
 
         else:
             logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
-    def index_biblical_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_biblical_sword_module(self, swordEditionId, sourceId, mod) -> None:
         """Index a sword biblical module
         """
 
@@ -292,22 +292,43 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    # Is this document already registered?
-                    documentId = self.index.get_document_id(vk.getBookName())
-
-                    if documentId < 0:
-                        # No, so create a new document entry
-                        documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
-                            VALUES(?, ?);""",
-                        (theke.TYPE_BIBLE, vk.getChapterMax()))
-
-                        # and save its name
-                        self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
-                            VALUES(?, ?, ?);""",
-                            (documentId, swordEditionId, vk.getBookName()))
-
-                    self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
-                            VALUES(?, ?);""",
-                        (documentId, sourceId))
+                    self.index_document(vk.getBookName(), vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
 
         self.index.commit()
+
+    def index_book_sword_module(self, swordEditionId, sourceId, mod) -> None:
+        """Index a sword book module
+        """
+        logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
+        
+        #TOFIX: boucler sur les titres des livres contenus dans ce module.
+        self.index_document(mod.get_name(), 0, swordEditionId, sourceId)
+
+    def index_document(self, documentName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+        """Index a document
+
+        @param documentName: (str) name of the document
+        @param nbOfSections: (int) for a bible book: number of chapters
+        @param editionId: (int) id of the edition
+        @param sourceId: (int) id of the source
+        """
+        # Is this document already registered?
+        documentId = self.index.get_document_id(documentName)
+
+        if documentId < 0:
+            # No, so create a new document entry
+            documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
+                VALUES(?, ?);""",
+            (theke.TYPE_BIBLE, nbOfSections))
+
+            # and save its name
+            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
+                VALUES(?, ?, ?);""",
+                (documentId, editionId, documentName))
+
+        self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
+                VALUES(?, ?);""",
+            (documentId, sourceId))
+
+        if doCommit:
+            self.index.commit()
