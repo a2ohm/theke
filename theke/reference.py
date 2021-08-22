@@ -9,6 +9,8 @@ import theke.index
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_SWORD_BOOK_SECTION = "Couverture"
+
 def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
         theke:/app/welcome --> inApp reference to the welcome page
@@ -26,7 +28,7 @@ def get_reference_from_uri(uri):
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
-                return BookReference(uri.path[3], section = "Couverture")
+                return BookReference(uri.path[3], section = DEFAULT_SWORD_BOOK_SECTION)
 
             return BookReference(uri.path[3], section = uri.path[4])
 
@@ -207,16 +209,22 @@ class BookReference(DocumentReference):
         self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def get_repr(self) -> str:
-        if self.section == 0:
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
             return "{}".format(self.documentName)
-        else:
-            return "{} {}".format(self.documentName, self.section)
+
+        return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
-        return "{}".format(self.documentShortName)
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return "{}".format(self.documentShortName)
+
+        return "{} {}".format(self.documentShortName, self.section)
 
     def get_uri(self):
-        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
+
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference, self.section])
 
 class InAppReference(Reference):
     def __init__(self, rawReference):
