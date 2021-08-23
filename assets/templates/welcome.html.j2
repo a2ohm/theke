@@ -1,38 +1,38 @@
 <html>
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8">
-        <link rel="stylesheet" href="theke:/default.css" type="text/css">
+        <link rel="stylesheet" href="theke:/app/assets/default.css" type="text/css">
         
         <title>Bienvenue !</title>
     </head>
     
     <body>
         <header>
-            <img src="theke:/theke-logo.svg" alt="logo" />
+            <img src="theke:/app/assets/theke-logo.svg" alt="logo" />
             <h1>
                 Theke
                 <small>Lire et étudier la Bible et l'enseignement de l'Église.</small>
             </h1>
         </header>
 
-        <p><a href="theke:help">Aide</a> − <a href="theke:about">À propos de Theke</a> − <a href="theke:test">Test</a></p>
+        <p><a href="theke:/app/help">Aide</a> − <a href="theke:/app/about">À propos de Theke</a> − <a href="theke:/app/test">Test</a></p>
 
          {% if not BibleMods %}
-         <p class="warning">Vous n'avez aucun module biblique. Vous trouverez dans l'<a href="theke:help#modules">aide</a> des indications pour en installer.</p>
+         <p class="warning">Vous n'avez aucun module biblique. Vous trouverez dans l'<a href="theke:/app/help#modules">aide</a> des indications pour en installer.</p>
          {% else %}        
         <h2>Accès rapide.</h2>
         <ul>
-            <li><a href="theke:external_resources">Liste</a> des ressources externes.</li>
+            <li><a href="theke:/app/external_resources">Liste</a> des ressources externes.</li>
             <li>Séminaire Hébreu. (texte grec)
             <ul>
-                <li><a href="sword:/bible/Hebrews%201?sources=MorphGNT">He 1</a></li>
+                <li><a href="theke:/doc/bible/Hebrews%201?sources=MorphGNT">He 1</a></li>
             </ul></li>
             <li>Séminaire Isaïe. (texte hébreu)
             <ul>
-                <li><a href="sword:/bible/Isaiah%2022?sources=OSHB">Is 22</a></li>
-                <li><a href="sword:/bible/Isaiah%2052?sources=OSHB">Is 52, 13 − 53, 12</a></li>
-                <li><a href="sword:/bible/Isaiah%2056?sources=OSHB">Is 56</a></li>
-                <li><a href="sword:/bible/Isaiah%2061?sources=OSHB">Is 61, 1 − 62, 12</a></li>
+                <li><a href="theke:/doc/bible/Isaiah%2052?sources=OSHB">Is 52, 13 − 53, 12</a></li>
+                <li><a href="theke:/doc/bible/Isaiah%2056?sources=OSHB">Is 56</a></li>
+                <li><a href="theke:/doc/bible/Isaiah%2022?sources=OSHB">Is 22</a></li>
+                <li><a href="theke:/doc/bible/Isaiah%2061?sources=OSHB">Is 61, 1 − 62, 12</a></li>
             </ul></li>
         </ul>
 

@@ -5,6 +5,9 @@ Some constants
 import os
 from gi.repository import GLib
 
+# URI
+URI_WELCOME = "theke:/app/welcome"
+
 # Valid types of documents
 TYPE_UNKNOWN = 0
 TYPE_BIBLE = 1

@@ -13,7 +13,7 @@ import theke.sword
 
 logger = logging.getLogger(__name__)
 
-SourceData = namedtuple('sourceData',['name', 'type', 'contentType', 'description'])
+SourceData = namedtuple('SourceData',['name', 'type', 'contentType', 'description'])
 DocumentData = namedtuple('documentData',['name', 'type'])
 
 SOURCETYPE_SWORD = 'sword'
@@ -59,6 +59,24 @@ class ThekeIndex:
 
         return -1 if rawId is None else rawId[0]
 
+    def get_document_names(self, documentName) -> Any:
+        """From a name of a document, return all other names
+        """
+
+        documentId = self.get_document_id(documentName)
+        rawNames = self.con.execute("""SELECT name
+            FROM documentNames
+            WHERE id_document=?  AND isShortName=?;""",
+            (documentId, False)).fetchall()
+
+        rawShortnames = self.con.execute("""SELECT name
+            FROM documentNames
+            WHERE id_document=? AND isShortName=?;""",
+            (documentId, True)).fetchall()
+
+        return {'names': [n[0] for n in rawNames],
+                'shortnames': [n[0] for n in rawShortnames]}
+    
     def get_document_nbOfSections(self, documentName) -> int:
         """Return the number of sections of document given its name
 
@@ -158,12 +176,13 @@ class ThekeIndex:
         """
 
         documentId = self.get_document_id(documentName)
-
-        return [rawDocumentSource[0] for rawDocumentSource in self.con.execute("""SELECT sources.name
+        rawDocumentSources = self.con.execute("""SELECT sources.name
             FROM sources
             INNER JOIN link_document_source ON link_document_source.id_source = sources.id
             WHERE link_document_source.id_document = ?;""",
-            (documentId,)).fetchall()]
+            (documentId,)).fetchall()
+
+        return [rawDocumentSource[0] for rawDocumentSource in rawDocumentSources]
 
 class ThekeIndexBuilder:
     def __init__(self) -> None:
@@ -296,15 +315,15 @@ class ThekeIndexBuilder:
 
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-            self.index_sword_biblical_module(swordEditionId, sourceId, mod)
+            self.index_biblical_sword_module(swordEditionId, sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-            logger.debug("ThekeIndexBuilder - [Index %s as a book]", mod.get_name())
+            self.index_book_sword_module(swordEditionId, sourceId, mod)
 
         else:
             logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
-    def index_sword_biblical_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_biblical_sword_module(self, swordEditionId, sourceId, mod) -> None:
         """Index a sword biblical module
         """
 
@@ -320,25 +339,17 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    # Is this document already registered?
-                    documentId = self.index.get_document_id(vk.getBookName())
-
-                    if documentId < 0:
-                        # No, so create a new document entry
-                        documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
-                            VALUES(?, ?);""",
-                        (theke.TYPE_BIBLE, vk.getChapterMax()))
-
-                        # and save its name
-                        self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
-                            VALUES(?, ?, ?);""",
-                            (documentId, swordEditionId, vk.getBookName()))
-
-                    self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
-                            VALUES(?, ?);""",
-                        (documentId, sourceId))
+                    self.index_document(vk.getBookName(), None, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
 
         self.index.commit()
+
+    def index_book_sword_module(self, swordEditionId, sourceId, mod) -> None:
+        """Index a sword book module
+        """
+        logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
+        
+        #TOFIX: boucler sur les titres des livres contenus dans ce module.
+        self.index_document(mod.get_name(), mod.get_short_repr(), 0, swordEditionId, sourceId)
 
     ### Index exernal source
 
@@ -399,3 +410,39 @@ class ThekeIndexBuilder:
             (documentId, sourceId))
 
         self.index.commit()
+    
+    def index_document(self, documentName, documentShortName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+        """Index a document
+
+        @param documentName: (str) name of the document
+        @param documentShortName: (str) shortnae of the document (eg. abbreviation of its title)
+        @param nbOfSections: (int) for a bible book: number of chapters
+        @param editionId: (int) id of the edition
+        @param sourceId: (int) id of the source
+        """
+        # Is this document already registered?
+        documentId = self.index.get_document_id(documentName)
+
+        if documentId < 0:
+            # No, so create a new document entry
+            documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
+                VALUES(?, ?);""",
+            (theke.TYPE_BIBLE, nbOfSections))
+
+            # and save its name
+            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
+                VALUES(?, ?, ?);""",
+                (documentId, editionId, documentName))
+
+        # Save its shortname
+        if documentShortName is not None:
+            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name, isShortName)
+                VALUES(?, ?, ?, ?);""",
+                (documentId, editionId, documentShortName, True))
+
+        self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
+                VALUES(?, ?);""",
+            (documentId, sourceId))
+
+        if doCommit:
+            self.index.commit()

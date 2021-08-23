@@ -136,7 +136,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             if self.navigator.toc is None:
                 self.tableOfContent.hide()
             else:
-                self.tableOfContent.set_title(self.navigator.ref.documentTitle)
+                self.tableOfContent.set_title(self.navigator.ref.documentName)
                 self.tableOfContent.set_content(self.navigator.toc.toc)
                 self.tableOfContent.show()
 

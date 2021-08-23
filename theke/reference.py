@@ -9,27 +9,30 @@ import theke.index
 
 logger = logging.getLogger(__name__)
 
-def get_reference_from_uri(uri, defaultSources = None):
+DEFAULT_SWORD_BOOK_SECTION = "Couverture"
+
+def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
-        sword:/bible/John 1:1 --> biblical reference to Jn 1,1
+        theke:/app/welcome --> inApp reference to the welcome page
+        theke:/doc/bible/John 1:1 --> biblical reference to Jn 1,1
+        theke:/doc/book/VeritatisSplendor/1 --> book reference to VS 1
 
         @param uri: (ThekeUri)
-        @param defaultSources: (str)
     '''
-    if uri.scheme == 'theke':
-        return InAppReference(uri.path[0])
+    if uri.path[1] == theke.uri.SEGM_APP:
+        return InAppReference(uri.path[2])
 
-    if uri.scheme == 'sword':
-        if uri.path[1] == theke.uri.SWORD_BIBLE:
-            return BiblicalReference(uri.path[2], rawSources = uri.params.get('sources', defaultSources))
+    if uri.path[1] == theke.uri.SEGM_DOC:
+        if uri.path[2] == theke.uri.SEGM_BIBLE:
+            return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', None))
 
-        if uri.path[1] == theke.uri.SWORD_BOOK:
-            if len(uri.path) == 3:
-                return BookReference(uri.path[2], section = 0)
+        if uri.path[2] == theke.uri.SEGM_BOOK:
+            if len(uri.path) == 4:
+                return BookReference(uri.path[3], section = DEFAULT_SWORD_BOOK_SECTION)
 
-            return BookReference(uri.path[2], section = uri.path[3])
+            return BookReference(uri.path[3], section = uri.path[4])
 
-        raise ValueError('Unsupported book type: {}.'.format(uri.path[1]))
+        raise ValueError('Unsupported book type: {}.'.format(uri.path[2]))  
 
 def parse_reference(rawReference):
     """Parse a raw reference
@@ -73,26 +76,52 @@ class Reference():
 
     def __init__(self, rawReference):
         self.rawReference = rawReference
-        self.documentTitle = rawReference
-        self.documentShortTitle = rawReference
+        self.documentName = rawReference
+        self.documentShortName = rawReference
         self.type = theke.TYPE_UNKNOWN
+
+        self.sources = None
+        self.availableSources = None
+        self.defaultSource = None
 
     def get_repr(self):
         """Representation of the reference
         eg. long title
         """
-        return self.documentTitle
+        return self.documentName
 
     def get_short_repr(self):
-        """Short representation of the refenrece
+        """Short representation of the reference
         eg. short title
         """
-        return self.documentShortTitle
+        return self.documentShortName
+
+    def get_sources(self):
+        """List of sources designated by the reference
+        """
+        return self.sources if self.sources is not None else [self.defaultSource]
 
     def get_uri(self):
         raise NotImplementedError
 
-class BiblicalReference(Reference):
+class DocumentReference(Reference):
+    def update_default_source(self) -> None:
+        """Update the default source of a reference
+        """
+        # TOFIX: la source par défaut serait à choisir depuis l'index
+        self.defaultSource = self.availableSources[0]
+    
+    def update_data_from_index(self) -> None:
+        """Use the ThekeIndex to update this reference metadata
+        """
+        index = theke.index.ThekeIndex()
+        documentNames = index.get_document_names(self.documentName)
+        self.documentName = documentNames['names'][0]
+        self.documentShortName = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+
+        self.availableSources = index.list_document_sources(self.documentName)
+
+class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, tags = None):
         super().__init__(rawReference)
 
@@ -100,24 +129,32 @@ class BiblicalReference(Reference):
 
         self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
-        self.documentTitle = self.bookName
-        self.documentShortTitle = self.bookName
+        self.documentName = self.bookName
+        self.documentShortName = self.bookName
 
-        self.sources = rawSources.split(';') if rawSources is not None else None
         self.tags = tags
+
+        self.update_data_from_index()
+        self.update_default_source()
+        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def add_source(self, source) -> bool:
         """Append a source to the reference
         Return True if the source was added
         """
+
+        if source not in self.availableSources:
+            logger.debug("ThekeReference − This document is not available in this source: %s", source)
+            return False
+        
         if source not in self.sources:
-            logger.debug("ThekeReference - Add source %s", source)
+            logger.debug("ThekeReference − Add source %s", source)
             self.sources.append(source)
             return True
 
         return False
 
-    def remove_source(self, source, defaultSource) -> bool:
+    def remove_source(self, source) -> bool:
         """Remove a source
         As self.sources can not be empty, a default source shoud be given
         """
@@ -128,8 +165,8 @@ class BiblicalReference(Reference):
         self.sources.remove(source)
 
         if len(self.sources) == 0:
-            logger.debug("ThekeReference - Set source to default %s", defaultSource)
-            self.sources.append(defaultSource)
+            logger.debug("ThekeReference - Set source to default %s", self.defaultSource)
+            self.sources.append(self.defaultSource)
 
         return True
 
@@ -138,46 +175,56 @@ class BiblicalReference(Reference):
         eg. John 1:1
         """
         if self.verse == 0:
-            return "{} {}".format(self.documentTitle, self.chapter)
+            return "{} {}".format(self.documentName, self.chapter)
 
-        return "{} {}:{}".format(self.documentTitle, self.chapter, self.verse)
+        return "{} {}:{}".format(self.documentName, self.chapter, self.verse)
 
     def get_short_repr(self):
         """Return a short representation of the biblical reference
         (without verse number)
         eg. John 1
         """
-        return "{} {}".format(self.documentShortTitle, self.chapter)
+        return "{} {}".format(self.documentShortName, self.chapter)
 
     def get_uri(self):
         if self.verse == 0:
-            return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
                 "{} {}".format(self.bookName, self.chapter)],
                 sources = self.sources)
         
-        return theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE,
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
             sources = self.sources)
 
-class BookReference(Reference):
-    def __init__(self, rawReference, section = 0):
+class BookReference(DocumentReference):
+    def __init__(self, rawReference, rawSources = None, section = 0):
         super().__init__(rawReference)
 
         self.type = theke.TYPE_BOOK
-        self.documentTitle = self.rawReference
+        self.documentName = self.rawReference
         self.section = section
 
+        self.update_data_from_index()
+        self.update_default_source()
+        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
+
     def get_repr(self) -> str:
-        if self.section == 0:
-            return "{}".format(self.documentTitle)
-        else:
-            return "{} {}".format(self.documentTitle, self.section)
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return "{}".format(self.documentName)
+
+        return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
-        return "{}".format(self.documentShortTitle)
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return "{}".format(self.documentShortName)
+
+        return "{} {}".format(self.documentShortName, self.section)
 
     def get_uri(self):
-        return theke.uri.build('sword', ['', theke.uri.SWORD_BOOK, self.rawReference])
+        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
+
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference, self.section])
 
 class InAppReference(Reference):
     def __init__(self, rawReference):
@@ -191,7 +238,7 @@ class InAppReference(Reference):
         self.documentShortTitle = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
-        return theke.uri.build('theke', [self.rawReference])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
 
 class ExternalReference(Reference):
     def __init__(self, title, section = 0, uri = None):

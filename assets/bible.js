@@ -54,7 +54,7 @@ function handle_click_on_word(evt) {
         source = parentCol.getAttribute("source")
 
         // Send its morphology out of the webview
-        r = "sword:/signal/click_on_word?word=" + word + "&morph=" + morph + "&lemma=" + lemma + "&source=" + source;
+        r = "theke:/signal/click_on_word?word=" + word + "&morph=" + morph + "&lemma=" + lemma + "&source=" + source;
         fetch(r);
     }
 }

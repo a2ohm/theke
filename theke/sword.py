@@ -97,7 +97,8 @@ class SwordModule():
     def get_short_repr(self):
         """Return a short string representation of the module
         """
-        return self.mod.getName()
+        abbr = self.mod.getConfigEntry("Abbreviation")
+        return abbr if abbr is not None else self.mod.getName()
 
     def get_type(self):
         """Return the type of the module
@@ -168,12 +169,6 @@ class SwordBook(SwordModule):
 
         self.mod = Sword.SWGenBook_castTo(self.mod)
         self.key = Sword.TreeKey_castTo(self.mod.getKey())
-
-    def get_short_repr(self):
-        """Return a short string representation of the module
-        """
-        abbr = self.mod.getConfigEntry("Abbreviation")
-        return abbr if abbr is not None else self.mod.getName()
 
     def get_paragraph(self, parID):
         """Return a paragraph given its id

@@ -9,9 +9,10 @@ from gi.repository import Pango
 
 MAX_NUMBER_OF_BUTTONS = 6
 
+import theke
 import theke.uri
 
-home_uri = theke.uri.parse('theke:welcome', isEncoded=True)
+home_uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
 
 class ThekeHistoryBar(Gtk.ButtonBox):
     def __init__(self, on_button_clicked_callback, *args, **kwargs):
