@@ -77,7 +77,7 @@ class Reference():
     def __init__(self, rawReference):
         self.rawReference = rawReference
         self.documentName = rawReference
-        self.documentShortName = rawReference
+        self.documentShortname = rawReference
         self.type = theke.TYPE_UNKNOWN
 
         self.sources = None
@@ -94,7 +94,7 @@ class Reference():
         """Short representation of the reference
         eg. short title
         """
-        return self.documentShortName
+        return self.documentShortname
 
     def get_sources(self):
         """List of sources designated by the reference
@@ -117,7 +117,7 @@ class DocumentReference(Reference):
         index = theke.index.ThekeIndex()
         documentNames = index.get_document_names(self.documentName)
         self.documentName = documentNames['names'][0]
-        self.documentShortName = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+        self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
 
         self.availableSources = index.list_document_sources(self.documentName)
 
@@ -130,7 +130,7 @@ class BiblicalReference(DocumentReference):
         self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
         self.documentName = self.bookName
-        self.documentShortName = self.bookName
+        self.documentShortname = self.bookName
 
         self.tags = tags
 
@@ -184,7 +184,7 @@ class BiblicalReference(DocumentReference):
         (without verse number)
         eg. John 1
         """
-        return "{} {}".format(self.documentShortName, self.chapter)
+        return "{} {}".format(self.documentShortname, self.chapter)
 
     def get_uri(self):
         if self.verse == 0:
@@ -216,9 +216,9 @@ class BookReference(DocumentReference):
 
     def get_short_repr(self) -> str:
         if self.section == DEFAULT_SWORD_BOOK_SECTION:
-            return "{}".format(self.documentShortName)
+            return "{}".format(self.documentShortname)
 
-        return "{} {}".format(self.documentShortName, self.section)
+        return "{} {}".format(self.documentShortname, self.section)
 
     def get_uri(self):
         if self.section == DEFAULT_SWORD_BOOK_SECTION:
@@ -234,8 +234,8 @@ class InAppReference(Reference):
 
         self.type = theke.TYPE_INAPP
         self.inAppUriData = theke.uri.inAppURI[self.rawReference]
-        self.documentTitle = self.inAppUriData.title
-        self.documentShortTitle = self.inAppUriData.shortTitle
+        self.documentName = self.inAppUriData.title
+        self.documentShortname = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
         return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
@@ -247,22 +247,22 @@ class ExternalReference(Reference):
         logger.debug("Reference − Create an external reference : %s", title)
 
         self.type = theke.TYPE_EXTERN
-        self.documentTitle = title
-        self.documentShortTitle = title
+        self.documentName = title
+        self.documentShortname = title
         self.section = section
         self.uri = uri
 
     def get_repr(self) -> str:
         if self.section == 0:
-            return "{}".format(self.documentTitle)
+            return "{}".format(self.documentName)
 
-        return "{} {}".format(self.documentTitle, self.section)
+        return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
         if self.section == 0:
-            return "{}".format(self.documentShortTitle)
+            return "{}".format(self.documentShortname)
 
-        return "{} {}".format(self.documentShortTitle, self.section)
+        return "{} {}".format(self.documentShortname, self.section)
 
     def get_uri(self) -> Any:
         return self.uri
