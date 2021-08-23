@@ -339,7 +339,7 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    self.index_document(vk.getBookName(), None, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
+                    self.index_document(vk.getBookName(), None, None, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
 
         self.index.commit()
 
@@ -349,7 +349,7 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
         
         #TOFIX: boucler sur les titres des livres contenus dans ce module.
-        self.index_document(mod.get_name(), mod.get_short_repr(), 0, swordEditionId, sourceId)
+        self.index_document(mod.get_name(), mod.get_short_repr(), None, 0, swordEditionId, sourceId)
 
     ### Index exernal source
 
@@ -381,37 +381,10 @@ class ThekeIndexBuilder:
 
         editionId = self.index.get_edition_id(data['edition']['name'])
 
-        # Is this document already registered?
-        documentId = self.index.get_document_id(data['name'])
-
-        if documentId < 0:
-            # No, so create a new document entry
-            documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
-                VALUES(?, ?);""",
-            (theke.TYPE_EXTERN, 0))
-
-        # Add the document name and shortname
-        self.index.execute("""INSERT OR IGNORE INTO documentNames (id_document, id_edition, name)
-            VALUES(?, ?, ?);""",
-            (documentId, editionId, data['name']))
-
-        self.index.execute("""INSERT OR IGNORE INTO documentNames (id_document, id_edition, name, isShortName)
-            VALUES(?, ?, ?, ?);""",
-            (documentId, editionId, data['shortname'], True))
-
-        # Add its description
-        self.index.execute_returning_id("""INSERT OR IGNORE INTO documentDescriptions (id_document, description, lang)
-                VALUES(?, ?, ?);
-                """,
-            (documentId, data.get('description', ''), ''))
-
-        self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
-                VALUES(?, ?);""",
-            (documentId, sourceId))
-
-        self.index.commit()
+        # Index the document
+        self.index_document(data['name'], data['shortname'], data.get('description', None), 0, editionId, sourceId)
     
-    def index_document(self, documentName, documentShortName, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+    def index_document(self, name, shortname, description, nbOfSections, editionId, sourceId, doCommit = True) -> None:
         """Index a document
 
         @param documentName: (str) name of the document
@@ -421,7 +394,7 @@ class ThekeIndexBuilder:
         @param sourceId: (int) id of the source
         """
         # Is this document already registered?
-        documentId = self.index.get_document_id(documentName)
+        documentId = self.index.get_document_id(name)
 
         if documentId < 0:
             # No, so create a new document entry
@@ -429,16 +402,23 @@ class ThekeIndexBuilder:
                 VALUES(?, ?);""",
             (theke.TYPE_BIBLE, nbOfSections))
 
-            # and save its name
+            # and index its name
             self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
                 VALUES(?, ?, ?);""",
-                (documentId, editionId, documentName))
+                (documentId, editionId, name))
 
-        # Save its shortname
-        if documentShortName is not None:
+        # Index its shortname
+        if shortname is not None:
             self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name, isShortName)
                 VALUES(?, ?, ?, ?);""",
-                (documentId, editionId, documentShortName, True))
+                (documentId, editionId, shortname, True))
+
+        # Index its description
+        # TODO: indexer correctement la langue de la description
+        if description is not None:
+            self.index.execute_returning_id("""INSERT OR IGNORE INTO documentDescriptions (id_document, description, lang)
+                    VALUES(?, ?, ?);""",
+                (documentId, description, ''))
 
         self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
                 VALUES(?, ?);""",
