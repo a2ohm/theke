@@ -198,8 +198,17 @@ class ThekeNavigator(GObject.Object):
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
                     self.update_context(uri)
 
-                    logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
-                    html = self.get_sword_book_content()
+                    sourceType = self.index.get_source_type(self.ref.sources[0])
+
+                    if sourceType == theke.index.SOURCETYPE_SWORD:
+                        logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
+                        html = self.get_sword_book_content()
+
+                    elif sourceType == theke.index.SOURCETYPE_EXTERN:
+                        externalUri = self.index.get_source_uri(self.ref.sources[0])
+
+                        logger.debug("ThekeNavigator - Load as a external uri (BOOK): %s", uri)
+                        html = self.get_external_book_content(externalUri)
 
             else:
                 raise ValueError('Unsupported theke uri: {}.'.format(uri))
@@ -253,12 +262,19 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
+    def get_external_book_content(self, externalUri) -> None:
+        """Load an external source
+        """
+        return theke.templates.render('external', {
+            'ref': self.ref,
+            'uri': externalUri})
+
     def register_web_uri(self, uri, title) -> None:
         """Update properties according to this web page data.
         """
 
         self.set_property("uri", uri)
-        self.set_property("ref", None)
+        self.set_property("ref", theke.reference.ExternalReference(title, uri = uri))
 
         self.set_property("toc", None)
 

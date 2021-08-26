@@ -125,6 +125,28 @@ class ThekeIndex:
 
         return '0' if rawVersion is None else rawVersion[0]
 
+    def get_source_type(self, sourceName) -> str:
+        """Return the type of a source
+        """
+
+        rawType = self.con.execute("""SELECT type
+            FROM sources
+            WHERE name=?;""",
+            (sourceName,)).fetchone()
+
+        return None if rawType is None else rawType[0]
+
+    def get_source_uri(self, sourceName) -> str:
+        """Return the uri of a source
+        """
+
+        rawUri = self.con.execute("""SELECT uri
+            FROM sources
+            WHERE name=?;""",
+            (sourceName,)).fetchone()
+
+        return None if rawUri is None else rawUri[0]
+
     def list_sources(self, sourceType = None, contentType = None):
         """List sources
         
@@ -315,15 +337,15 @@ class ThekeIndexBuilder:
 
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-            self.index_biblical_sword_module(swordEditionId, sourceId, mod)
+            self.index_sword_biblical_module(swordEditionId, sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-            self.index_book_sword_module(swordEditionId, sourceId, mod)
+            self.index_sword_book_module(swordEditionId, sourceId, mod)
 
         else:
             logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
-    def index_biblical_sword_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_sword_biblical_module(self, swordEditionId, sourceId, mod) -> None:
         """Index a sword biblical module
         """
 
@@ -343,7 +365,7 @@ class ThekeIndexBuilder:
 
         self.index.commit()
 
-    def index_book_sword_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_sword_book_module(self, swordEditionId, sourceId, mod) -> None:
         """Index a sword book module
         """
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
