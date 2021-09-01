@@ -26,6 +26,15 @@ h1 small {
     content: '⚠️ ';
 }
 
+.QA dt {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+
+.QA dd {
+    font-style: italic;
+}
+
 #logbook {
     font-size: 0.8em;
 }
