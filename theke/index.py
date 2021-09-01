@@ -156,26 +156,26 @@ class ThekeIndex:
         if sourceType is None and contentType is None:
             rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
                 FROM sources
-                INNER JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source;""")
+                LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source;""")
 
         elif sourceType is None:
             rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
                 FROM sources
-                INNER JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
+                LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
                 WHERE sources.contentType=?;""",
                 (contentType,))
 
         elif contentType is None:
             rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
                 FROM sources
-                INNER JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
+                LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
                 WHERE sources.type=?;""",
                 (sourceType,))
 
         else:
             rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
                 FROM sources
-                INNER JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
+                LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
                 WHERE sources.type =? AND sources.contentType=?;""",
                 (sourceType, contentType))
 
@@ -390,11 +390,11 @@ class ThekeIndexBuilder:
         if sourceId is None:
             raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
 
-        # # Add the module description to the index
-        # self.index.execute_returning_id("""INSERT INTO sourceDescriptions (id_source, description)
-        #         VALUES(?, ?);
-        #         """,
-        #     (sourceId, data.get('description', '')))
+        # Add the module description to the index
+        self.index.execute_returning_id("""INSERT INTO sourceDescriptions (id_source, description)
+                VALUES(?, ?);
+                """,
+            (sourceId, data['description']))
 
         # Add its edition
         self.index.execute("""INSERT OR IGNORE INTO editions (name, shortname, lang)
