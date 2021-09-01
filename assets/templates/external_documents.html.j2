@@ -19,7 +19,7 @@
         
         <h2>Documents externes indexés.</h2>
         {% if ExternalDocs %}
-        <p>Tableau des documents externes accessibles depuis Theke avec une connexion internet.</p>            
+        <p>Liste des documents externes accessibles depuis Theke avec une connexion internet.</p>            
         <ul>
             {% for doc in ExternalDocs %}
             <li><a href="theke:/doc/book/{{ doc.name }}">{{ doc.name }}</a> (<a href="{{ doc.uri }}">🌐️</a>).</li>
