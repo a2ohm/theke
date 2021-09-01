@@ -361,7 +361,7 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    self.index_document(vk.getBookName(), None, None, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
+                    self.index_document(vk.getBookName(), None, None, theke.TYPE_BIBLE, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
 
         self.index.commit()
 
@@ -371,7 +371,7 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
         
         #TOFIX: boucler sur les titres des livres contenus dans ce module.
-        self.index_document(mod.get_name(), mod.get_short_repr(), None, 0, swordEditionId, sourceId)
+        self.index_document(mod.get_name(), mod.get_short_repr(), None, theke.TYPE_BOOK, 0, swordEditionId, sourceId)
 
     ### Index exernal source
 
@@ -404,13 +404,14 @@ class ThekeIndexBuilder:
         editionId = self.index.get_edition_id(data['edition']['name'])
 
         # Index the document
-        self.index_document(data['name'], data['shortname'], data.get('description', None), 0, editionId, sourceId)
+        self.index_document(data['name'], data['shortname'], data.get('description', None), theke.TYPE_BOOK, 0, editionId, sourceId)
     
-    def index_document(self, name, shortname, description, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+    def index_document(self, name, shortname, description, type, nbOfSections, editionId, sourceId, doCommit = True) -> None:
         """Index a document
 
         @param documentName: (str) name of the document
-        @param documentShortName: (str) shortnae of the document (eg. abbreviation of its title)
+        @param documentShortName: (str) shortname of the document (eg. abbreviation of its title)
+        @param type: (int) type of the docuement (cf. theke.TYPE_*)
         @param nbOfSections: (int) for a bible book: number of chapters
         @param editionId: (int) id of the edition
         @param sourceId: (int) id of the source
@@ -422,7 +423,7 @@ class ThekeIndexBuilder:
             # No, so create a new document entry
             documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
                 VALUES(?, ?);""",
-            (theke.TYPE_BIBLE, nbOfSections))
+            (type, nbOfSections))
 
             # and index its name
             self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
