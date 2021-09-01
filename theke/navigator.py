@@ -279,7 +279,7 @@ class ThekeNavigator(GObject.Object):
         if self.preventRefUpdateOnNextWebUriRegistering:
             self.preventRefUpdateOnNextWebUriRegistering = False
         else:
-            self.set_property("ref", theke.reference.ExternalReference(title, uri = uri))
+            self.set_property("ref", theke.reference.WebpageReference(title, uri = uri))
 
         self.set_property("toc", None)
 

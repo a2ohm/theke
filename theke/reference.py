@@ -243,13 +243,13 @@ class InAppReference(Reference):
     def get_uri(self) -> Any:
         return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
 
-class ExternalReference(Reference):
+class WebpageReference(Reference):
     def __init__(self, title, section = None, uri = None):
         super().__init__(rawReference = title)
 
         logger.debug("Reference − Create an external reference : %s", title)
 
-        self.type = theke.TYPE_EXTERN
+        self.type = theke.TYPE_WEBPAGE
         self.documentName = title
         self.documentShortname = title
         self.section = section
