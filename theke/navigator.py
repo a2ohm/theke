@@ -147,7 +147,7 @@ class ThekeNavigator(GObject.Object):
     def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the content pointed by the theke uri.
         Case 1. The uri is a path to an assets file
-            eg. uri = theke:/app/assets/default.css
+            eg. uri = theke:/app/assets/css/default.css
 
         Case 2. The uri is a path to an inapp alias
             eg. uri = theke:/app/welcome

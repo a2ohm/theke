@@ -24,7 +24,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def __init__(self, navigator, *args, **kwargs):
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         self.set_default_size(800, 600)
-        self.set_icon_from_file("./assets/theke-logo.svg")
+        self.set_icon_from_file("./assets/img/theke-logo.svg")
 
         self.navigator = navigator
 

@@ -50,7 +50,7 @@ def parse(uri, isEncoded = True):
 
     Valids uri are (for example):
         theke:/app/welcome
-        theke:/app/assets/default.css
+        theke:/app/assets/css/default.css
         theke:/doc/bible/John 1:1?sources=MorphGNT
     '''
 
