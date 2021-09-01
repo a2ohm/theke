@@ -54,6 +54,8 @@ class ThekeNavigator(GObject.Object):
         self.webview = None
         self.index = theke.index.ThekeIndex()
 
+        self.preventRefUpdateOnNextWebUriRegistering = False
+
     def register_webview(self, webview) -> None:
         """Register a reference to the webview this navigator is going to interact with.
         """
@@ -208,6 +210,7 @@ class ThekeNavigator(GObject.Object):
                         externalUri = self.index.get_source_uri(self.ref.sources[0])
 
                         logger.debug("ThekeNavigator - Load as a external uri (BOOK): %s", uri)
+                        self.preventRefUpdateOnNextWebUriRegistering = True
                         html = self.get_external_book_content(externalUri)
 
             else:
@@ -273,8 +276,10 @@ class ThekeNavigator(GObject.Object):
         """Update properties according to this web page data.
         """
 
-        self.set_property("uri", uri)
-        self.set_property("ref", theke.reference.ExternalReference(title, uri = uri))
+        if self.preventRefUpdateOnNextWebUriRegistering:
+            self.preventRefUpdateOnNextWebUriRegistering = False
+        else:
+            self.set_property("ref", theke.reference.ExternalReference(title, uri = uri))
 
         self.set_property("toc", None)
 
