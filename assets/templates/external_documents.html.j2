@@ -1,0 +1,42 @@
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" href="theke:/app/assets/default.css" type="text/css">
+        
+        <title>Documents externes</title>
+    </head>
+    
+    <body>
+        <header>
+            <img src="theke:/app/assets/theke-logo.svg" alt="logo" />
+            <h1>
+                Documents externes
+                <small>Liste des documents externes accessibles depuis Theke.</small>
+            </h1>
+        </header>
+
+        <p>Theke est capable d'indexer et d'afficher des documents seulement accessibles par internet. Pour en savoir plus, consultez l'<a href="theke:/app/help#externalDocuments">aide</a>.</p>
+        
+        <h2>Documents externes indexés.</h2>
+        {% if ExternalDocs %}
+        <p>Tableau des documents externes accessibles depuis Theke avec une connexion internet.</p>
+        
+        <table>
+            <tr>
+                <th>Nom</th>
+                <th>Description</th>
+            </tr>
+            
+            {% for doc in ExternalDocs %}
+            <tr>
+                <td>{{ doc.name }}</td>
+                <td>{{ doc.description }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p class="center">⚠️ <em>Aucun document externe n'est indexé.</em> ⚠️</p>
+        <p>Vous trouverez dans l'<a href="theke:/app/help#externalDocuments">aide</a> quelques indications sur l'ajout de documents externes.</p>
+        {% endif %}
+    </body>
+</html>
