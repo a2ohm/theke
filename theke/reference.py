@@ -48,7 +48,10 @@ def parse_reference(rawReference):
             return BiblicalReference(rawReference)
 
         if documentType == theke.TYPE_BOOK:
-            return BookReference(documentName, match_r.group(2))
+            if match_r.group(2) != '':
+                return BookReference(documentName, section = match_r.group(2))
+            
+            return BookReference(documentName)
 
     return Reference(rawReference)
 
@@ -110,7 +113,7 @@ class DocumentReference(Reference):
         """
         # TOFIX: la source par défaut serait à choisir depuis l'index
         self.defaultSource = self.availableSources[0]
-    
+
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
         """
@@ -197,7 +200,7 @@ class BiblicalReference(DocumentReference):
             sources = self.sources)
 
 class BookReference(DocumentReference):
-    def __init__(self, rawReference, rawSources = None, section = 0):
+    def __init__(self, rawReference, rawSources = None, section = None):
         super().__init__(rawReference)
 
         self.type = theke.TYPE_BOOK
@@ -209,22 +212,22 @@ class BookReference(DocumentReference):
         self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def get_repr(self) -> str:
-        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+        if self.section is None or self.section == DEFAULT_SWORD_BOOK_SECTION:
             return "{}".format(self.documentName)
 
         return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
-        if self.section == DEFAULT_SWORD_BOOK_SECTION:
+        if self.section is None or self.section == DEFAULT_SWORD_BOOK_SECTION:
             return "{}".format(self.documentShortname)
 
         return "{} {}".format(self.documentShortname, self.section)
 
     def get_uri(self):
-        if self.section == DEFAULT_SWORD_BOOK_SECTION:
-            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference])
+        if self.section is None or self.section == DEFAULT_SWORD_BOOK_SECTION:
+            return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName])
 
-        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.rawReference, self.section])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName, str(self.section)])
 
 class InAppReference(Reference):
     def __init__(self, rawReference):
@@ -241,7 +244,7 @@ class InAppReference(Reference):
         return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
 
 class ExternalReference(Reference):
-    def __init__(self, title, section = 0, uri = None):
+    def __init__(self, title, section = None, uri = None):
         super().__init__(rawReference = title)
 
         logger.debug("Reference − Create an external reference : %s", title)
@@ -253,13 +256,13 @@ class ExternalReference(Reference):
         self.uri = uri
 
     def get_repr(self) -> str:
-        if self.section == 0:
+        if self.section is None:
             return "{}".format(self.documentName)
 
         return "{} {}".format(self.documentName, self.section)
 
     def get_short_repr(self) -> str:
-        if self.section == 0:
+        if self.section is None:
             return "{}".format(self.documentShortname)
 
         return "{} {}".format(self.documentShortname, self.section)
