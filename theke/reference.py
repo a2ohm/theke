@@ -251,7 +251,10 @@ class WebpageReference(Reference):
 
         self.type = theke.TYPE_WEBPAGE
         self.documentName = title
-        self.documentShortname = title
+        if len(title) > 20:
+            self.documentShortname = "{}...".format(title[:17])
+        else:
+            self.documentShortname = title
         self.section = section
         self.uri = uri
 
