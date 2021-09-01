@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 SourceData = namedtuple('SourceData',['name', 'type', 'contentType', 'description'])
 DocumentData = namedtuple('documentData',['name', 'type'])
+ExternalDocumentData = namedtuple('externalDocumentData',['name', 'uri'])
 
 SOURCETYPE_SWORD = 'sword'
 SOURCETYPE_EXTERN = 'extern'
@@ -192,6 +193,20 @@ class ThekeIndex:
 
         for rawDocumentData in rawDocumentsData:
             yield DocumentData._make(rawDocumentData)
+
+    def list_external_documents(self):
+        """List external documents
+        """
+
+        rawDocumentsData = self.con.execute("""SELECT documentNames.name, sources.uri
+                FROM documentNames
+                INNER JOIN link_document_source ON link_document_source.id_document = documentNames.id_document
+                INNER JOIN sources ON sources.id = link_document_source.id_source
+                WHERE documentNames.isShortName = ? AND sources.type = ?;""",
+                (False, SOURCETYPE_EXTERN))
+
+        for rawDocumentData in rawDocumentsData:
+            yield ExternalDocumentData._make(rawDocumentData)
 
     def list_document_sources(self, documentName) -> Any:
         """List sources where a document can be found
