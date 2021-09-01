@@ -72,7 +72,9 @@ class ThekeApp(Gtk.Application):
         # ... load the list of modules
         bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
         book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
-        external_docs = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_EXTERN)
+        
+        # ... load the list of external documents
+        external_docs = thekeIndex.list_external_documents()
 
         # ... populate the gotobar autocompletion list
         for documentData in thekeIndex.list_documents():

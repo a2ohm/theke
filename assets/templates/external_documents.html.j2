@@ -19,21 +19,12 @@
         
         <h2>Documents externes indexés.</h2>
         {% if ExternalDocs %}
-        <p>Tableau des documents externes accessibles depuis Theke avec une connexion internet.</p>
-        
-        <table>
-            <tr>
-                <th>Nom</th>
-                <th>Description</th>
-            </tr>
-            
+        <p>Tableau des documents externes accessibles depuis Theke avec une connexion internet.</p>            
+        <ul>
             {% for doc in ExternalDocs %}
-            <tr>
-                <td>{{ doc.name }}</td>
-                <td>{{ doc.description }}</td>
-            </tr>
+            <li><a href="theke:/doc/book/{{ doc.name }}">{{ doc.name }}</a> (<a href="{{ doc.uri }}">🌐️</a>).</li>
             {% endfor %}
-        </table>
+        </ul>
         {% else %}
         <p class="center">⚠️ <em>Aucun document externe n'est indexé.</em> ⚠️</p>
         <p>Vous trouverez dans l'<a href="theke:/app/help#externalDocuments">aide</a> quelques indications sur l'ajout de documents externes.</p>
