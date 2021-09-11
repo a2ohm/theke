@@ -22,7 +22,7 @@ Author: a2ohm
 
 -->
 <interface>
-  <requires lib="gtk+" version="3.24"/>
+  <requires lib="gtk+" version="3.22"/>
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Theke -->
   <!-- interface-authors a2ohm -->
