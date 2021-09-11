@@ -123,46 +123,57 @@ class ThekeNavigator(GObject.Object):
     ### Update context (from URI)
 
     def update_context(self, uri) -> int:
-        """Update local context according to this uri
+        """Update local context according to the uri
+
+        Returning code:
+         - SAME_DOCUMENT: same uri as that of the open document
+            --> the context is not updated
+
+         - NEW_VERSE: (for biblical document only) same uri except the verse number
+            --> only the verse number is updated
+
+         - NEW_DOCUMENT: different uri
+            --> the context is updated
         """
-        if self.ref is None or uri != self.ref.get_uri():
-            ref = theke.reference.get_reference_from_uri(uri)
+        if self.ref is not None and uri == self.ref.get_uri():
+            # This is not a new uri, the context stays the same
+            logger.debug("ThekeNavigator − Update context (skip)")
+            return SAME_DOCUMENT
 
-            if ref.type == theke.TYPE_BIBLE:
-                logger.debug("ThekeNavigator − Update context [bible]")
-                # Update the table of content only if needed
-                if self.ref is None or ref.documentName != self.ref.documentName:
-                    self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
+        ref = theke.reference.get_reference_from_uri(uri)
 
-                if (self.ref.type == theke.TYPE_BIBLE and
-                    self.ref.bookName == ref.bookName and
-                    self.ref.chapter == ref.chapter and
-                    self.ref.verse != ref.verse):
+        if ref.type == theke.TYPE_BIBLE:
+            logger.debug("ThekeNavigator − Update context [bible]")
 
-                    self.ref.verse = ref.verse
+            # Update the table of content only if the document name is different
+            if self.ref is None or ref.documentName != self.ref.documentName:
+                self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
-                    return NEW_VERSE
-                
-                else:
-                    self.set_property("ref", ref)
+            if (self.ref.type == theke.TYPE_BIBLE and
+                self.ref.bookName == ref.bookName and
+                self.ref.chapter == ref.chapter and
+                self.ref.verse != ref.verse):
 
-                    self.notify("sources")
-                    self.notify("availableSources")
-                    return NEW_DOCUMENT
+                self.ref.verse = ref.verse
 
+                return NEW_VERSE
+            
             else:
-                logger.debug("ThekeNavigator − Update context [book/inApp]")
-
                 self.set_property("ref", ref)
-                self.set_property("toc", None)
-                self.set_property("isMorphAvailable", False)
 
+                self.notify("sources")
                 self.notify("availableSources")
                 return NEW_DOCUMENT
 
         else:
-            logger.debug("ThekeNavigator − Update context (skip)")
-            return SAME_DOCUMENT
+            logger.debug("ThekeNavigator − Update context [book/inApp]")
+
+            self.set_property("ref", ref)
+            self.set_property("toc", None)
+            self.set_property("isMorphAvailable", False)
+
+            self.notify("availableSources")
+            return NEW_DOCUMENT
 
     ### Get content
 
@@ -324,6 +335,18 @@ class ThekeNavigator(GObject.Object):
 
     def handle_navigation_action(self, decision) -> bool:
         """Screen navigation actions and update the context accordingly.
+
+        Case 1. The uri is a path to an assets file
+            eg. uri = theke:/app/assets/css/default.css
+
+        Case 2. The uri is a path to an inapp alias
+            eg. uri = theke:/app/welcome
+
+        Case 3. The uri is a signal
+            eg. uri = theke:/signal/click_on_word?word=...
+
+        Case 4. The uri is a path to a document
+            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
 
         @param decision: (WebKit2.NavigationPolicyDecision)
         """
