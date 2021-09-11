@@ -25,7 +25,7 @@ INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 class ThekeIndex:
     def __init__(self) -> None:
         logger.debug("ThekeIndex - Create a new instance")
-        logger.debug("ThekeIndex - Connect to the database")
+        logger.debug("ThekeIndex - Connect to the database: %s", INDEX_PATH)
         self.con = sqlite3.connect(INDEX_PATH)
 
     def execute(self, sql, parameters = ()) -> Cursor:
