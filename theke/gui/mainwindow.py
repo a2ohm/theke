@@ -169,11 +169,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.searchPane.search_start(self.navigator.selectedWord.source, self.navigator.selectedWord.strong)
 
     def handle_searchResults_selection_changed(self, object, result):
-        if result.referenceType == theke.TYPE_BIBLE:
-            ref = theke.reference.BiblicalReference(result.reference)
-            self.navigator.goto_ref(ref)
-        else:
+        ref = theke.reference.parse_reference(result.reference, wantedSources = self.navigator.sources)
+        
+        if ref.type == theke.TYPE_UNKNOWN:
             logger.error("Reference type not supported in search results: %s", result.referenceType)
+        else:
+            self.navigator.goto_ref(ref)
 
     def handle_search_start(self, object, moduleName, lemma):
         self.toolsView.search_button.set_sensitive(False)
