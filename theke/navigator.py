@@ -21,6 +21,12 @@ logger = logging.getLogger(__name__)
 
 SelectedWord = namedtuple('selectedWord',['word','lemma','strong','morph','source'])
 
+# Return codes when the context is updated
+SAME_DOCUMENT = 0
+NEW_DOCUMENT = 1
+NEW_SECTION = 2
+NEW_VERSE = 3
+
 def format_sword_syntax(text) -> str:
     '''Format rendered text from sword into a theke comprehensible syntax
     '''
@@ -116,36 +122,54 @@ class ThekeNavigator(GObject.Object):
 
     ### Update context (from URI)
 
-    def update_context(self, uri) -> None:
+    def update_context(self, uri) -> int:
         """Update local context according to this uri
         """
         if self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator − Update context")
-
             ref = theke.reference.get_reference_from_uri(uri)
 
             if ref.type == theke.TYPE_BIBLE:
+                logger.debug("ThekeNavigator − Update context [bible]")
                 # Update the table of content only if needed
                 if self.ref is None or ref.documentName != self.ref.documentName:
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
-                self.set_property("ref", ref)
-                self.notify("sources")
+                if (self.ref.type == theke.TYPE_BIBLE and
+                    self.ref.bookName == ref.bookName and
+                    self.ref.chapter == ref.chapter and
+                    self.ref.verse != ref.verse):
+
+                    self.ref.verse = ref.verse
+
+                    return NEW_VERSE
+                
+                else:
+                    self.set_property("ref", ref)
+
+                    self.notify("sources")
+                    self.notify("availableSources")
+                    return NEW_DOCUMENT
 
             else:
+                logger.debug("ThekeNavigator − Update context [book/inApp]")
+
                 self.set_property("ref", ref)
                 self.set_property("toc", None)
                 self.set_property("isMorphAvailable", False)
 
-            self.notify("availableSources")
+                self.notify("availableSources")
+                return NEW_DOCUMENT
 
         else:
             logger.debug("ThekeNavigator − Update context (skip)")
+            return SAME_DOCUMENT
 
     ### Get content
 
     def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the content pointed by the theke uri.
+        NB. The context has been updated by handle_navigation_action()
+
         Case 1. The uri is a path to an assets file
             eg. uri = theke:/app/assets/css/default.css
 
@@ -174,16 +198,13 @@ class ThekeNavigator(GObject.Object):
 
             else:
                 # Case 2. InApp uri
-                self.update_context(uri)
-                inAppUriData = theke.uri.inAppURI[uri.path[2]]
-
-                f = Gio.File.new_for_path('./assets/{}'.format(inAppUriData.fileName))
+                f = Gio.File.new_for_path('./assets/{}'.format(self.ref.inAppUriData.fileName))
                 request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
         else:
             if uri.path[1] == theke.uri.SEGM_SIGNAL:
                 # Case 3. The uri is a signal
-                logger.debug("ThekeNavigator - Catch a sword signal: %s", uri)
+                logger.debug("ThekeNavigator - [get_content_from_theke_uri] Catch a sword signal: %s", uri)
 
                 if uri.path[2] == 'click_on_word':
                     self.emit("click_on_word", uri)
@@ -192,14 +213,10 @@ class ThekeNavigator(GObject.Object):
             elif uri.path[1] == theke.uri.SEGM_DOC:
                 # Case 4. The uri is a path to a document
                 if uri.path[2] == theke.uri.SEGM_BIBLE:
-                    self.update_context(uri)
-
                     logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
                     html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
-                    self.update_context(uri)
-
                     sourceType = self.index.get_source_type(self.ref.sources[0])
 
                     if sourceType == theke.index.SOURCETYPE_SWORD:
@@ -306,28 +323,38 @@ class ThekeNavigator(GObject.Object):
         ))
 
     def handle_navigation_action(self, decision) -> bool:
-        """Decide if the webview should execute a navigation action.
+        """Screen navigation actions and update the context accordingly.
 
         @param decision: (WebKit2.NavigationPolicyDecision)
         """
         uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
 
-        if uri.scheme == 'sword':
+        if uri.path[1] == theke.uri.SEGM_APP:
+            if uri.path[2] != theke.uri.SEGM_ASSETS:
+                # Case 2. InApp uri
+                self.update_context(uri)
+                return False
 
-            ref = theke.reference.get_reference_from_uri(uri)
+        else:
+            if uri.path[1] == theke.uri.SEGM_DOC:
+                # Case 4. The uri is a path to a document
+                if uri.path[2] == theke.uri.SEGM_BIBLE:
+                    if self.update_context(uri) == NEW_VERSE:
+                        # Ignore the navigation action
+                        # and just scroll to the new verse
+                        decision.ignore()
+                        self.webview.scroll_to_verse(self.ref.verse)
+                        return True
 
-            # Catch a navigation action to a biblical reference where only the verse number change
-            if (self.ref and
-                self.ref.type == theke.TYPE_BIBLE and
-                self.ref.bookName == ref.bookName and
-                self.ref.chapter == ref.chapter and
-                self.ref.verse != ref.verse):
+                    else:
+                        return False
 
-                decision.ignore()
-                self.webview.scroll_to_verse(ref.verse)
-                return True
+                if uri.path[2] == theke.uri.SEGM_BOOK:
+                    self.update_context(uri)
+                    return False
 
-        return False
+            else:
+                raise ValueError('Unsupported theke uri: {}.'.format(uri))
 
     @GObject.Property(type=str)
     def availableSources(self):
