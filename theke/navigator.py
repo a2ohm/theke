@@ -154,16 +154,17 @@ class ThekeNavigator(GObject.Object):
                 self.ref.chapter == ref.chapter and
                 self.ref.verse != ref.verse):
 
+                # Same reference except the verse number
                 self.ref.verse = ref.verse
 
                 return NEW_VERSE
-            
-            else:
-                self.set_property("ref", ref)
 
-                self.notify("sources")
-                self.notify("availableSources")
-                return NEW_DOCUMENT
+            # Different reference, update all the context
+            self.set_property("ref", ref)
+
+            self.notify("sources")
+            self.notify("availableSources")
+            return NEW_DOCUMENT
 
         else:
             logger.debug("ThekeNavigator − Update context [book/inApp]")
