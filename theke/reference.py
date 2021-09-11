@@ -24,7 +24,12 @@ def get_reference_from_uri(uri):
 
     if uri.path[1] == theke.uri.SEGM_DOC:
         if uri.path[2] == theke.uri.SEGM_BIBLE:
-            return BiblicalReference(uri.path[3], rawSources = uri.params.get('sources', None))
+            wantedSources  = uri.params.get('sources', None)
+
+            if wantedSources is None:
+                return BiblicalReference(uri.path[3])
+            
+            return BiblicalReference(uri.path[3], wantedSources = set(wantedSources.split(';')))
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
@@ -34,8 +39,10 @@ def get_reference_from_uri(uri):
 
         raise ValueError('Unsupported book type: {}.'.format(uri.path[2]))  
 
-def parse_reference(rawReference):
+def parse_reference(rawReference, wantedSources = None):
     """Parse a raw reference
+
+    @param wantedSources: (set)
     """
     pattern_r = re.compile(r'^(\D+)(.*)')
     match_r = pattern_r.match(rawReference)
@@ -45,7 +52,7 @@ def parse_reference(rawReference):
         documentType = theke.index.ThekeIndex().get_document_type(documentName)
 
         if documentType == theke.TYPE_BIBLE:
-            return BiblicalReference(rawReference)
+            return BiblicalReference(rawReference, wantedSources)
 
         if documentType == theke.TYPE_BOOK:
             if match_r.group(2) != '':
@@ -112,7 +119,7 @@ class DocumentReference(Reference):
         """Update the default source of a reference
         """
         # TOFIX: la source par défaut serait à choisir depuis l'index
-        self.defaultSource = self.availableSources[0]
+        self.defaultSource = next(iter(self.availableSources))
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
@@ -122,10 +129,16 @@ class DocumentReference(Reference):
         self.documentName = documentNames['names'][0]
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
 
-        self.availableSources = index.list_document_sources(self.documentName)
+        self.availableSources = set(index.list_document_sources(self.documentName))
 
 class BiblicalReference(DocumentReference):
-    def __init__(self, rawReference, rawSources = None, tags = None):
+    def __init__(self, rawReference, wantedSources = None, tags = None):
+        """A biblical reference
+
+        @param rawReference: (string)
+        @param wantedSources: (set) if possible, use those sources
+        @param tags: (list)
+        """
         super().__init__(rawReference)
 
         logger.debug("Reference − Create a biblical reference : %s", rawReference)
@@ -139,7 +152,14 @@ class BiblicalReference(DocumentReference):
 
         self.update_data_from_index()
         self.update_default_source()
-        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
+
+        if wantedSources is not None:
+            self.sources = self.availableSources & wantedSources
+            if len(self.sources) == 0:
+                self.sources = {self.defaultSource}
+        
+        else:
+            self.sources = {self.defaultSource}
 
     def add_source(self, source) -> bool:
         """Append a source to the reference
@@ -149,10 +169,10 @@ class BiblicalReference(DocumentReference):
         if source not in self.availableSources:
             logger.debug("ThekeReference − This document is not available in this source: %s", source)
             return False
-        
+
         if source not in self.sources:
             logger.debug("ThekeReference − Add source %s", source)
-            self.sources.append(source)
+            self.sources.add(source)
             return True
 
         return False
@@ -165,11 +185,11 @@ class BiblicalReference(DocumentReference):
             return False
 
         logger.debug("ThekeReference - Remove source %s", source)
-        self.sources.remove(source)
+        self.sources.discard(source)
 
         if len(self.sources) == 0:
             logger.debug("ThekeReference - Set source to default %s", self.defaultSource)
-            self.sources.append(self.defaultSource)
+            self.sources.add(self.defaultSource)
 
         return True
 
