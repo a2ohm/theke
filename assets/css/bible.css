@@ -43,6 +43,10 @@
     color: rgb(230, 128, 4);
 }
 
+#content .verse:hover {
+    background-color: #c0d5ff45;
+}
+
 [lang="hbo"] {
     font-family: 'Frank Ruhl Libre';
     font-size: 1.5em;

@@ -24,7 +24,7 @@
 
         {% for verse in zip(*verses) %}
         {% set outer_loop = loop %}
-        <div id="verse-{{ outer_loop.index }}" class="content-row">
+        <div id="verse-{{ outer_loop.index }}" class="content-row verse">
             <div class="verse-number">
                 <p><sup>{{ outer_loop.index }}</sup></p>
             </div>
