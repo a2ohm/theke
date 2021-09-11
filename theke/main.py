@@ -35,7 +35,7 @@ class ThekeApp(Gtk.Application):
         )
 
         self.window = None
-        self.navigator = theke.navigator.ThekeNavigator()
+        self.navigator = None
 
     def do_startup(self):
         """Sets up the application when it first starts
@@ -59,6 +59,9 @@ class ThekeApp(Gtk.Application):
         This corresponds to the application being launched by the desktop environment
         """
         logger.debug("ThekeApp - Do activate")
+
+        # Set the navigator
+        self.navigator = theke.navigator.ThekeNavigator()
 
         if not self.window:
             logger.debug("ThekeApp - Create a new window")
