@@ -17,7 +17,7 @@ def get_toc_BIBLE(ref):
     #       Cette fonction devra être adaptée aux livres non bibliques.
 
     thekeIndex = theke.index.ThekeIndex()
-    nbOfChapters = thekeIndex.get_document_nbOfSections(ref.documentName)
+    nbOfChapters = thekeIndex.get_biblical_book_nbOfChapters(ref.documentName)
 
     toc = ThekeTOC(type_of_toc = BIBLE_TOC_TYPE)
 

@@ -20,6 +20,7 @@ ExternalDocumentData = namedtuple('externalDocumentData',['name', 'uri'])
 SOURCETYPE_SWORD = 'sword'
 SOURCETYPE_EXTERN = 'extern'
 
+NEEDED_API_VERSION = "0.3"
 INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 
 class ThekeIndex:
@@ -49,12 +50,61 @@ class ThekeIndex:
         """
         self.con.commit()
 
+    def get_from_header(self, key, default = None) -> str:
+        """Return a value from the header"""
+
+        # The header table hasn't always existed
+        doHeaderExists = self.con.execute("""SELECT name FROM sqlite_master
+            WHERE type='table' AND name='header';""").fetchone()
+
+        if doHeaderExists is not None:
+            rawValue = self.con.execute("""SELECT value
+                FROM header
+                WHERE key=?;""",
+                (key,)).fetchone()
+
+            if rawValue is not None:
+                return rawValue[0]
+
+        return default
+
+    def get_api_version(self) -> str:
+        """Return the API version of the index from the header table
+        """
+
+        return self.get_from_header('api_version', '0')
+
+    def get_biblical_book_names(self, bookName) -> Any:
+        """From a name of a biblical book, return all other names
+        """
+
+        bookId = self.get_document_id(bookName)
+        rawNames = self.con.execute("""SELECT name, isShortName
+            FROM biblicalBookNames
+            WHERE id_document=?;""",
+            (bookId,)).fetchall()
+
+        return {'names': [n[0] for n in rawNames if not n[1]],
+                'shortnames': [n[0] for n in rawNames if n[1]]}
+
+    def get_biblical_book_nbOfChapters(self, documentName) -> int:
+        """Return the number of chapters in the biblical book given its name
+        """
+
+        rawNbOfChapters = self.con.execute("""SELECT nbOfChapters
+            FROM biblicalBookData
+            INNER JOIN documentNaming ON biblicalBookData.id_document = documentNaming.id_document
+            WHERE documentNaming.name=?;""",
+            (documentName,)).fetchone()
+
+        return -1 if rawNbOfChapters is None else rawNbOfChapters[0]
+
     def get_document_id(self, documentName) -> int:
         """Return the id of document given its name
         """
 
         rawId = self.con.execute("""SELECT id_document
-            FROM documentNames
+            FROM documentNaming
             WHERE name=?;""",
             (documentName,)).fetchone()
 
@@ -65,32 +115,13 @@ class ThekeIndex:
         """
 
         documentId = self.get_document_id(documentName)
-        rawNames = self.con.execute("""SELECT name
+        rawNames = self.con.execute("""SELECT name, abbreviation
             FROM documentNames
-            WHERE id_document=?  AND isShortName=?;""",
-            (documentId, False)).fetchall()
-
-        rawShortnames = self.con.execute("""SELECT name
-            FROM documentNames
-            WHERE id_document=? AND isShortName=?;""",
-            (documentId, True)).fetchall()
+            WHERE id_document=?;""",
+            (documentId,)).fetchall()
 
         return {'names': [n[0] for n in rawNames],
-                'shortnames': [n[0] for n in rawShortnames]}
-    
-    def get_document_nbOfSections(self, documentName) -> int:
-        """Return the number of sections of document given its name
-
-         - For a biblical book, this is the number of chapters.
-        """
-
-        rawNbOfSections = self.con.execute("""SELECT nbOfSections
-            FROM documents
-            INNER JOIN documentNames ON documents.id = documentNames.id_document
-            WHERE documentNames.name=?;""",
-            (documentName,)).fetchone()
-
-        return -1 if rawNbOfSections is None else rawNbOfSections[0]
+                'shortnames': [n[1] for n in rawNames if n[1] != ""]}
 
     def get_document_type(self, documentName) -> int:
         """Return the type of a document given its name
@@ -98,8 +129,8 @@ class ThekeIndex:
 
         rawTypes = self.con.execute("""SELECT type
             FROM documents
-            INNER JOIN documentNames ON documents.id = documentNames.id_document
-            WHERE documentNames.name=?;""",
+            INNER JOIN documentNaming ON documents.id = documentNaming.id_document
+            WHERE documentNaming.name=?;""",
             (documentName,)).fetchone()
 
         return -1 if rawTypes is None else rawTypes[0]
@@ -187,9 +218,9 @@ class ThekeIndex:
         """List all documents
         """
 
-        rawDocumentsData = self.con.execute("""SELECT documentNames.name, documents.type
-                FROM documentNames
-                INNER JOIN documents ON documentNames.id_document = documents.id;""")
+        rawDocumentsData = self.con.execute("""SELECT documentNaming.name, documents.type
+                FROM documentNaming
+                INNER JOIN documents ON documentNaming.id_document = documents.id;""")
 
         for rawDocumentData in rawDocumentsData:
             yield DocumentData._make(rawDocumentData)
@@ -202,8 +233,8 @@ class ThekeIndex:
                 FROM documentNames
                 INNER JOIN link_document_source ON link_document_source.id_document = documentNames.id_document
                 INNER JOIN sources ON sources.id = link_document_source.id_source
-                WHERE documentNames.isShortName = ? AND sources.type = ?;""",
-                (False, SOURCETYPE_EXTERN))
+                WHERE sources.type = ?;""",
+                (SOURCETYPE_EXTERN,))
 
         for rawDocumentData in rawDocumentsData:
             yield ExternalDocumentData._make(rawDocumentData)
@@ -213,6 +244,7 @@ class ThekeIndex:
         """
 
         documentId = self.get_document_id(documentName)
+
         rawDocumentSources = self.con.execute("""SELECT sources.name
             FROM sources
             INNER JOIN link_document_source ON link_document_source.id_source = sources.id
@@ -226,15 +258,48 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Create a new instance")
         self.index = ThekeIndex()
 
-        logger.debug("ThekeIndexBuilder - Initiate the database (if necessary)")
-        # ... documents
-        self.index.execute("""CREATE TABLE IF NOT EXISTS documents (
-            id integer PRIMARY KEY,
-            type integer NOT NULL,
-            nbOfSections DEFAULT 0
+        currentApiVersion = self.index.get_api_version()
+
+        if currentApiVersion >= NEEDED_API_VERSION:
+            return
+
+        logger.debug("ThekeIndexBuilder - Initiate the database from scratch")
+
+        # Header
+        self.index.execute("""DROP TABLE IF EXISTS header""")
+        self.index.execute("""CREATE TABLE IF NOT EXISTS header (
+            key text NOT NULL,
+            value text NOT NULL
             );""")
 
-        # ... documentDescriptions
+        self.index.execute("""INSERT INTO header (key, value) VALUES(?, ?);""",
+            ("api_version", NEEDED_API_VERSION))
+
+        self.index.commit()
+
+        # Documents
+        self.index.execute("""CREATE TABLE IF NOT EXISTS documents (
+            id integer PRIMARY KEY,
+            type integer NOT NULL
+            );""")
+
+        #   - document naming
+        self.index.execute("""CREATE TABLE IF NOT EXISTS documentNaming (
+            id_document integer NOT NULL,
+            name text NOT NULL,
+            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
+            );""")
+
+        #   - document names
+        self.index.execute("""CREATE TABLE IF NOT EXISTS documentNames (
+            id_document integer NOT NULL,
+            name text NOT NULL,
+            abbreviation text DEFAULT "",
+            lang text NOT NULL,
+            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
+            );""")
+
+        #   - document descriptions
         self.index.execute("""CREATE TABLE IF NOT EXISTS documentDescriptions (
             id_document integer NOT NULL,
             description text NOT NULL,
@@ -242,13 +307,32 @@ class ThekeIndexBuilder:
             FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
             );""")
 
+        # Biblical documents
+        #   - book names
+        self.index.execute("""CREATE TABLE IF NOT EXISTS biblicalBookNames (
+            id_document integer NOT NULL,
+            name text NOT NULL,
+            isShortname integer NOT NULL DEFAULT 0,
+            lang text NOT NULL,
+            norm text DEFAULT ""
+            );""")
+
+        #   - book data
+        self.index.execute("""CREATE TABLE IF NOT EXISTS biblicalBookData (
+            id_document integer NOT NULL,
+            nbOfChapters integer NOT NULL,
+            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
+            );""")
+
         # ... sources
+        self.index.execute("""DROP TABLE IF EXISTS sources""")
         self.index.execute("""CREATE TABLE IF NOT EXISTS sources (
             id integer PRIMARY KEY,
             name text UNIQUE NOT NULL,
             type text NOT NULL,
             contentType text NOT NULL,
             version text DEFAULT "0",
+            lang text NOT NULL,
             uri text DEFAULT ""
             );""")
 
@@ -260,29 +344,12 @@ class ThekeIndexBuilder:
             FOREIGN KEY(id_source) REFERENCES sources(id) ON DELETE CASCADE
             );""")
 
-        # ... editions
-        self.index.execute("""CREATE TABLE IF NOT EXISTS editions (
-            id integer PRIMARY KEY,
-            name text UNIQUE NOT NULL,
-            shortname text NOT NULL,
-            lang text NOT NULL
-            );""")
-
-        # documentsNames
-        self.index.execute("""CREATE TABLE IF NOT EXISTS documentNames (
-            id_document integer NOT NULL,
-            id_edition integer NOT NULL,
-            name text NOT NULL,
-            isShortname integer NOT NULL DEFAULT 0,
-            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE,
-            FOREIGN KEY(id_edition) REFERENCES editions(id) ON DELETE CASCADE
-            );""")
-
         # ... link_document_source
         self.index.execute("""CREATE TABLE IF NOT EXISTS link_document_source (
             id_document integer NOT NULL,
             id_source integer NOT NULL,
-            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE,
+            uri_document text NOT NULL DEFAULT "",
+            FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
             FOREIGN KEY(id_source) REFERENCES sources(id) ON DELETE CASCADE
             );""")
 
@@ -300,15 +367,12 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder − Index sword modules")
         swordLibrary = theke.sword.SwordLibrary()
 
-        self.index.execute("""INSERT OR IGNORE INTO editions (name, shortname, lang)
-                VALUES(?, ?, ?);""",
-            ("sword", "sword", ""))
+        self.index_sword_biblical_book_names()
 
-        swordEditionId = self.index.get_edition_id("sword")
-
+        # Index each sword module
         for moduleName, mod in swordLibrary.get_modules():
             if force or (mod.get_version() > self.index.get_source_version(moduleName)):
-                self.index_sword_module(swordEditionId, mod)
+                self.index_sword_module(mod)
 
     def index_external_sources(self, force = False) -> None:
         """Index external sources
@@ -326,18 +390,18 @@ class ThekeIndexBuilder:
 
     ### Index sword modules
 
-    def index_sword_module(self, swordEditionId, mod) -> None:
+    def index_sword_module(self, mod) -> None:
         """Index a sword module
         """
 
         logger.debug("ThekeIndexBuilder - Index %s", mod.get_name())
 
         # Add the module to the index
-        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version)
-                VALUES(?, ?, ?, ?) 
+        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, lang)
+                VALUES(?, ?, ?, ?, ?) 
                 ON CONFLICT(name)
                 DO UPDATE SET version=excluded.version;""",
-            (mod.get_name(), SOURCETYPE_SWORD, mod.get_type() ,mod.get_version()))
+            (mod.get_name(), SOURCETYPE_SWORD, mod.get_type(), mod.get_version(), mod.get_lang()))
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the module {}".format(mod.get_name()))
@@ -352,15 +416,54 @@ class ThekeIndexBuilder:
 
         # Next indexing steps depend of the module type
         if mod.get_type() == theke.sword.MODTYPE_BIBLES:
-            self.index_sword_biblical_module(swordEditionId, sourceId, mod)
+            self.index_sword_biblical_module(sourceId, mod)
 
         elif mod.get_type() == theke.sword.MODTYPE_GENBOOKS:
-            self.index_sword_book_module(swordEditionId, sourceId, mod)
+            self.index_sword_book_module(sourceId, mod)
 
         else:
             logger.debug("ThekeIndexBuilder - Unknown type (%s) of %s", mod.get_type(), mod.get_name())
 
-    def index_sword_biblical_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_sword_biblical_book_names(self) -> None:
+        """Index sword biblical book names.
+
+        Sword use some names to designate biblibal books.
+        Index them once for all.
+        """
+
+        if self.index.get_from_header('are_sword_biblical_books_indexed', "no") == "yes":
+            logger.debug("ThekeIndexBuilder − Index sword biblical book names [skip]")
+            return
+
+        logger.debug("ThekeIndexBuilder − Index sword biblical book names")
+
+        # Index names used by sword for biblical books
+        vk = Sword.VerseKey()
+
+        for itestament in [1, 2]:
+            vk.setTestament(itestament)
+
+            for ibook in range(1, vk.getBookMax() +1):
+                vk.setBook(ibook)
+
+                # Create a new biblical book entry
+                documentId = self.index.execute_returning_id("""INSERT INTO documents  (type)
+                    VALUES(?);""", (theke.TYPE_BIBLE,))
+
+                # Index the biblical book name
+                self.index_biblical_book_name(documentId, vk.getBookName(), "en", "sword", doCommit = False)
+                
+                # Index the number of chapters
+                self.index.execute("""INSERT OR IGNORE INTO biblicalBookData (id_document, nbOfChapters)
+                    VALUES(?, ?);""",
+                    (documentId, vk.getChapterMax()))
+
+        self.index.execute("""INSERT INTO header (key, value) VALUES(?, ?);""",
+            ("are_sword_biblical_books_indexed", "yes"))
+
+        self.index.commit()
+
+    def index_sword_biblical_module(self, sourceId, mod) -> None:
         """Index a sword biblical module
         """
 
@@ -376,17 +479,18 @@ class ThekeIndexBuilder:
             for ibook in range(1, vk.getBookMax() +1):
                 vk.setBook(ibook)
                 if mod.has_entry(vk):
-                    self.index_document(vk.getBookName(), None, None, theke.TYPE_BIBLE, vk.getChapterMax(), swordEditionId, sourceId, doCommit=False)
+                    bookId = self.index.get_document_id(vk.getBookName())
+                    self.link_biblical_book(vk.getBookName(), bookId, sourceId, doCommit=False)
 
         self.index.commit()
 
-    def index_sword_book_module(self, swordEditionId, sourceId, mod) -> None:
+    def index_sword_book_module(self, sourceId, mod) -> None:
         """Index a sword book module
         """
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
         
-        #TOFIX: boucler sur les titres des livres contenus dans ce module.
-        self.index_document(mod.get_name(), mod.get_short_repr(), None, theke.TYPE_BOOK, 0, swordEditionId, sourceId)
+        # TODO: boucler sur les titres des livres contenus dans ce module.
+        self.index_document(mod.get_name(), mod.get_short_repr(), theke.TYPE_BOOK, None, mod.get_lang(), sourceId, "", doCommit=True)
 
     ### Index exernal source
 
@@ -396,11 +500,11 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as an external source", sourceName)
 
         # Add the external source to the index
-        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, uri)
-                VALUES(?, ?, ?, ?, ?) 
+        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, lang, uri)
+                VALUES(?, ?, ?, ?, ?, ?) 
                 ON CONFLICT(name)
                 DO UPDATE SET version=excluded.version;""",
-            (sourceName, SOURCETYPE_EXTERN, data['type'], data['version'], data['uri']))
+            (sourceName, SOURCETYPE_EXTERN, "", data['version'], data['lang'], data['uri']))
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
@@ -411,24 +515,57 @@ class ThekeIndexBuilder:
                 """,
             (sourceId, data['description']))
 
-        # Add its edition
-        self.index.execute("""INSERT OR IGNORE INTO editions (name, shortname, lang)
-                VALUES(?, ?, ?);""",
-            (data['edition']['name'], data['edition']['shortname'], data['edition']['lang']))
-
-        editionId = self.index.get_edition_id(data['edition']['name'])
-
         # Index the document
-        self.index_document(data['name'], data['shortname'], data.get('description', None), theke.TYPE_BOOK, 0, editionId, sourceId)
-    
-    def index_document(self, name, shortname, description, type, nbOfSections, editionId, sourceId, doCommit = True) -> None:
+        self.index_document(data['name'], data['shortname'], theke.TYPE_BOOK, data.get('description', None), data['lang'], sourceId, data['uri'])
+
+    ### Index documents
+
+    def index_biblical_book_name(self, documentId, name, lang, norm = "", isShortName = False, doCommit = True) -> None:
+        """Index a biblical book name
+
+        @param name: (str) name of the biblical book
+        """
+
+        self.index.execute("""INSERT INTO documentNaming (id_document, name)
+            VALUES(?, ?);""",
+            (documentId, name))
+
+        if isShortName:
+            # and index its name as a short name
+            self.index.execute("""INSERT INTO biblicalBookNames (id_document, name, norm, lang, isShortName)
+                VALUES(?, ?, ?);""",
+                (documentId, name, norm, lang, True))
+        else:
+            # and index its name
+            self.index.execute("""INSERT INTO biblicalBookNames (id_document, name, norm, lang)
+                VALUES(?, ?, ?, ?);""",
+                (documentId, name, norm, lang))
+        
+        if doCommit:
+            self.index.commit()
+
+        return documentId
+
+    def link_biblical_book(self, uri, documentId, sourceId, doCommit = True) -> None:
+        """Link a source to a biblical book
+
+        @param uri: (str) id to get this book from the source (for sword modules, this is the sword book name)
+        @param bookId: (int) id of the biblical book
+        @param sourceId: (int) id of the source
+        """
+
+        self.index.execute("""INSERT OR IGNORE INTO link_document_source (id_document, id_source, uri_document)
+                VALUES(?, ?, ?);""",
+            (documentId, sourceId, uri))
+
+        if doCommit:
+            self.index.commit()
+
+    def index_document(self, name, shortname, type, description, lang, sourceId, uri, doCommit = True) -> None:
         """Index a document
 
-        @param documentName: (str) name of the document
-        @param documentShortName: (str) shortname of the document (eg. abbreviation of its title)
-        @param type: (int) type of the docuement (cf. theke.TYPE_*)
-        @param nbOfSections: (int) for a bible book: number of chapters
-        @param editionId: (int) id of the edition
+        @param name: (str) name of the document
+        @param shortName: (str) shortname of the document (eg. abbreviation of its title)
         @param sourceId: (int) id of the source
         """
         # Is this document already registered?
@@ -436,31 +573,33 @@ class ThekeIndexBuilder:
 
         if documentId < 0:
             # No, so create a new document entry
-            documentId = self.index.execute_returning_id("""INSERT INTO documents (type, nbOfSections)
-                VALUES(?, ?);""",
-            (type, nbOfSections))
+            documentId = self.index.execute_returning_id("""INSERT INTO documents (type) VALUES(?);""", (type,))
 
-            # and index its name
-            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name)
-                VALUES(?, ?, ?);""",
-                (documentId, editionId, name))
+            self.index.execute("""INSERT INTO documentNaming (id_document, name)
+                    VALUES(?, ?);""",
+                    (documentId, name))
 
-        # Index its shortname
-        if shortname is not None:
-            self.index.execute("""INSERT INTO documentNames (id_document, id_edition, name, isShortName)
-                VALUES(?, ?, ?, ?);""",
-                (documentId, editionId, shortname, True))
+            if shortname is not None:
+                # and index its name
+                self.index.execute("""INSERT INTO documentNames (id_document, name, abbreviation, lang)
+                    VALUES(?, ?, ?, ?);""",
+                    (documentId, name, shortname, lang))
+
+            else:
+                self.index.execute("""INSERT INTO documentNames (id_document, name, lang)
+                    VALUES(?, ?, ?);""",
+                    (documentId, name, lang))
 
         # Index its description
         # TODO: indexer correctement la langue de la description
         if description is not None:
-            self.index.execute_returning_id("""INSERT OR IGNORE INTO documentDescriptions (id_document, description, lang)
+            self.index.execute("""INSERT OR IGNORE INTO documentDescriptions (id_document, description, lang)
                     VALUES(?, ?, ?);""",
                 (documentId, description, ''))
 
-        self.index.execute_returning_id("""INSERT OR IGNORE INTO link_document_source (id_document, id_source)
-                VALUES(?, ?);""",
-            (documentId, sourceId))
+        self.index.execute("""INSERT OR IGNORE INTO link_document_source (id_document, id_source, uri_document)
+                VALUES(?, ?, ?);""",
+            (documentId, sourceId, uri))
 
         if doCommit:
             self.index.commit()

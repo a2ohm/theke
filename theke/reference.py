@@ -8,6 +8,7 @@ import theke.uri
 import theke.index
 
 logger = logging.getLogger(__name__)
+index = theke.index.ThekeIndex()
 
 DEFAULT_SWORD_BOOK_SECTION = "Couverture"
 
@@ -124,11 +125,6 @@ class DocumentReference(Reference):
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
         """
-        index = theke.index.ThekeIndex()
-        documentNames = index.get_document_names(self.documentName)
-        self.documentName = documentNames['names'][0]
-        self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
-
         self.availableSources = set(index.list_document_sources(self.documentName))
 
 class BiblicalReference(DocumentReference):
@@ -157,7 +153,7 @@ class BiblicalReference(DocumentReference):
             self.sources = self.availableSources & wantedSources
             if len(self.sources) == 0:
                 self.sources = {self.defaultSource}
-        
+
         else:
             self.sources = {self.defaultSource}
 
@@ -219,6 +215,15 @@ class BiblicalReference(DocumentReference):
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
             sources = self.sources)
 
+    def update_data_from_index(self) -> None:
+        """Use the ThekeIndex to update this biblical reference metadata
+        """
+        super().update_data_from_index()
+
+        documentNames = index.get_biblical_book_names(self.bookName)
+        self.documentName = documentNames['names'][0]
+        self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+
 class BookReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, section = None):
         super().__init__(rawReference)
@@ -248,6 +253,15 @@ class BookReference(DocumentReference):
             return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName])
 
         return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName, str(self.section)])
+
+    def update_data_from_index(self) -> None:
+        """Use the ThekeIndex to update this reference metadata
+        """
+        super().update_data_from_index()
+
+        documentNames = index.get_document_names(self.documentName)
+        self.documentName = documentNames['names'][0]
+        self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
 
 class InAppReference(Reference):
     def __init__(self, rawReference):
