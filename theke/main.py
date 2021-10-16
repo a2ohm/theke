@@ -73,6 +73,8 @@ class ThekeApp(Gtk.Application):
         thekeIndex = theke.index.ThekeIndex()
 
         # ... load the list of modules
+        # TODO: pour l'usage qui en est fait, il serait préférable de créer la fonction
+        #       thekeIndex.list_sword_modules()
         bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
         book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
         
