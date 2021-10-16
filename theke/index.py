@@ -3,9 +3,9 @@ from typing import Any
 
 import logging
 import os
-import yaml
 import sqlite3
 from sqlite3.dbapi2 import Cursor
+import yaml
 
 import Sword
 import theke
@@ -24,6 +24,8 @@ NEEDED_API_VERSION = "0.3"
 INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 
 class ThekeIndex:
+    """Helper to use the index of Theke
+    """
     def __init__(self) -> None:
         logger.debug("ThekeIndex - Create a new instance")
         logger.debug("ThekeIndex - Connect to the database: %s", INDEX_PATH)
@@ -181,7 +183,7 @@ class ThekeIndex:
 
     def list_sources(self, sourceType = None, contentType = None):
         """List sources
-        
+
         @param sourceType: SOURCETYPE_SWORD
         @param contentType: MODTYPE_BIBLES, MODTYPE_GENBOOKS
         """
@@ -254,6 +256,8 @@ class ThekeIndex:
         return [rawDocumentSource[0] for rawDocumentSource in rawDocumentSources]
 
 class ThekeIndexBuilder:
+    """Helper the build the index of Theke
+    """
     def __init__(self) -> None:
         logger.debug("ThekeIndexBuilder - Create a new instance")
         self.index = ThekeIndex()
@@ -452,7 +456,7 @@ class ThekeIndexBuilder:
 
                 # Index the biblical book name
                 self.index_biblical_book_name(documentId, vk.getBookName(), "en", "sword", doCommit = False)
-                
+
                 # Index the number of chapters
                 self.index.execute("""INSERT OR IGNORE INTO biblicalBookData (id_document, nbOfChapters)
                     VALUES(?, ?);""",
@@ -488,7 +492,7 @@ class ThekeIndexBuilder:
         """Index a sword book module
         """
         logger.debug("ThekeIndexBuilder - Index %s as a book (id: %s)", mod.get_name(), sourceId)
-        
+
         # TODO: boucler sur les titres des livres contenus dans ce module.
         self.index_document(mod.get_name(), mod.get_short_repr(), theke.TYPE_BOOK, None, mod.get_lang(), sourceId, "", doCommit=True)
 
@@ -540,7 +544,7 @@ class ThekeIndexBuilder:
             self.index.execute("""INSERT INTO biblicalBookNames (id_document, name, norm, lang)
                 VALUES(?, ?, ?, ?);""",
                 (documentId, name, norm, lang))
-        
+
         if doCommit:
             self.index.commit()
 
