@@ -20,18 +20,14 @@ from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 logger = logging.getLogger(__name__)
 
-class ThekeWindow(Gtk.ApplicationWindow):
-    def __init__(self, navigator, *args, **kwargs):
-        Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
-        self.set_default_size(800, 600)
-        self.set_icon_from_file("./assets/img/theke-logo.svg")
-
+class ThekeWindow():
+    def __init__(self, navigator):
         self.navigator = navigator
 
         # UI BUILDING
         builder = Gtk.Builder()
         builder.add_from_file("./theke/gui/theke_mainwindow.glade")
-        self.add(builder.get_object("mainBox"))
+        self.mainWindow = builder.get_object("mainWindow")
 
         # TOP
         #   = navigation bar
@@ -94,11 +90,21 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # SET ACCELERATORS (keyboard shortcuts)
         accelerators = Gtk.AccelGroup()
-        self.add_accel_group(accelerators)
+        self.mainWindow.add_accel_group(accelerators)
 
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
+    def set_application(self, application):
+        """Attach the main window to the application
+        """
+        self.mainWindow.set_application(application)
+
+    def show_all(self):
+        """Show the main window
+        """
+        self.mainWindow.show_all()
 
     def handle_availableSources_updated(self, object, param) -> None:
         self.sourcesBar.updateAvailableSources(self.navigator.availableSources)

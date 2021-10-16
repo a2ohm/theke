@@ -65,9 +65,9 @@ class ThekeApp(Gtk.Application):
 
         if not self.window:
             logger.debug("ThekeApp - Create a new window")
-            self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator, application=self, title="Theke")
-
-        self.window.show_all()
+            self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator)
+            self.window.set_application(self)
+            self.window.show_all()
 
         # From the index ...
         thekeIndex = theke.index.ThekeIndex()
@@ -77,7 +77,7 @@ class ThekeApp(Gtk.Application):
         #       thekeIndex.list_sword_modules()
         bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
         book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
-        
+
         # ... load the list of external documents
         external_docs = thekeIndex.list_external_documents()
 
