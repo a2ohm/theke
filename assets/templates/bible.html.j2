@@ -12,13 +12,13 @@
     </head>
 
     <body>
-        <h1>{{ ref.bookName }} {{ ref.chapter }}</h1>
+        <!--<h1>{{ ref.bookName }} {{ ref.chapter }}</h1>-->
 
         <div id="content">
 
         <div class='content-row'>
         {% for doc in documents %}
-            <h2 class='content-col'>{{ doc.source }}</h2>
+            <p id='source-name' class='content-col'>{{ doc.source }}</p>
         {% endfor %}
         </div>
 

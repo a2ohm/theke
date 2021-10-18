@@ -24,14 +24,15 @@
     background-color: #84adff45;
 }
 
-#content h2 {
-    margin-bottom: 0.5em;
-    color: rgb(84, 84, 84);
-}
-
 #content p {
     margin: 0 -1em;
     padding: 0 1em 3px 1em;
+}
+
+#content p#source-name {
+    font-size: 0.8em;
+    margin-bottom: 0.5em;
+    color: rgb(221, 221, 221);
 }
 
 #content w:hover {
