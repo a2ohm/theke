@@ -401,11 +401,8 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s", mod.get_name())
 
         # Add the module to the index
-        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, lang)
-                VALUES(?, ?, ?, ?, ?) 
-                ON CONFLICT(name)
-                DO UPDATE SET version=excluded.version;""",
-            (mod.get_name(), SOURCETYPE_SWORD, mod.get_type(), mod.get_version(), mod.get_lang()))
+        sourceId = self.add_source(mod.get_name(), SOURCETYPE_SWORD, mod.get_type(),
+            mod.get_version(), mod.get_lang())
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the module {}".format(mod.get_name()))
@@ -504,11 +501,8 @@ class ThekeIndexBuilder:
         logger.debug("ThekeIndexBuilder - Index %s as an external source", sourceName)
 
         # Add the external source to the index
-        sourceId = self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, lang, uri)
-                VALUES(?, ?, ?, ?, ?, ?) 
-                ON CONFLICT(name)
-                DO UPDATE SET version=excluded.version;""",
-            (sourceName, SOURCETYPE_EXTERN, "", data['version'], data['lang'], data['uri']))
+        sourceId = self.add_source(sourceName, SOURCETYPE_EXTERN, "",
+            data['version'], data['lang'], data['uri'])
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
@@ -607,3 +601,33 @@ class ThekeIndexBuilder:
 
         if doCommit:
             self.index.commit()
+
+    ### Helpers
+    def add_source(self, name, sourceType, contentType, version, lang, uri = '') -> Any:
+        """Add a source to the index.
+
+        Note. This can be done in on sql query using the ON CONFLICT syntax. But this is not
+                compatible with versions of sqlite earlier than 3.24.0.
+
+                INSERT INTO sources (name, type, contentType, version, lang, uri)
+                VALUES(?, ?, ?, ?, ?, ?)
+                ON CONFLICT(name)
+                DO UPDATE SET version=excluded.version;
+        """
+        # Does the source already exist?
+        rawSourceId = self.index.execute("""SELECT id
+            FROM sources
+            WHERE name=?;""",
+            (name,)).fetchone()
+
+        if rawSourceId is not None:
+            print('Update the source version ...')
+            return self.index.execute_returning_id("""UPDATE sources
+                SET version = ?
+                WHERE id = ?;""",
+            (version, rawSourceId[0]))
+
+        # Add the module to the index
+        return self.index.execute_returning_id("""INSERT INTO sources (name, type, contentType, version, lang, uri)
+                VALUES(?, ?, ?, ?, ?, ?);""",
+            (name, sourceType, contentType, version, lang, uri))
