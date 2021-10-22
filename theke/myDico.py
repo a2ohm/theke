@@ -40,6 +40,14 @@ class myDico:
             (strongsNb, lemma, definition))
             self.con.commit()
 
+        else:
+            logger.debug("myDico - Remove an entry: {} ({})".format(lemma, strongsNb))
+
+            self.con.execute("""DELETE FROM dictionary
+                WHERE strongs_nb=?;""",
+            (strongsNb,))
+            self.con.commit()
+
     def get_entry(self, strongsNb) -> Any:
         rawEntry = self.con.execute("""SELECT *
             FROM dictionary
