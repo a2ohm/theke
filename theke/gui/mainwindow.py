@@ -25,8 +25,7 @@ class ThekeWindow():
         self.navigator = navigator
 
         # UI BUILDING
-        builder = Gtk.Builder()
-        builder.add_from_file("./theke/gui/theke_mainwindow.glade")
+        builder = Gtk.Builder.new_from_file("./theke/gui/theke_mainwindow.glade")
         self.mainWindow = builder.get_object("mainWindow")
 
         # TOP
