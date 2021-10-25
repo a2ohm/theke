@@ -502,7 +502,7 @@ class ThekeIndexBuilder:
 
         # Add the external source to the index
         sourceId = self.add_source(sourceName, SOURCETYPE_EXTERN, "",
-            data['version'], data['lang'], data['uri'])
+            data['version'], data['edition']['lang'], data['uri'])
 
         if sourceId is None:
             raise sqlite3.Error("Fails to index the external source {}".format(sourceName))
@@ -514,7 +514,7 @@ class ThekeIndexBuilder:
             (sourceId, data['description']))
 
         # Index the document
-        self.index_document(data['name'], data['shortname'], theke.TYPE_BOOK, data.get('description', None), data['lang'], sourceId, data['uri'])
+        self.index_document(data['name'], data['edition']['shortname'], theke.TYPE_BOOK, data.get('description', None), data['edition']['lang'], sourceId, data['uri'])
 
     ### Index documents
 
@@ -548,7 +548,7 @@ class ThekeIndexBuilder:
         """Link a source to a biblical book
 
         @param uri: (str) id to get this book from the source (for sword modules, this is the sword book name)
-        @param bookId: (int) id of the biblical book
+        @param documentId: (int) id of the biblical book
         @param sourceId: (int) id of the source
         """
 
@@ -559,7 +559,7 @@ class ThekeIndexBuilder:
         if doCommit:
             self.index.commit()
 
-    def index_document(self, name, shortname, type, description, lang, sourceId, uri, doCommit = True) -> None:
+    def index_document(self, name, shortName, type, description, lang, sourceId, uri, doCommit = True) -> None:
         """Index a document
 
         @param name: (str) name of the document
@@ -577,11 +577,11 @@ class ThekeIndexBuilder:
                     VALUES(?, ?);""",
                     (documentId, name))
 
-            if shortname is not None:
+            if shortName is not None:
                 # and index its name
                 self.index.execute("""INSERT INTO documentNames (id_document, name, abbreviation, lang)
                     VALUES(?, ?, ?, ?);""",
-                    (documentId, name, shortname, lang))
+                                   (documentId, name, shortName, lang))
 
             else:
                 self.index.execute("""INSERT INTO documentNames (id_document, name, lang)
