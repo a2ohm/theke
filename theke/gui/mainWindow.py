@@ -26,6 +26,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _top_box: Gtk.Box = Gtk.Template.Child()
     _webview_scrolledWindow: Gtk.ScrolledWindow = Gtk.Template.Child()
+    _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
     def __init__(self, navigator):
         super().__init__()
@@ -83,8 +84,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # self.navigator.connect("click_on_word", self.handle_selected_word_changed)
 
         # BOTTOM
-        #   ... status bar
-        # self.statusbar = builder.get_object("Statusbar")
         #   ... sources bar
         # self.sourcesBar = ThekeSourcesBar(builder)
         # self.sourcesBar.connect("source-requested", self.handle_source_requested)
@@ -128,9 +127,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
-            # # Update the status bar with the title of the just loaded page
-            # contextId = self.statusbar.get_context_id("navigation")
-            # self.statusbar.push(contextId, str(self.navigator.title))
+            # Update the status bar with the title of the just loaded page
+            contextId = self._statusbar.get_context_id("navigation")
+            self._statusbar.push(contextId, str(self.navigator.title))
 
             # Update the history bar
             self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
@@ -147,26 +146,27 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # if not self.navigator.isMorphAvailable:
             #     self.toolsView.hide()
 
-            # # Show the sourcesBar, if necessary
-            # if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE:
-            #     self.sourcesBar.show()
-            #     self.statusbar.hide()
-            # else:
-            #     self.sourcesBar.hide()
-            #     self.statusbar.show()
+            # Show the sourcesBar, if necessary
+            if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE:
+                # TODO: RESTORE
+                #self.sourcesBar.show()
+                self._statusbar.hide()
+            else:
+                # TODO: RESTORE
+                #self.sourcesBar.hide()
+                self._statusbar.show()
 
             # if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
             #     self.webview.scroll_to_verse(self.navigator.ref.verse)
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
-        # if hit_test_result.context_is_link():
-        #     context_id = self.statusbar.get_context_id("navigation-next")
-        #     self.statusbar.pop(context_id)
-        #     self.statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
-        # else:
-        #     context_id = self.statusbar.get_context_id("navigation-next")
-        #     self.statusbar.pop(context_id)
-        pass
+        if hit_test_result.context_is_link():
+            context_id = self._statusbar.get_context_id("navigation-next")
+            self._statusbar.pop(context_id)
+            self._statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
+        else:
+            context_id = self._statusbar.get_context_id("navigation-next")
+            self._statusbar.pop(context_id)
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPane.show()
