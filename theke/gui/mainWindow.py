@@ -24,15 +24,23 @@ logger = logging.getLogger(__name__)
 class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
+    _top_box: Gtk.Box = Gtk.Template.Child()
+
     def __init__(self, navigator):
         super().__init__()
 
         self.navigator = navigator
+        self._setup_view()
+
+        # TODO: Normalement, l'appel de self.show_all() n'est pas nécessaire
+        #       car lorsque la fenêtre est créé, la fonction .preset() est appelée
+        #       et elle même appelle .show()
+        self.show_all()
+
+    def _setup_view(self):
 
         # TOP
         #   = navigation bar
-        #_top_box = builder.get_object("top_box")
-
         #   ... historybar: shortcuts to last viewed documents
         self.historybar = ThekeHistoryBar(on_button_clicked_callback = self.on_history_button_clicked)
 
@@ -41,8 +49,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.connect("activate", self.handle_gotobar_activate)
         self.gotobar.autoCompletion.connect("match-selected", self.handle_gotobar_match_selected)
 
-        # _top_box.pack_end(self.gotobar, False, False, 1)
-        # _top_box.pack_end(self.historybar, True, True, 1)
+        self._top_box.pack_end(self.gotobar, False, False, 1)
+        self._top_box.pack_end(self.historybar, True, True, 1)
 
         #   ... TOC
         #self.tableOfContent = ThekeTableOfContent(builder)
@@ -95,11 +103,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # # ... Ctrl+l: give focus to the gotobar
         # key, mod = Gtk.accelerator_parse('<Control>l')
         # self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-
-    def show_all(self):
-        """Show the main window
-        """
-        self.mainWindow.show_all()
 
     def handle_availableSources_updated(self, object, param) -> None:
         self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
