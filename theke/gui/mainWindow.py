@@ -14,9 +14,11 @@ from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
-from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
 from theke.gui.widget_ThekeToolsView import ThekeToolsView
+
+# Import needed to load the gui
+from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 
 logger = logging.getLogger(__name__)
 
