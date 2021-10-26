@@ -179,7 +179,7 @@ Author: a2ohm
                             <property name="label-xalign">0</property>
                             <property name="shadow-type">none</property>
                             <child>
-                              <object class="GtkScrolledWindow" id="webview_scrolledWindow">
+                              <object class="GtkScrolledWindow" id="_webview_scrolledWindow">
                                 <property name="visible">True</property>
                                 <property name="can-focus">True</property>
                                 <property name="shadow-type">in</property>

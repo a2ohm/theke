@@ -25,6 +25,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
     _top_box: Gtk.Box = Gtk.Template.Child()
+    _webview_scrolledWindow: Gtk.ScrolledWindow = Gtk.Template.Child()
 
     def __init__(self, navigator):
         super().__init__()
@@ -57,14 +58,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #self.tableOfContent.connect("selection-changed", self.handle_toc_selection_changed)
         
         #   ... document view
-        #_scrolled_window = builder.get_object("webview_scrolledWindow")
-
         # ... document view > webview: where the document is displayed
         self.webview = ThekeWebView(navigator=self.navigator)
         self.webview.connect("load_changed", self.handle_load_changed)
         self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
 
-        #_scrolled_window.add(self.webview)
+        self._webview_scrolledWindow.add(self.webview)
 
         #   ... search panel
         #self.searchPane = ThekeSearchPane(builder)
@@ -160,13 +159,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
             #     self.webview.scroll_to_verse(self.navigator.ref.verse)
 
     def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
-        if hit_test_result.context_is_link():
-            context_id = self.statusbar.get_context_id("navigation-next")
-            self.statusbar.pop(context_id)
-            self.statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
-        else:
-            context_id = self.statusbar.get_context_id("navigation-next")
-            self.statusbar.pop(context_id)
+        # if hit_test_result.context_is_link():
+        #     context_id = self.statusbar.get_context_id("navigation-next")
+        #     self.statusbar.pop(context_id)
+        #     self.statusbar.push(context_id, "{}".format(hit_test_result.get_link_uri()))
+        # else:
+        #     context_id = self.statusbar.get_context_id("navigation-next")
+        #     self.statusbar.pop(context_id)
+        pass
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPane.show()
