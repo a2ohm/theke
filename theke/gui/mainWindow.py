@@ -28,6 +28,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _webview_scrolledWindow: Gtk.ScrolledWindow = Gtk.Template.Child()
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
+    _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
+
     def __init__(self, navigator):
         super().__init__()
 
@@ -85,25 +87,24 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # BOTTOM
         #   ... sources bar
-        # self.sourcesBar = ThekeSourcesBar(builder)
-        # self.sourcesBar.connect("source-requested", self.handle_source_requested)
-        # self.sourcesBar.connect("delete-source", self.handle_delete_source)
-        # self.navigator.connect("notify::sources", self.handle_sources_updated)
-        # self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
+        self._ThekeSourcesBar.connect("source-requested", self.handle_source_requested)
+        self._ThekeSourcesBar.connect("delete-source", self.handle_delete_source)
+        self.navigator.connect("notify::sources", self.handle_sources_updated)
+        self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
         # Set the focus on the webview
-        #self.webview.grab_focus()
+        self.webview.grab_focus()
 
-        # # SET ACCELERATORS (keyboard shortcuts)
-        # accelerators = Gtk.AccelGroup()
-        # self.mainWindow.add_accel_group(accelerators)
+        # SET ACCELERATORS (keyboard shortcuts)
+        accelerators = Gtk.AccelGroup()
+        self.add_accel_group(accelerators)
 
-        # # ... Ctrl+l: give focus to the gotobar
-        # key, mod = Gtk.accelerator_parse('<Control>l')
-        # self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        # ... Ctrl+l: give focus to the gotobar
+        key, mod = Gtk.accelerator_parse('<Control>l')
+        self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
     def handle_availableSources_updated(self, object, param) -> None:
-        self.sourcesBar.updateAvailableSources(self.navigator.availableSources)
+        self._ThekeSourcesBar.updateAvailableSources(self.navigator.availableSources)
 
     def handle_delete_source(self, object, sourceName):
         self.navigator.delete_source(sourceName)
@@ -148,12 +149,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # Show the sourcesBar, if necessary
             if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE:
-                # TODO: RESTORE
-                #self.sourcesBar.show()
+                self._ThekeSourcesBar.show()
                 self._statusbar.hide()
             else:
-                # TODO: RESTORE
-                #self.sourcesBar.hide()
+                self._ThekeSourcesBar.hide()
                 self._statusbar.show()
 
             # if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
@@ -200,7 +199,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.navigator.add_source(sourceName)
 
     def handle_sources_updated(self, object, params) -> None:
-        self.sourcesBar.updateSources(self.navigator.sources)
+        self._ThekeSourcesBar.updateSources(self.navigator.sources)
 
     def handle_toc_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()
