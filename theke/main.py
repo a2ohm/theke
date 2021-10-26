@@ -67,7 +67,7 @@ class ThekeApp(Gtk.Application):
             logger.debug("ThekeApp - Create a new window")
             self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator)
             self.window.set_application(self)
-            self.window.show_all()
+            self.window.present()
 
         # From the index ...
         thekeIndex = theke.index.ThekeIndex()

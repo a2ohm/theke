@@ -100,6 +100,13 @@ class ThekeWindow():
         """
         self.mainWindow.set_application(application)
 
+    def present(self):
+        """Present the window
+        """
+        self.mainWindow.present()
+        # TODO: calling show_all() should not be necessary
+        self.mainWindow.show_all()
+
     def show_all(self):
         """Show the main window
         """
