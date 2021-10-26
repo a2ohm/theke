@@ -23,22 +23,23 @@ Author: a2ohm
 -->
 <interface>
   <requires lib="gtk+" version="3.22"/>
+  <requires lib="user-templates" version="0.0"/>
   <!-- interface-license-type gplv3 -->
   <!-- interface-name Theke -->
   <!-- interface-authors a2ohm -->
-  <object class="GtkApplicationWindow" id="mainWindow">
+  <template class="mainWindow" parent="GtkApplicationWindow">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">Theke</property>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
-    <property name="icon">../../assets/img/theke-logo.svg</property>
+    <property name="icon">assets/img/theke-logo.svg</property>
     <child>
       <object class="GtkBox" id="mainBox">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox" id="top_box">
+          <object class="GtkBox" id="_top_box">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
@@ -629,38 +630,22 @@ Author: a2ohm
                         <property name="can-focus">False</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkExpander">
+                          <object class="ThekeDicoView" id="myDicoView">
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
-                            <property name="vexpand">True</property>
                             <property name="expanded">True</property>
-                            <child>
-                              <object class="GtkScrolledWindow">
-                                <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="shadow-type">in</property>
-                                <child>
-                                  <object class="GtkTextView" id="myDicoView_textInput">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="vexpand">True</property>
-                                    <property name="input-purpose">alpha</property>
-                                  </object>
-                                </child>
-                              </object>
-                            </child>
                             <child type="label">
-                              <object class="GtkLabel" id="myDicoView_label">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can-focus">False</property>
-                                <property name="label" translatable="yes">Dictionnaire personnel</property>
+                                <property name="label" translatable="yes">expander</property>
                               </object>
                             </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">1</property>
+                            <property name="position">0</property>
                           </packing>
                         </child>
                       </object>
@@ -691,5 +676,5 @@ Author: a2ohm
         </child>
       </object>
     </child>
-  </object>
+  </template>
 </interface>
