@@ -40,8 +40,9 @@ Installer ensuite GTK+ et PyGObject.
 
 ### Autres bibliothèques
 
-Autres paquets requis : Jinja2, PyYaml.
+Autres paquets requis : BeautifulSoup4, Jinja2, PyYaml.
 
+* `pip3 install beautifulsoup4`
 * `pip3 install Jinja2`
 * `pip3 install pyyaml`
 
