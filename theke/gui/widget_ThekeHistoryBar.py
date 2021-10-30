@@ -1,7 +1,4 @@
-import gi
 from collections import OrderedDict
-
-gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -80,7 +77,7 @@ class ThekeHistoryBar(Gtk.ButtonBox):
                 self.remove(self.get_children()[1])
 
             self.history[label] = uri
-            
+
             button = Gtk.Button(label=label, use_underline=False)
             button.uri = uri
             button.set_tooltip_text(str(uri))
@@ -103,4 +100,3 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
     def handle_menu_copy_uri_to_clipboard(self, menu_item):
         self.clipboard.set_text(menu_item.uri.get_encoded_URI(), -1)
-
