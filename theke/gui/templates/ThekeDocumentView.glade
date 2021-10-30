@@ -2,6 +2,7 @@
 <!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.24"/>
+  <requires lib="user-templates" version="0.0"/>
   <template class="ThekeDocumentView" parent="GtkPaned">
     <property name="visible">True</property>
     <property name="can-focus">True</property>
@@ -40,19 +41,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="_toc_reduceExpand_button">
+                  <object class="ReduceExpandButton" id="_toc_reduceExpand_button">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
-                    <property name="focus-on-click">False</property>
                     <property name="receives-default">True</property>
-                    <property name="relief">none</property>
                     <signal name="clicked" handler="_toc_reduceExpand_button_clicked_cb" swapped="no"/>
                     <child>
-                      <object class="GtkImage" id="tocPane_reduceExpand_image">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="icon-name">pan-start-symbolic</property>
-                      </object>
+                      <placeholder/>
                     </child>
                   </object>
                   <packing>

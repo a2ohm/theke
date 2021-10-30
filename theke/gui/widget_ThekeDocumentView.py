@@ -5,6 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
+from theke.gui.widget_ReduceExpandButton import ReduceExpandButton
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeDocumentView.glade')
 class ThekeDocumentView(Gtk.Paned):
@@ -22,6 +23,7 @@ class ThekeDocumentView(Gtk.Paned):
     isReduce = GObject.Property(type=bool, default=True)
 
     _webview_scrolledWindow = Gtk.Template.Child()
+    _toc_reduceExpand_button = Gtk.Template.Child()
     _toc_frame = Gtk.Template.Child()
     _toc_title = Gtk.Template.Child()
     _toc_tocWindow = Gtk.Template.Child()
@@ -47,8 +49,6 @@ class ThekeDocumentView(Gtk.Paned):
         self._webview.connect("load_changed", self._document_load_changed_cb)
         self._webview.connect("mouse-target-changed", self._webview_mouse_target_changed_cb)
 
-        # self.wgReduceExpandImage = builder.get_object("tocPane_reduceExpand_image")
-
     def finish_setup(self) -> None:
         # Add the webview into the document view
         # (this cannot be done in Glade)
@@ -58,6 +58,9 @@ class ThekeDocumentView(Gtk.Paned):
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn("Chapitre", renderer, text=0)
         self._toc_treeView.append_column(column)
+
+        # Setup the expand/reduce button
+        self._toc_reduceExpand_button.finish_setup(orientation = self._toc_reduceExpand_button.ORIENTATION_LEFT)
 
     def register_navigator(self, navigator):
         self._webview.register_navigator(navigator)
@@ -104,7 +107,7 @@ class ThekeDocumentView(Gtk.Paned):
         self.props.isReduce = False
         self._toc_tocWindow.show()
         self._toc_title.show()
-        #self.wgReduceExpandImage.set_from_icon_name("pan-start-symbolic", Gtk.IconSize.BUTTON)
+        self._toc_reduceExpand_button.switch()
 
     def hide_toc(self) -> None:
         """Hide the table of content
@@ -118,7 +121,7 @@ class ThekeDocumentView(Gtk.Paned):
         self.props.isReduce = True
         self._toc_tocWindow.hide()
         self._toc_title.hide()
-        #self.wgReduceExpandImage.set_from_icon_name("pan-end-symbolic", Gtk.IconSize.BUTTON)
+        self._toc_reduceExpand_button.switch()
 
     def set_title(self, title):
         """Set the title of the table of content
