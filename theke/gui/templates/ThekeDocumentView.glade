@@ -7,6 +7,7 @@
     <property name="can-focus">True</property>
     <property name="position">150</property>
     <property name="wide-handle">True</property>
+    <signal name="notify::min-position" handler="ThekeDocumentView_min_position_notify_cb" swapped="no"/>
     <child>
       <object class="GtkFrame" id="_toc_frame">
         <property name="can-focus">False</property>
@@ -45,6 +46,7 @@
                     <property name="focus-on-click">False</property>
                     <property name="receives-default">True</property>
                     <property name="relief">none</property>
+                    <signal name="clicked" handler="_toc_reduceExpand_button_clicked_cb" swapped="no"/>
                     <child>
                       <object class="GtkImage" id="tocPane_reduceExpand_image">
                         <property name="visible">True</property>

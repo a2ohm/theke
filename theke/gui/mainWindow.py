@@ -72,8 +72,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # Set size.
         # builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
-        # builder.get_object("tocPane").connect("notify::min-position", self.handle_minPosition_changed)
-
 
         # ... tools view
         # self.toolsView = ThekeToolsView(builder)
@@ -97,7 +95,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-        
 
     def handle_availableSources_updated(self, object, param) -> None:
         self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
@@ -131,13 +128,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the history bar
             self.historybar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
-            # # Update the table of content
-            # if self.navigator.toc is None:
-            #     self.tableOfContent.hide()
-            # else:
-            #     self.tableOfContent.set_title(self.navigator.ref.documentName)
-            #     self.tableOfContent.set_content(self.navigator.toc.toc)
-            #     self.tableOfContent.show()
+            # Update the table of content
+            if self._navigator.toc is None:
+                self._ThekeDocumentView.hide_toc()
+            else:
+                self._ThekeDocumentView.set_title(self._navigator.ref.documentName)
+                self._ThekeDocumentView.set_content(self._navigator.toc.toc)
+                self._ThekeDocumentView.show_toc()
 
             # # Hide the morphoView, if necessary
             # if not self.navigator.isMorphAvailable:
@@ -207,11 +204,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """Move the pane to its maximal value
         """
         object.set_position(object.props.max_position)
-
-    def handle_minPosition_changed(self, object, param):
-        """Move the pane to its minimal value
-        """
-        object.set_position(object.props.min_position)
 
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
