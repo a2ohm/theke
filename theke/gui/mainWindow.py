@@ -1,8 +1,4 @@
 import logging
-import gi
-
-gi.require_version('Gtk', '3.0')
-gi.require_version('WebKit2', '4.0')
 
 from gi.repository import Gtk
 from gi.repository import WebKit2
@@ -10,7 +6,6 @@ from gi.repository import WebKit2
 import theke
 import theke.reference
 
-from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
@@ -19,6 +14,7 @@ from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 # Import needed to load the gui
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
+from theke.gui.widget_ThekeDocumentView import ThekeDocumentView
 
 logger = logging.getLogger(__name__)
 
@@ -27,15 +23,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
     _top_box: Gtk.Box = Gtk.Template.Child()
-    _webview_scrolledWindow: Gtk.ScrolledWindow = Gtk.Template.Child()
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
+    _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
 
     def __init__(self, navigator):
         super().__init__()
 
-        self.navigator = navigator
+        self._navigator = navigator
         self._setup_view()
 
         # TODO: Normalement, l'appel de self.show_all() n'est pas nécessaire
@@ -58,17 +54,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._top_box.pack_end(self.gotobar, False, False, 1)
         self._top_box.pack_end(self.historybar, True, True, 1)
 
-        #   ... TOC
-        #self.tableOfContent = ThekeTableOfContent(builder)
-        #self.tableOfContent.connect("selection-changed", self.handle_toc_selection_changed)
-        
         #   ... document view
+        self._ThekeDocumentView.finish_setup()
+        #   ... document view > TOC
+        self._ThekeDocumentView.connect("toc-selection-changed", self.handle_toc_selection_changed)
         # ... document view > webview: where the document is displayed
-        self.webview = ThekeWebView(navigator=self.navigator)
-        self.webview.connect("load_changed", self.handle_load_changed)
-        self.webview.connect("mouse_target_changed", self.handle_mouse_target_changed)
-
-        self._webview_scrolledWindow.add(self.webview)
+        self._ThekeDocumentView.register_navigator(self._navigator)
+        self._ThekeDocumentView.connect("document-load-changed", self.handle_document_load_changed)
+        self._ThekeDocumentView.connect("webview-mouse-target-changed", self.handle_mouse_target_changed)
 
         #   ... search panel
         #self.searchPane = ThekeSearchPane(builder)
@@ -91,11 +84,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... sources bar
         self._ThekeSourcesBar.connect("source-requested", self.handle_source_requested)
         self._ThekeSourcesBar.connect("delete-source", self.handle_delete_source)
-        self.navigator.connect("notify::sources", self.handle_sources_updated)
-        self.navigator.connect("notify::availableSources", self.handle_availableSources_updated)
+        self._navigator.connect("notify::sources", self.handle_sources_updated)
+        self._navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
         # Set the focus on the webview
-        self.webview.grab_focus()
+        self._ThekeDocumentView.grab_focus()
 
         # SET ACCELERATORS (keyboard shortcuts)
         accelerators = Gtk.AccelGroup()
@@ -104,12 +97,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        
 
     def handle_availableSources_updated(self, object, param) -> None:
-        self._ThekeSourcesBar.updateAvailableSources(self.navigator.availableSources)
+        self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
 
     def handle_delete_source(self, object, sourceName):
-        self.navigator.delete_source(sourceName)
+        self._navigator.delete_source(sourceName)
 
     def handle_gotobar_activate(self, entry):
         '''@param entry: the object which received the signal.
@@ -117,7 +111,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         ref = theke.reference.parse_reference(entry.get_text().strip())
         if ref.type != theke.TYPE_UNKNOWN:
-            self.navigator.goto_ref(ref)
+            self._navigator.goto_ref(ref)
 
     def handle_gotobar_match_selected(self, entry_completion, model, iter):
         # TODO: give name to column (and dont use a numerical value)
@@ -128,14 +122,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.gotobar.set_position(-1)
         return True
 
-    def handle_load_changed(self, web_view, load_event):
+    def handle_document_load_changed(self, obj, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
             contextId = self._statusbar.get_context_id("navigation")
-            self._statusbar.push(contextId, str(self.navigator.title))
+            self._statusbar.push(contextId, str(self._navigator.title))
 
             # Update the history bar
-            self.historybar.add_uri_to_history(self.navigator.shortTitle, self.navigator.uri)
+            self.historybar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
             # # Update the table of content
             # if self.navigator.toc is None:
@@ -150,7 +144,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             #     self.toolsView.hide()
 
             # Show the sourcesBar, if necessary
-            if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE:
+            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.show()
                 self._statusbar.hide()
             else:
@@ -160,7 +154,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
             #     self.webview.scroll_to_verse(self.navigator.ref.verse)
 
-    def handle_mouse_target_changed(self, web_view, hit_test_result, modifiers):
+    def handle_mouse_target_changed(self, obj, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
@@ -171,15 +165,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self.searchPane.show()
-        self.searchPane.search_start(self.navigator.selectedWord.source, self.navigator.selectedWord.strong)
+        self.searchPane.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.strong)
 
     def handle_searchResults_selection_changed(self, object, result):
-        ref = theke.reference.parse_reference(result.reference, wantedSources = self.navigator.sources)
+        ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)
         
         if ref.type == theke.TYPE_UNKNOWN:
             logger.error("Reference type not supported in search results: %s", result.referenceType)
         else:
-            self.navigator.goto_ref(ref)
+            self._navigator.goto_ref(ref)
 
     def handle_search_start(self, object, moduleName, lemma):
         self.toolsView.search_button.set_sensitive(False)
@@ -188,7 +182,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
-        w = self.navigator.selectedWord
+        w = self._navigator.selectedWord
 
         self.toolsView.set_morph(w.word, w.morph)
 
@@ -198,16 +192,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.toolsView.show()
 
     def handle_source_requested(self, object, sourceName):
-        self.navigator.add_source(sourceName)
+        self._navigator.add_source(sourceName)
 
     def handle_sources_updated(self, object, params) -> None:
-        self._ThekeSourcesBar.updateSources(self.navigator.sources)
+        self._ThekeSourcesBar.updateSources(self._navigator.sources)
 
     def handle_toc_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()
 
         if treeIter is not None:
-            self.navigator.goto_section(model[treeIter][1])
+            self._navigator.goto_section(model[treeIter][1])
 
     def handle_maxPosition_changed(self, object, param):
         """Move the pane to its maximal value
@@ -220,5 +214,5 @@ class ThekeWindow(Gtk.ApplicationWindow):
         object.set_position(object.props.min_position)
 
     def on_history_button_clicked(self, button):
-        self.navigator.goto_uri(button.uri)
+        self._navigator.goto_uri(button.uri)
         return True
