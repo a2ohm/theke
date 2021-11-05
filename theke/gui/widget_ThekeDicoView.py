@@ -36,6 +36,30 @@ class ThekeDicoView(Gtk.Box):
         # Save changes at least every 5 seconds
         GLib.timeout_add_seconds(5, self.myDico_do_save)
 
+    ### Callbacks
+    def handle_myDico_textInput_changed(self, textBuffer) -> None:
+        if textBuffer.props.text != self.myDicoView_textInput_loaded:
+            self.set_property("hasChangeToSave", 2)
+        else:
+            self.set_property("hasChangeToSave", 0)
+
+    def handle_myDico_hasChangeToSave(self, object, param) -> None:
+        if self.hasChangeToSave > 0:
+            self._myDico_label.set_markup("Dictionnaire personnel <b>*</b>")
+        else:
+            self._myDico_label.set_markup("Dictionnaire personnel")
+
+    def handle_strongsNb_changed(self, object, param) -> None:
+        myDicoEntry = self.myDico.get_entry(self.strongsNb)
+
+        if myDicoEntry is None:
+            self.myDicoView_textInput_loaded = ''
+        else:
+            self.myDicoView_textInput_loaded = myDicoEntry.definition
+
+        self.myDicoView_textInput_buffer.set_text(self.myDicoView_textInput_loaded)
+    ###
+
     def load_entry_by_strongs(self, strongsNb) -> None:
         """Load dictionaries entries given a Strongs number.
 
@@ -61,30 +85,3 @@ class ThekeDicoView(Gtk.Box):
             self.set_property("hasChangeToSave", 1)
 
         return True
-
-    def handle_myDico_textInput_changed(self, textBuffer) -> None:
-        if textBuffer.props.text != self.myDicoView_textInput_loaded:
-            self.set_property("hasChangeToSave", 2)
-        else:
-            self.set_property("hasChangeToSave", 0)
-
-    def handle_myDico_hasChangeToSave(self, object, param) -> None:
-        if self.hasChangeToSave > 0:
-            self._myDico_label.set_markup("Dictionnaire personnel <b>*</b>")
-        else:
-            self._myDico_label.set_markup("Dictionnaire personnel")
-
-    def handle_strongsNb_changed(self, object, param) -> None:
-        myDicoEntry = self.myDico.get_entry(self.strongsNb)
-
-        if myDicoEntry is None:
-            self.myDicoView_textInput_loaded = ''
-        else:
-            self.myDicoView_textInput_loaded = myDicoEntry.definition
-
-        self.myDicoView_textInput_buffer.set_text(self.myDicoView_textInput_loaded)
-
-    # def has_focus(self):
-    #     """Return true if the text input of myDicoViw has focus
-    #     """
-    #     return self._myDico_textInput.has_focus()
