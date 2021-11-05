@@ -34,7 +34,7 @@ class ThekeDicoView(Gtk.Box):
         self.connect("notify::strongsNb", self.handle_strongsNb_changed)
 
         # Save changes at least every 5 seconds
-        GLib.timeout_add_seconds(5, self.myDico_do_save)
+        GLib.timeout_add_seconds(5, self._myDico_do_save)
 
     ### Callbacks
     def handle_myDico_textInput_changed(self, textBuffer) -> None:
@@ -60,20 +60,7 @@ class ThekeDicoView(Gtk.Box):
         self.myDicoView_textInput_buffer.set_text(self.myDicoView_textInput_loaded)
     ###
 
-    def load_entry_by_strongs(self, strongsNb) -> None:
-        """Load dictionaries entries given a Strongs number.
-
-        @param strongsNb: Strongs number
-        """
-        # Save the current myDico entry
-        self.myDico_do_save(force = self.hasChangeToSave > 1)
-
-        # Dictionaries connected to notify::strongsNb load the entry.
-        with self.freeze_notify():
-            self.set_property("strongsNb", strongsNb)
-            self.set_property("lemma", '')
-
-    def myDico_do_save(self, force = False) -> bool:
+    def _myDico_do_save(self, force = False) -> bool:
         # Wait at least 5 seconds before saving.
         if force or self.hasChangeToSave == 1:
             self.myDico.set_entry(self.strongsNb, self.lemma, self.myDicoView_textInput_buffer.props.text)
@@ -85,3 +72,22 @@ class ThekeDicoView(Gtk.Box):
             self.set_property("hasChangeToSave", 1)
 
         return True
+
+    def save(self) -> None:
+        if self._myDico_textInput.has_focus():
+            self._myDico_do_save(force = True)
+
+    def load_entry_by_strongs(self, strongsNb) -> None:
+        """Load dictionaries entries given a Strongs number.
+
+        @param strongsNb: Strongs number
+        """
+        # Save the current myDico entry
+        self._myDico_do_save(force = self.hasChangeToSave > 1)
+
+        # Dictionaries connected to notify::strongsNb load the entry.
+        with self.freeze_notify():
+            self.set_property("strongsNb", strongsNb)
+            self.set_property("lemma", '')
+
+    

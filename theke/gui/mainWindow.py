@@ -1,6 +1,7 @@
 import logging
 
 from gi.repository import Gtk
+from gi.repository import GObject
 from gi.repository import WebKit2
 
 import theke
@@ -21,6 +22,10 @@ logger = logging.getLogger(__name__)
 @Gtk.Template.from_file('./theke/gui/mainWindow.glade')
 class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
+
+    __gsignals__ = {
+        'save': (GObject.SignalFlags.RUN_LAST | GObject.SignalFlags.ACTION, None, ())
+        }
 
     _top_box: Gtk.Box = Gtk.Template.Child()
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
@@ -99,6 +104,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
+        # ... Ctrl+s: save modifications in the personal dictionary
+        key, mod = Gtk.accelerator_parse('<Control>s')
+        self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
     ### Callbacks (from glade)
     @Gtk.Template.Callback()
     def _document_toolsBox_pane_max_position_notify_cb(self, object, param) -> None:
@@ -107,6 +116,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
     @Gtk.Template.Callback()
     def _document_search_pane_max_position_notify_cb(self, object, param) -> None:
         object.set_position(object.props.max_position)
+    
+    ### Signal handlers
+    def do_save(self) -> None:
+        self._ThekeToolsBox._toolsBox_dicoView.save()
     ###
 
     def handle_availableSources_updated(self, object, param) -> None:
