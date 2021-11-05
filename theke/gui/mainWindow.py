@@ -186,12 +186,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeToolsBox.search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
-        # w = self._navigator.selectedWord
+        w = self._navigator.selectedWord
 
-        # self._ThekeToolsBox.set_morph(w.word, w.morph)
+        self._ThekeToolsBox.set_morph(w.word, w.morph)
 
-        # self._ThekeToolsBox.set_lemma(w.lemma)
-        # self._ThekeToolsBox.set_strongs(w.strong)
+        self._ThekeToolsBox.set_lemma(w.lemma)
+        self._ThekeToolsBox.set_strongs(w.strong)
         self._ThekeToolsBox.show()
 
     def handle_source_requested(self, object, sourceName):

@@ -39,7 +39,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="toolsView_word">
+          <object class="GtkLabel" id="_toolsBox_word_label">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="margin-start">2</property>
@@ -57,13 +57,12 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox" id="toolsView_lemma">
+          <object class="GtkBox" id="_toolsBox_lemma_box">
             <property name="can-focus">False</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
-                <property name="margin-left">4</property>
                 <property name="margin-start">4</property>
                 <property name="label" translatable="yes">(</property>
               </object>
@@ -74,7 +73,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="toolsView_lemmaText">
+              <object class="GtkLabel" id="_toolsBox_lemma_label">
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
                 <property name="selectable">True</property>
@@ -105,9 +104,9 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="toolsView_strongText">
-            <property name="visible">True</property>
+          <object class="GtkLabel" id="_toolsBox_strong_label">
             <property name="can-focus">False</property>
+            <property name="no-show-all">True</property>
             <property name="margin-start">8</property>
             <attributes>
               <attribute name="foreground" value="#88888a8a8585"/>
@@ -146,6 +145,7 @@
       <object class="GtkPaned" id="_toolsBox_tools">
         <property name="visible">True</property>
         <property name="can-focus">True</property>
+        <signal name="notify::max-position" handler="_toolsBox_tools_max_position_notify_cb" swapped="no"/>
         <child>
           <object class="GtkFrame" id="morphoView_frame">
             <property name="visible">True</property>
@@ -163,7 +163,7 @@
                 <property name="margin-bottom">5</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkLabel" id="morphoView_rawMorph">
+                  <object class="GtkLabel" id="_toolsBox_morphoView_rawMorph_label">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
@@ -177,7 +177,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="morphoView_parsedMorph">
+                  <object class="GtkLabel" id="_toolsBox_morphoView_parsedMorph_label">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <property name="halign">start</property>
@@ -205,32 +205,13 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="ThekeDicoView" id="_toolsBox_dicoView">
+            <property name="width-request">250</property>
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="orientation">vertical</property>
-            <child>
-              <object class="ThekeDicoView" id="myDicoView">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="expanded">True</property>
-                <child type="label">
-                  <object class="GtkLabel">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <property name="label" translatable="yes">expander</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
           </object>
           <packing>
-            <property name="resize">False</property>
+            <property name="resize">True</property>
             <property name="shrink">False</property>
           </packing>
         </child>

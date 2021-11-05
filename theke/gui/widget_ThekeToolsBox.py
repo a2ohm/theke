@@ -22,23 +22,24 @@ class ThekeToolsBox(Gtk.Box):
     _toolsBox_reduceExpand_button = Gtk.Template.Child()
     _toolsBox_tools = Gtk.Template.Child()
 
+    _toolsBox_word_label = Gtk.Template.Child()
+    _toolsBox_lemma_box = Gtk.Template.Child()
+    _toolsBox_lemma_label = Gtk.Template.Child()
+
+    _toolsBox_strong_label = Gtk.Template.Child()
+
+    _toolsBox_dicoView = Gtk.Template.Child()
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         # self.toolViewBox = builder.get_object("toolsView_Box")
         # self.toolView_tools = builder.get_object("toolsView_tools")
 
-        # self.word_label = builder.get_object("toolsView_word")
-        # self.lemma_box = builder.get_object("toolsView_lemma")
-        # self.lemma_label = builder.get_object("toolsView_lemmaText")
-        # self.strong_label = builder.get_object("toolsView_strongText")
         # self.search_button = builder.get_object("toolsView_searchButton")
 
         # # MorphoView
         # self.morphView = ThekeMorphoView(builder)
-
-        # # dicoView
-        # self.dicoView = builder.get_object("myDicoView")
 
         # # TODO: Créer un nouveau signal attaché à la ToolView
         # # GObject.signal_new(signal_name, type, flags, return_type, param_types)
@@ -56,6 +57,8 @@ class ThekeToolsBox(Gtk.Box):
         # # self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
     def finish_setup(self) -> None:
+        self._toolsBox_dicoView.finish_setup()
+
         # Setup the expand/reduce button
         self._toolsBox_reduceExpand_button.finish_setup(orientation = self._toolsBox_reduceExpand_button.ORIENTATION_DOWN)
 
@@ -66,6 +69,10 @@ class ThekeToolsBox(Gtk.Box):
             self.expand()
         else:
             self.reduce()
+
+    @Gtk.Template.Callback()
+    def _toolsBox_tools_max_position_notify_cb(self, object, param) -> None:
+        object.set_position(object.props.max_position)
     ###
 
     def search_button_connect(self, callback):
@@ -73,25 +80,25 @@ class ThekeToolsBox(Gtk.Box):
 
     def set_lemma(self, lemma):
         if lemma:
-            self.lemma_label.set_label(lemma)
-            self.lemma_box.show()
+            self._toolsBox_lemma_label.set_label(lemma)
+            self._toolsBox_lemma_box.show()
         else:
-            self.lemma_box.hide()
+            self._toolsBox_lemma_box.hide()
 
     def set_morph(self, word, morph):
-        self.word_label.set_label(word)
-        self.morphView.set_morph(word, morph)
+        self._toolsBox_word_label.set_label(word)
+        #self.morphView.set_morph(word, morph)
 
     def set_strongs(self, strongs):
         if strongs:
-            self.strong_label.set_label(strongs)
-            self.search_button.set_sensitive(True)
-            self.strong_label.show()
+            self._toolsBox_strong_label.set_label(strongs)
+            # self.search_button.set_sensitive(True)
+            self._toolsBox_strong_label.show()
 
-            self.dicoView.load_entry_by_strongs(strongs)
+            self._toolsBox_dicoView.load_entry_by_strongs(strongs)
         else:
-            self.search_button.set_sensitive(False)
-            self.strong_label.hide()
+            # self.search_button.set_sensitive(False)
+            self._toolsBox_strong_label.hide()
 
     ### Widget like functions
 
