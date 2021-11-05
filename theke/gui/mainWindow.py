@@ -161,8 +161,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeSourcesBar.hide()
                 self._statusbar.show()
 
-            # if self.navigator.ref and self.navigator.ref.type == theke.TYPE_BIBLE and self.navigator.ref.verse is not None:
-            #     self.webview.scroll_to_verse(self.navigator.ref.verse)
+            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
+                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.verse)
 
     def handle_mouse_target_changed(self, obj, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():

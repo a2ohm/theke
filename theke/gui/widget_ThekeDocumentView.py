@@ -94,6 +94,9 @@ class ThekeDocumentView(Gtk.Paned):
     def grabe_focus(self) -> None:
         self._webview.grab_focus()
 
+    def scroll_to_verse(self, verse) -> None:
+        self._webview.scroll_to_verse(verse)
+
     def show_toc(self) -> None:
         """Show the table of content
         """
