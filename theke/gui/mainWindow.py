@@ -8,12 +8,12 @@ import theke.reference
 
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
-from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
 from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
 
 # Import needed to load the gui
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeDocumentView import ThekeDocumentView
+from theke.gui.widget_ThekeSearchView import ThekeSearchView
 from theke.gui.widget_ThekeToolsBox import ThekeToolsBox
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
     _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
+    _ThekeSearchView : Gtk.Bin = Gtk.Template.Child()
     _ThekeToolsBox : Gtk.Box = Gtk.Template.Child()
 
     def __init__(self, navigator):
@@ -66,17 +67,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         #   ... search panel
         #self.searchPane = ThekeSearchPane(builder)
+        self._ThekeSearchView.finish_setup()
 
-        # self.searchPane.connect("selection-changed", self.handle_searchResults_selection_changed)
-        # self.searchPane.connect("start", self.handle_search_start)
-        # self.searchPane.connect("finish", self.handle_search_finish)
+        self._ThekeSearchView.connect("selection-changed", self.handle_searchResults_selection_changed)
+        self._ThekeSearchView.connect("start", self.handle_search_start)
+        self._ThekeSearchView.connect("finish", self.handle_search_finish)
 
         # Set size.
         # builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
 
         # ... tools view
         self._ThekeToolsBox.finish_setup()
-        # self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
+        self._ThekeToolsBox.search_button_connect(self.handle_morphview_searchButton_clicked)
         self._navigator.connect("click_on_word", self.handle_selected_word_changed)
 
         # BOTTOM
@@ -100,6 +102,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
     ### Callbacks (from glade)
     @Gtk.Template.Callback()
     def _document_toolsBox_pane_max_position_notify_cb(self, object, param) -> None:
+        object.set_position(object.props.max_position)
+
+    @Gtk.Template.Callback()
+    def _document_search_pane_max_position_notify_cb(self, object, param) -> None:
         object.set_position(object.props.max_position)
     ###
 
@@ -168,8 +174,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._statusbar.pop(context_id)
 
     def handle_morphview_searchButton_clicked(self, button):
-        self.searchPane.show()
-        self.searchPane.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.strong)
+        self._ThekeSearchView.show()
+        self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.strong)
 
     def handle_searchResults_selection_changed(self, object, result):
         ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)
@@ -180,10 +186,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._navigator.goto_ref(ref)
 
     def handle_search_start(self, object, moduleName, lemma):
-        self._ThekeToolsBox.search_button.set_sensitive(False)
+        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(False)
 
     def handle_search_finish(self, object):
-        self._ThekeToolsBox.search_button.set_sensitive(True)
+        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
         w = self._navigator.selectedWord

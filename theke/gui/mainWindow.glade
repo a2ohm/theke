@@ -64,11 +64,12 @@ Author: a2ohm
                 <property name="can-focus">False</property>
                 <property name="orientation">vertical</property>
                 <child>
-                  <object class="GtkPaned" id="searchPane">
+                  <object class="GtkPaned" id="_document_search_pane">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="position">450</property>
                     <property name="position-set">True</property>
+                    <signal name="notify::max-position" handler="_document_search_pane_max_position_notify_cb" swapped="no"/>
                     <child>
                       <object class="ThekeDocumentView" id="_ThekeDocumentView">
                         <property name="visible">True</property>
@@ -80,111 +81,9 @@ Author: a2ohm
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkFrame" id="searchFrame">
+                      <object class="ThekeSearchView" id="_ThekeSearchView">
                         <property name="can-focus">False</property>
                         <property name="no-show-all">True</property>
-                        <property name="label-xalign">0</property>
-                        <property name="shadow-type">none</property>
-                        <child>
-                          <object class="GtkBox" id="searchBox">
-                            <property name="visible">True</property>
-                            <property name="can-focus">False</property>
-                            <property name="orientation">vertical</property>
-                            <child>
-                              <object class="GtkBox">
-                                <property name="visible">True</property>
-                                <property name="can-focus">False</property>
-                                <child type="center">
-                                  <object class="GtkLabel" id="searchPane_title">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">False</property>
-                                    <property name="label" translatable="yes">Recherche</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">2</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="searchPane_reduceExpand_button">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="focus-on-click">False</property>
-                                    <property name="receives-default">True</property>
-                                    <property name="relief">none</property>
-                                    <child>
-                                      <object class="GtkImage" id="searchPane_reduceExpand_image">
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="icon-name">pan-end-symbolic</property>
-                                      </object>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkButton" id="searchPane_close_button">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="focus-on-click">False</property>
-                                    <property name="receives-default">True</property>
-                                    <property name="relief">none</property>
-                                    <child>
-                                      <object class="GtkImage">
-                                        <property name="visible">True</property>
-                                        <property name="can-focus">False</property>
-                                        <property name="icon-name">window-close-symbolic</property>
-                                      </object>
-                                    </child>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="pack-type">end</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkScrolledWindow" id="searchPane_resultsWindow">
-                                <property name="width-request">150</property>
-                                <property name="visible">True</property>
-                                <property name="can-focus">True</property>
-                                <property name="margin-bottom">1</property>
-                                <property name="shadow-type">in</property>
-                                <child>
-                                  <object class="GtkTreeView" id="searchPanel_resultsTreeView">
-                                    <property name="visible">True</property>
-                                    <property name="can-focus">True</property>
-                                    <property name="headers-visible">False</property>
-                                    <child internal-child="selection">
-                                      <object class="GtkTreeSelection"/>
-                                    </child>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                        </child>
-                        <child type="label_item">
-                          <placeholder/>
-                        </child>
                       </object>
                       <packing>
                         <property name="resize">True</property>

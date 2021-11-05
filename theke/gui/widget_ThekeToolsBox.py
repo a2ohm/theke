@@ -19,6 +19,7 @@ class ThekeToolsBox(Gtk.Box):
 
     isReduce = GObject.Property(type=bool, default=False)
 
+    _toolsBox_search_button = Gtk.Template.Child()
     _toolsBox_reduceExpand_button = Gtk.Template.Child()
     _toolsBox_tools = Gtk.Template.Child()
 
@@ -77,7 +78,7 @@ class ThekeToolsBox(Gtk.Box):
     ###
 
     def search_button_connect(self, callback):
-        self.search_button.connect("clicked", callback)
+        self._toolsBox_search_button.connect("clicked", callback)
 
     def set_lemma(self, lemma):
         if lemma:
@@ -93,12 +94,12 @@ class ThekeToolsBox(Gtk.Box):
     def set_strongs(self, strongs):
         if strongs:
             self._toolsBox_strong_label.set_label(strongs)
-            # self.search_button.set_sensitive(True)
+            self._toolsBox_search_button.set_sensitive(True)
             self._toolsBox_strong_label.show()
 
             self._toolsBox_dicoView.load_entry_by_strongs(strongs)
         else:
-            # self.search_button.set_sensitive(False)
+            self._toolsBox_search_button.set_sensitive(False)
             self._toolsBox_strong_label.hide()
 
     ### Widget like functions
