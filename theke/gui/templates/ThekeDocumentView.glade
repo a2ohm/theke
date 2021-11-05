@@ -44,11 +44,10 @@
                   <object class="ReduceExpandButton" id="_toc_reduceExpand_button">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
+                    <property name="focus-on-click">False</property>
                     <property name="receives-default">True</property>
+                    <property name="relief">none</property>
                     <signal name="clicked" handler="_toc_reduceExpand_button_clicked_cb" swapped="no"/>
-                    <child>
-                      <placeholder/>
-                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
