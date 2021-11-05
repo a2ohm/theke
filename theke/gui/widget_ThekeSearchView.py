@@ -70,14 +70,9 @@ class ThekeSearchView(Gtk.Bin):
                 tree_selection.unselect_all()
             else:
                 self.emit("selection-changed", ResultData(*model[treeIter]))
-    ###
-
-    def search_start(self, moduleName, keyword):
-        self.emit("start", moduleName, keyword)
-        logger.debug("ThekeSearchPane - Start a search: {} in {}".format(keyword, moduleName))
-        theke.sword.bibleSearch_keyword_async(moduleName, keyword, self.search_callback)
-
-    def search_callback(self, results):
+    
+    ### Others
+    def _search_callback(self, results):
         logger.debug("ThekeSearchPane - Load search results in the SearchPane")
 
         self.results = theke.searchResults.ThekeSearchResults()
@@ -87,7 +82,13 @@ class ThekeSearchView(Gtk.Bin):
             self.results.add(bookName, rawReferences, theke.TYPE_BIBLE)
 
         logger.debug("ThekeSearchPane - End of the search")
-        self.emit("finish")
+        self.emit("finish")    
+    ###
+
+    def search_start(self, moduleName, keyword):
+        self.emit("start", moduleName, keyword)
+        logger.debug("ThekeSearchPane - Start a search: %s in %s", keyword, moduleName)
+        theke.sword.bibleSearch_keyword_async(moduleName, keyword, self._search_callback)
 
     def show(self):
         super().show()
