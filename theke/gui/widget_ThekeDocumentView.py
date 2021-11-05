@@ -37,11 +37,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._navigator = None
         self._webview = ThekeWebView()
 
-        self._setup_view()
         self._setup_callbacks()
-
-    def _setup_view(self) -> None:
-        pass
 
     def _setup_callbacks(self) -> None:
         #   ... document view
