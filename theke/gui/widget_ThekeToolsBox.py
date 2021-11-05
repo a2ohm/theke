@@ -13,10 +13,6 @@ class ThekeToolsBox(Gtk.Box):
     """
     __gtype_name__ = "ThekeToolsBox"
 
-    __gsignals__ = {
-        'save': (GObject.SignalFlags.RUN_LAST | GObject.SignalFlags.ACTION, None, ())
-        }
-
     isReduce = GObject.Property(type=bool, default=False)
 
     _toolsBox_search_button = Gtk.Template.Child()
@@ -31,32 +27,6 @@ class ThekeToolsBox(Gtk.Box):
 
     _toolsBox_morphoView = Gtk.Template.Child()
     _toolsBox_dicoView = Gtk.Template.Child()
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
-        # self.toolViewBox = builder.get_object("toolsView_Box")
-        # self.toolView_tools = builder.get_object("toolsView_tools")
-
-        # self.search_button = builder.get_object("toolsView_searchButton")
-
-        # # MorphoView
-        # self.morphView = ThekeMorphoView(builder)
-
-        # # TODO: Créer un nouveau signal attaché à la ToolView
-        # # GObject.signal_new(signal_name, type, flags, return_type, param_types)
-
-        # #self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
-        # #self.add_events(Gdk.EventMask.ALL_EVENTS_MASK)
-        # print(self.get_events())
-
-        # # # SET ACCELERATORS (keyboard shortcuts)
-        # # accelerators = Gtk.AccelGroup()
-        # # self.add_accel_group(accelerators)
-
-        # # # ... Ctrl+s: save modifications in the personal dictionary
-        # # key, mod = Gtk.accelerator_parse('<Control>s')
-        # # self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
     def finish_setup(self) -> None:
         self._toolsBox_dicoView.finish_setup()
@@ -118,13 +88,3 @@ class ThekeToolsBox(Gtk.Box):
         self.props.isReduce = False
         self._toolsBox_tools.show()
         self._toolsBox_reduceExpand_button.switch()
-
-    ### Signal handlers
-
-    def do_save(self) -> None:
-        print("foo")
-        if self.dicoView.has_focus():
-            self.dicoView.myDico_do_save(force = True)
-
-    def save(self) -> None:
-        print("bar")
