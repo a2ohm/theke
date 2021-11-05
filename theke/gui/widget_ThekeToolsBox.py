@@ -28,6 +28,7 @@ class ThekeToolsBox(Gtk.Box):
 
     _toolsBox_strong_label = Gtk.Template.Child()
 
+    _toolsBox_morphoView = Gtk.Template.Child()
     _toolsBox_dicoView = Gtk.Template.Child()
 
     def __init__(self, *args, **kwargs) -> None:
@@ -87,7 +88,7 @@ class ThekeToolsBox(Gtk.Box):
 
     def set_morph(self, word, morph):
         self._toolsBox_word_label.set_label(word)
-        #self.morphView.set_morph(word, morph)
+        self._toolsBox_morphoView.set_morph(word, morph)
 
     def set_strongs(self, strongs):
         if strongs:
