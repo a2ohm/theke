@@ -10,11 +10,11 @@ from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeSearchPane import ThekeSearchPane
 from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
-from theke.gui.widget_ThekeToolsView import ThekeToolsView
 
 # Import needed to load the gui
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeDocumentView import ThekeDocumentView
+from theke.gui.widget_ThekeToolsBox import ThekeToolsBox
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
     _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
+    _ThekeToolsBox : Gtk.Box = Gtk.Template.Child()
 
     def __init__(self, navigator):
         super().__init__()
@@ -74,9 +75,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
 
         # ... tools view
-        # self.toolsView = ThekeToolsView(builder)
+        self._ThekeToolsBox.finish_setup()
         # self.toolsView.search_button_connect(self.handle_morphview_searchButton_clicked)
-        # self.navigator.connect("click_on_word", self.handle_selected_word_changed)
+        self._navigator.connect("click_on_word", self.handle_selected_word_changed)
 
         # BOTTOM
         #   ... sources bar
@@ -95,6 +96,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
         self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
+    ### Callbacks (from glade)
+    @Gtk.Template.Callback()
+    def _document_toolsBox_pane_max_position_notify_cb(self, object, param) -> None:
+        object.set_position(object.props.max_position)
+    ###
 
     def handle_availableSources_updated(self, object, param) -> None:
         self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
@@ -136,9 +143,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeDocumentView.set_content(self._navigator.toc.toc)
                 self._ThekeDocumentView.show_toc()
 
-            # # Hide the morphoView, if necessary
-            # if not self.navigator.isMorphAvailable:
-            #     self.toolsView.hide()
+            # Hide the morphoView, if necessary
+            if not self._navigator.isMorphAvailable:
+                self._ThekeToolsBox.hide()
 
             # Show the sourcesBar, if necessary
             if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
@@ -173,20 +180,19 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._navigator.goto_ref(ref)
 
     def handle_search_start(self, object, moduleName, lemma):
-        self.toolsView.search_button.set_sensitive(False)
+        self._ThekeToolsBox.search_button.set_sensitive(False)
 
     def handle_search_finish(self, object):
-        self.toolsView.search_button.set_sensitive(True)
+        self._ThekeToolsBox.search_button.set_sensitive(True)
 
     def handle_selected_word_changed(self, instance, param):
-        w = self._navigator.selectedWord
+        # w = self._navigator.selectedWord
 
-        self.toolsView.set_morph(w.word, w.morph)
+        # self._ThekeToolsBox.set_morph(w.word, w.morph)
 
-        self.toolsView.set_lemma(w.lemma)
-        self.toolsView.set_strongs(w.strong)
-
-        self.toolsView.show()
+        # self._ThekeToolsBox.set_lemma(w.lemma)
+        # self._ThekeToolsBox.set_strongs(w.strong)
+        self._ThekeToolsBox.show()
 
     def handle_source_requested(self, object, sourceName):
         self._navigator.add_source(sourceName)
