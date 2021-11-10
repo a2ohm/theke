@@ -6,7 +6,7 @@ from theke.gui.widget_ThekeDicoView import ThekeDicoView
 from theke.gui.widget_ReduceExpandButton import ReduceExpandButton
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeToolsBox.glade')
-class ThekeToolsBox(Gtk.Box):
+class ThekeToolsBox(Gtk.Revealer):
     """In the main window, the ToolsBox gathers:
         - the MorphoView
         - the dicoView
@@ -43,7 +43,7 @@ class ThekeToolsBox(Gtk.Box):
             self.reduce()
 
     @Gtk.Template.Callback()
-    def _toolsBox_tools_max_position_notify_cb(self, object, param) -> None:
+    def _max_position_notify_cb(self, object, param) -> None:
         object.set_position(object.props.max_position)
     ###
 
@@ -74,17 +74,20 @@ class ThekeToolsBox(Gtk.Box):
 
     ### Widget like functions
 
+    def hide(self):
+        self.set_reveal_child(False)
+
     def show(self):
+        self.set_reveal_child(True)
         if self.isReduce:
             self.expand()
-        super().show()
 
     def reduce(self):
         self.props.isReduce = True
-        self._toolsBox_tools.hide()
+        self._toolsBox_tools.set_reveal_child(False)
         self._toolsBox_reduceExpand_button.switch()
 
     def expand(self):
         self.props.isReduce = False
-        self._toolsBox_tools.show()
+        self._toolsBox_tools.set_reveal_child(True)
         self._toolsBox_reduceExpand_button.switch()
