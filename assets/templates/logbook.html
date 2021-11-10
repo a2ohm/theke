@@ -1,4 +1,4 @@
-<h3>??? − ⚙️ [v0.2] Refonte des rouages internes </h3>
+<h3>10 novembre 2021 − 🌟️ [v0.2] Améliorations cosmétiques</h3>
 <ul>
     <li><em>Améliorations pour les livres bibliques.</em>
         <ul>
@@ -10,20 +10,22 @@
         <ul>
             <li>L'indexation des documents a été revue pour ...
                 <ul>
-                    <li>... séparer les livres bibliques dans autres documents dans l'index ;</li>
-                    <li>... rendre l'indexation compatible avec les versions de sqlite inférieures à la version 3.24.</li>
-                </ul>
-            </li>
-            <li>L'infrastructure de l'interface graphique a été entièrement reprise autour du concept de template. Cela a demandé beaucoup d'effort. En récompense, le code est plus clair et moins redondant.</li>
+                    <li>... séparer livres bibliques ;</li>
+                    <li>... la rendre compatible avec les versions de sqlite inférieures à la version 3.24.</li>
+                </ul></li>
         </ul>
     </li>
-    <li><em>Chasse aux bugs.</em>
-        <ul>
-            <li>Cliquer sur un résultat de recherche ne remet plus les sources choisies à zéro.</li>
-            <li>La base de données ne pouvait pas être créée lors du premier lancement de Theke. (merci V.)</li>
-            <li>Une entrée peut être supprimée du dictionnaire personnel.</li>
-        </ul>
-    </li>
+    <li><em>Documents externes.</em> Les <a href="theke:/app/external_documents">documents externes</a> sont triés par ordre alphabétique.</li>
+    <li><em>GotoBar.</em> Des couleurs différentes sont utilisées pour distinguer les livres bibliques des autres documents.</li>
+    <li><em>Morphologie.</em> En grec, début de décorticage de la morphologie. Pour les verbes, le mode, le temps et la voix sont indiqués.</li>
+</ul>
+
+<h4>Correction de bugs</h4>
+<ul>
+    <li>Cliquer sur un résultat de recherche ne remet plus les sources choisies à zéro.</li>
+    <li>La base de données ne pouvait pas être créée lors du premier lancement de Theke. (merci @cibvia)</li>
+    <li>Depuis la GotoBar, un livre biblique est ouvert par défaut à son premier chapitre, à moins qu'un autre numéro soit demandé par l'utilisateur. (PR #6 de @cibvia)</li>
+    <li>L'ultime verset d'un livre biblique est affiché correctement lorsque la source MorphGNT est combinée avec une autre. (Issue #4.)</li>
 </ul>
 
 <h3>1er septembre 2021 − 🌐️ [v0.1] Toujours plus de contenu</h3>
