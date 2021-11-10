@@ -1,6 +1,8 @@
 # theke
 *Lire et étudier la Bible et l'enseignement de l'Église.*
 
+![screenshot](assets/img/screenshots/theke_v0.2.png)
+
 ## Installation
 
 Theke s'appuie sur diverses bibliothèques que vous devez avoir sur votre ordinateur pour utiliser l'application.
