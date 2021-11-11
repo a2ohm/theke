@@ -134,14 +134,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the history bar
             self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
-            # Update the table of content
-            if self._navigator.toc is None:
-                self._ThekeDocumentView.hide_toc()
-            else:
-                self._ThekeDocumentView.set_title(self._navigator.ref.documentName)
-                self._ThekeDocumentView.set_content(self._navigator.toc.toc)
-                self._ThekeDocumentView.show_toc()
-
             # Hide the morphoView, if necessary
             if not self._navigator.isMorphAvailable:
                 self._ThekeToolsBox.hide()
@@ -153,9 +145,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             else:
                 self._ThekeSourcesBar.hide()
                 self._statusbar.show()
-
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
-                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.verse)
 
     def handle_mouse_target_changed(self, obj, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():

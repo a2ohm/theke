@@ -1,7 +1,11 @@
+import logging
+
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import WebKit2
 
-import logging
+import theke
+
 logger = logging.getLogger(__name__)
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
@@ -60,6 +64,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._toc_reduceExpand_button.set_orientation(self._toc_reduceExpand_button.ORIENTATION_LEFT)
 
     def register_navigator(self, navigator):
+        self._navigator = navigator
         self._webview.register_navigator(navigator)
         navigator.register_webview(self._webview)
 
@@ -81,6 +86,19 @@ class ThekeDocumentView(Gtk.Paned):
 
     ### Others
     def _document_load_changed_cb(self, web_view, load_event):
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            # Update the table of content
+            if self._navigator.toc is None:
+                self.hide_toc()
+            else:
+                self.set_title(self._navigator.ref.documentName)
+                self.set_content(self._navigator.toc.toc)
+                self.show_toc()
+
+            # If a verse is given, scroll to it
+            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
+                self._webview.scroll_to_verse(self._navigator.ref.verse)
+        
         self.emit("document-load-changed", web_view, load_event)
 
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
@@ -91,8 +109,10 @@ class ThekeDocumentView(Gtk.Paned):
     def grabe_focus(self) -> None:
         self._webview.grab_focus()
 
-    def scroll_to_verse(self, verse) -> None:
-        self._webview.scroll_to_verse(verse)
+    # def scroll_to_verse(self, verse) -> None:
+    #     self._webview.scroll_to_verse(verse)
+
+    ### API of the TOC
 
     def show_toc(self) -> None:
         """Show the table of content
