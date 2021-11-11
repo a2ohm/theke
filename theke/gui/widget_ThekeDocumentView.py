@@ -131,7 +131,9 @@ class ThekeDocumentView(Gtk.Paned):
             self._webview_findController.search_finish()
 
     def _local_search_entry_changed_cb(self, object, value) -> None:
-        self._webview_findController.search(self._ThekeLocalSearchBar.search_entry, WebKit2.FindOptions.WRAP_AROUND, 10)
+        self._webview_findController.search(
+            self._ThekeLocalSearchBar.search_entry,
+            WebKit2.FindOptions.WRAP_AROUND, 100)
 
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
         self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
