@@ -32,6 +32,7 @@ class ThekeDocumentView(Gtk.Paned):
     _toc_title = Gtk.Template.Child()
     _toc_tocWindow = Gtk.Template.Child()
     _toc_treeView = Gtk.Template.Child()
+    _toc_treeSelection = Gtk.Template.Child()
 
     def __init__(self, *args, **kwargs) -> None:
         logger.debug("ThekeDocumentView - Create a new instance")
@@ -93,6 +94,12 @@ class ThekeDocumentView(Gtk.Paned):
             else:
                 self.set_title(self._navigator.ref.documentName)
                 self.set_content(self._navigator.toc.toc)
+
+                if self._navigator.toc.type == theke.TYPE_BIBLE:
+                    # Trick: as a biblical toc is the list of chapters
+                    #        the index of a chapter is its value -1
+                    self._toc_treeSelection.select_path(Gtk.TreePath(self._navigator.ref.chapter-1))
+                
                 self.show_toc()
 
             # If a verse is given, scroll to it
