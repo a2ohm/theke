@@ -96,7 +96,7 @@ class ThekeNavigator(GObject.Object):
 
         logger.debug("ThekeNavigator - Goto section: %s", tocData)
 
-        if self.toc.type == theke.tableofcontent.BIBLE_TOC_TYPE:
+        if self.toc.type == theke.TYPE_BIBLE:
             # tocData (int): chapter
             if self.ref.chapter != tocData:
                 self.ref.chapter = tocData
