@@ -45,12 +45,14 @@ class ThekeDocumentView(Gtk.Paned):
 
         self._navigator = None
         self._webview = ThekeWebView()
+        self._webview_findController = self._webview.get_find_controller()
 
         self._setup_view()
         self._setup_callbacks()
 
     def _setup_callbacks(self) -> None:
         #   ... document view
+        self.connect("notify::local-search-mode-active", self._local_search_mode_active_cb)
         # ... document view > webview: where the document is displayed
         self._webview.connect("load_changed", self._document_load_changed_cb)
         self._webview.connect("mouse-target-changed", self._webview_mouse_target_changed_cb)
@@ -74,6 +76,9 @@ class ThekeDocumentView(Gtk.Paned):
 
         # Setup the expand/reduce button
         self._toc_reduceExpand_button.set_orientation(self._toc_reduceExpand_button.ORIENTATION_LEFT)
+
+        # Connect
+        self._ThekeLocalSearchBar.connect("notify::search-entry", self._local_search_entry_changed_cb)
 
     def register_navigator(self, navigator):
         self._navigator = navigator
@@ -110,14 +115,23 @@ class ThekeDocumentView(Gtk.Paned):
                     # Trick: as a biblical toc is the list of chapters
                     #        the index of a chapter is its value -1
                     self._toc_treeSelection.select_path(Gtk.TreePath(self._navigator.ref.chapter-1))
-                
+
                 self.show_toc()
 
             # If a verse is given, scroll to it
             if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
                 self._webview.scroll_to_verse(self._navigator.ref.verse)
-        
+
         self.emit("document-load-changed", web_view, load_event)
+
+    ### Others
+
+    def _local_search_mode_active_cb(self, object, value) -> None:
+        if not self.props.local_search_mode_active:
+            self._webview_findController.search_finish()
+
+    def _local_search_entry_changed_cb(self, object, value) -> None:
+        self._webview_findController.search(self._ThekeLocalSearchBar.search_entry, WebKit2.FindOptions.WRAP_AROUND, 10)
 
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
         self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
