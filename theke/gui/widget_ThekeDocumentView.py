@@ -79,6 +79,8 @@ class ThekeDocumentView(Gtk.Paned):
 
         # Connect
         self._ThekeLocalSearchBar.connect("notify::search-entry", self._local_search_entry_changed_cb)
+        self._ThekeLocalSearchBar.connect("search-next-match", self._local_search_next_match_cb)
+        self._ThekeLocalSearchBar.connect("search-previous-match", self._local_search_previous_match_cb)
 
     def register_navigator(self, navigator):
         self._navigator = navigator
@@ -129,6 +131,14 @@ class ThekeDocumentView(Gtk.Paned):
     def _local_search_mode_active_cb(self, object, value) -> None:
         if not self.props.local_search_mode_active:
             self._webview_findController.search_finish()
+
+    def _local_search_next_match_cb(self, object) -> None:
+        if self.props.local_search_mode_active:
+            self._webview_findController.search_next()
+
+    def _local_search_previous_match_cb(self, object) -> None:
+        if self.props.local_search_mode_active:
+            self._webview_findController.search_previous()
 
     def _local_search_entry_changed_cb(self, object, value) -> None:
         self._webview_findController.search(

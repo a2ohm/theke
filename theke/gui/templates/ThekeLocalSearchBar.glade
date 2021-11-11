@@ -41,11 +41,12 @@
                 <property name="homogeneous">True</property>
                 <property name="layout-style">expand</property>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="_search_previous_button">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="focus-on-click">False</property>
                     <property name="receives-default">True</property>
+                    <signal name="clicked" handler="_search_previous_button_clicked_cb" swapped="no"/>
                     <child>
                       <object class="GtkImage">
                         <property name="visible">True</property>
@@ -61,11 +62,12 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="_search_next_button">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="focus-on-click">False</property>
                     <property name="receives-default">True</property>
+                    <signal name="clicked" handler="_search_next_button_clicked_cb" swapped="no"/>
                     <child>
                       <object class="GtkImage">
                         <property name="visible">True</property>
