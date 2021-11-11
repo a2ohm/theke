@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 from theke.gui.widget_ThekeWebView import ThekeWebView
 from theke.gui.widget_ReduceExpandButton import ReduceExpandButton
+from theke.gui.widget_ThekeLocalSearchBar import ThekeLocalSearchBar
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeDocumentView.glade')
 class ThekeDocumentView(Gtk.Paned):
@@ -25,6 +26,9 @@ class ThekeDocumentView(Gtk.Paned):
         }
 
     isReduce = GObject.Property(type=bool, default=True)
+    local_search_mode_active = GObject.Property(type=bool, default=False)
+
+    _ThekeLocalSearchBar = Gtk.Template.Child()
 
     _webview_scrolledWindow = Gtk.Template.Child()
     _toc_reduceExpand_button = Gtk.Template.Child()
@@ -52,6 +56,13 @@ class ThekeDocumentView(Gtk.Paned):
         self._webview.connect("mouse-target-changed", self._webview_mouse_target_changed_cb)
 
     def _setup_view(self) -> None:
+        self.bind_property(
+            "local-search-mode-active", self._ThekeLocalSearchBar, "search-mode-active",
+            GObject.BindingFlags.BIDIRECTIONAL
+            | GObject.BindingFlags.SYNC_CREATE)
+
+        self._ThekeLocalSearchBar.finish_setup()
+
         # Add the webview into the document view
         # (this cannot be done in Glade)
         self._webview_scrolledWindow.add(self._webview)

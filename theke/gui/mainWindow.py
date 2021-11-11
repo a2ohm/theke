@@ -1,6 +1,7 @@
 import logging
 
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import WebKit2
 
@@ -27,6 +28,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
     __gsignals__ = {
         'save': (GObject.SignalFlags.RUN_LAST | GObject.SignalFlags.ACTION, None, ())
         }
+
+    local_search_mode_active = GObject.Property(type=bool, default=False)
 
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
@@ -82,8 +85,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._navigator.connect("notify::sources", self.handle_sources_updated)
         self._navigator.connect("notify::availableSources", self.handle_availableSources_updated)
 
-        # Set the focus on the webview
-        self._ThekeDocumentView.grab_focus()
+        # SET BINDINGS
+        self.bind_property(
+            "local-search-mode-active", self._ThekeDocumentView, "local-search-mode-active",
+            GObject.BindingFlags.BIDIRECTIONAL
+            | GObject.BindingFlags.SYNC_CREATE)
 
         # SET ACCELERATORS (keyboard shortcuts)
         accelerators = Gtk.AccelGroup()
@@ -96,8 +102,26 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... Ctrl+s: save modifications in the personal dictionary
         key, mod = Gtk.accelerator_parse('<Control>s')
         self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        
+        # Set the focus on the webview
+        self._ThekeDocumentView.grab_focus()
 
     ### Callbacks (from glade)
+    @Gtk.Template.Callback()
+    def mainWindow_key_press_event_cb(self, widget, event) -> None:
+        modifiers = event.get_state() & Gtk.accelerator_get_default_mod_mask()
+        (_, keyval) = event.get_keyval()
+
+        control_mask = Gdk.ModifierType.CONTROL_MASK
+
+        # Ctrl+<KEY>
+        if control_mask == modifiers:
+            # Open search bar on Ctrl + F
+            if keyval == Gdk.KEY_f:
+                searchMode = self.props.local_search_mode_active
+                self.props.local_search_mode_active = not searchMode
+                return True
+
     @Gtk.Template.Callback()
     def _document_toolsBox_pane_max_position_notify_cb(self, object, param) -> None:
         object.set_position(object.props.max_position)
