@@ -14,5 +14,7 @@ def parse(morph):
             return parse_oshm(morph[1])
         elif morph[0].lower() == 'robinson':
             return parse_robinson(morph[1])
+        elif morph[0].lower() == 'packard':
+            return [morph[1]]
     else:
         return None
