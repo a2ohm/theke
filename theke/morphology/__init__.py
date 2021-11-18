@@ -12,7 +12,7 @@ def parse(morph):
     if len(morph) > 1:
         if morph[0] == 'oshm':
             return parse_oshm(morph[1])
-        elif morph[0] == 'robinson':
+        elif morph[0] == 'robinson' or morph[0] == 'Robinson':
             return parse_robinson(morph[1])
     else:
         return None

@@ -19,8 +19,9 @@ MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
 FMT_HTML = Sword.FMT_HTML
 FMT_PLAIN = Sword.FMT_PLAIN
+FMT_OSIS = Sword.FMT_OSIS
 
-MARKUP = {"MorphGNT": FMT_HTML, "OSHB": FMT_HTML}
+MARKUP = {"2TGreek": FMT_OSIS, "MorphGNT": FMT_HTML, "OSHB": FMT_HTML}
 
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
