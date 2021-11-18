@@ -58,12 +58,12 @@ def parse_robinson_verb(subMorph):
     # submorph = [tence / voice / mood][case / number / gender]
 
     tvm = subMorph[0]
-    ssm = subMorph[1]
-    ssmAnalysed = '?'
-    if len(ssm) == 2:
-        ssmAnalysed = parse_robinson_conjugation(ssm)
-    elif len(ssm) == 3:
-        ssmAnalysed = parse_robinson_declination([ssm], "verbe")
+    end = subMorph[1]
+    endAnalysed = '?'
+    if len(end) == 2:
+        endAnalysed = parse_robinson_conjugation(end)
+    elif len(end) == 3:
+        endAnalysed = parse_robinson_declination([end], "verbe")
 
     tvmAnalysed = "{} {} {}".format(
         mood.get(tvm[-1], '?'),
@@ -73,13 +73,20 @@ def parse_robinson_verb(subMorph):
 
 
 
-    return "verbe ({}, {})".format(tvmAnalysed, ssmAnalysed)
+    return "verbe ({}, {})".format(tvmAnalysed, endAnalysed)
 
 def parse_robinson_conjugation(pn):
     return "{} du {}".format(
             person.get(pn[0], '?'),
             number.get(pn[1], '?')
             ) 
+
+def parse_robinson_personal(subMorph):
+    cn = subMorph[0]
+    return "pronom personnel, {} {}".format(
+        case.get(cn[0], '?'),
+        number.get(cn[1], '?'),
+        )
 
 def parse_robinson_declination(subMorph, wordType):
     
@@ -109,7 +116,7 @@ wordClasses = {
     'I': lambda x: "pronom interrogatif",
     'K': lambda x: "pronom corrélatif",
     'N': lambda x: parse_robinson_declination(x, "nom"),
-    'P': lambda x: "pronom personnel",
+    'P': parse_robinson_personal,
     'PREP': lambda x: "préposition",
     #'PRT': lambda x: "inconnu", ??? cf. ποτε He 1, 5
     'Q': lambda x: "pronom corrélatif ou interrogatif",
