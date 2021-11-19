@@ -227,6 +227,21 @@ class ThekeIndex:
         for rawDocumentData in rawDocumentsData:
             yield DocumentData._make(rawDocumentData)
 
+    def list_documents_by_type(self, documentType):
+        """List documents by type
+
+        @param documentType: theke.TYPE_BOOK, theke.TYPE_BIBLE
+        """
+
+        rawDocumentsData = self.con.execute("""SELECT documentNaming.name, documents.type
+                FROM documentNaming
+                INNER JOIN documents ON documentNaming.id_document = documents.id
+                WHERE documents.type = ?;""",
+                (documentType,))
+
+        for rawDocumentData in rawDocumentsData:
+            yield DocumentData._make(rawDocumentData)
+
     def list_external_documents(self):
         """List external documents
         """

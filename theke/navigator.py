@@ -321,13 +321,20 @@ class ThekeNavigator(GObject.Object):
         Action(s):
             - update morphological data
         """
-        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong>\w\d+))?')
+        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong_key>\w)(?P<strong_nb>\d+))?')
         match_signal_clickOnWord = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
+
+        # Format the Strong number adding padding zeros
+        # (G520 --> G0520)
+        strong = "{}{:04}".format(
+            match_signal_clickOnWord.group('strong_key'),
+            int(match_signal_clickOnWord.group('strong_nb'))
+        )
 
         self.set_property("selectedWord", SelectedWord(
             uri.params.get('word', '?'),
             match_signal_clickOnWord.group('lemma'),
-            match_signal_clickOnWord.group('strong'),
+            strong,
             uri.params.get('morph', '-'),
             uri.params.get('source')
         ))

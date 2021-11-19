@@ -1,6 +1,8 @@
 # theke
 *Lire et étudier la Bible et l'enseignement de l'Église.*
 
+![screenshot](assets/img/screenshots/theke_v0.2.png)
+
 ## Installation
 
 Theke s'appuie sur diverses bibliothèques que vous devez avoir sur votre ordinateur pour utiliser l'application.
@@ -40,8 +42,9 @@ Installer ensuite GTK+ et PyGObject.
 
 ### Autres bibliothèques
 
-Autres paquets requis : Jinja2, PyYaml.
+Autres paquets requis : BeautifulSoup4, Jinja2, PyYaml.
 
+* `pip3 install beautifulsoup4`
 * `pip3 install Jinja2`
 * `pip3 install pyyaml`
 

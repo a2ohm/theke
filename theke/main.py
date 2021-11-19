@@ -79,8 +79,11 @@ class ThekeApp(Gtk.Application):
         external_docs = thekeIndex.list_external_documents()
 
         # ... populate the gotobar autocompletion list
-        for documentData in thekeIndex.list_documents():
+        for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
             self._window.gotobar.autoCompletionlist.append((documentData.name, 'powder blue'))
+
+        for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BOOK):
+            self._window.gotobar.autoCompletionlist.append((documentData.name, 'white smoke'))
 
         # Register application screens in the GotoBar
         # for inAppUriKey in theke.uri.inAppURI.keys():

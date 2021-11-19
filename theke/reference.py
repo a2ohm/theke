@@ -66,16 +66,19 @@ def parse_reference(rawReference, wantedSources = None):
 def parse_biblical_reference(rawReference):
     """Extract book name, chapter and verse from a raw reference
     """
-    pattern_br_EN = re.compile(r'^([\w\s]+) (\d+)(:(\d+))?$')
+    pattern_br_EN = re.compile(r'^([\D]+)(\s(\d+)(:(\d+))?)?$')
     match_br_EN = pattern_br_EN.match(rawReference)
 
     if match_br_EN is not None:
-        if match_br_EN.group(4) is None:
+        if match_br_EN.group(5) is None:
+            if match_br_EN.group(2) is None:
+                # Book reference: "bookName" redirects to chapter 1
+                return match_br_EN.group(1), 1, 0
             # Chapter reference: "bookName chapter"
-            return match_br_EN.group(1), int(match_br_EN.group(2)), 0
+            return match_br_EN.group(1), int(match_br_EN.group(3)), 0
         else:
             # Verse reference: "bookName chapter:verse"
-            return match_br_EN.group(1), int(match_br_EN.group(2)), int(match_br_EN.group(4))
+            return match_br_EN.group(1), int(match_br_EN.group(3)), int(match_br_EN.group(5))
 
     # This is not a biblical reference
     return None

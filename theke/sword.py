@@ -2,6 +2,8 @@ import logging
 import threading
 import re
 
+from bs4 import BeautifulSoup
+
 import Sword
 
 from gi.repository import GLib
@@ -13,8 +15,9 @@ MODTYPE_GENBOOKS = Sword.SWMgr().MODTYPE_GENBOOKS
 
 FMT_HTML = Sword.FMT_HTML
 FMT_PLAIN = Sword.FMT_PLAIN
+FMT_OSIS = Sword.FMT_OSIS
 
-MARKUP = {"MorphGNT": FMT_HTML, "OSHB": FMT_HTML}
+MARKUP = {"2TGreek": FMT_OSIS, "MorphGNT": FMT_HTML, "OSHB": FMT_HTML}
 
 pattern_paragraph_range = re.compile(r'^(\d+) to (\d+)$')
 
@@ -149,13 +152,27 @@ class SwordBible(SwordModule):
         verses = []
 
         while True:
-            verses.append(self.mod.renderText())
+            verses.append(self.clean_verse(str(self.mod.renderText())))
             self.key.increment()
 
             if self.key.getChapter() != chapter:
                 break
 
         return verses
+    
+    def clean_verse(self, rawVerse) -> str:
+        """Remove unwanted tags that break the display of a verse
+
+        For exemple, in swod modules, the last verse of the last chapter
+        of each biblical book ends with something like:
+            <chapter eID="gen4852" osisID="Acts.28"/> <div eID="gen3852" osisID="Acts" type="book"/>
+        """
+        v = BeautifulSoup(rawVerse, 'html.parser')
+        for tag in v(['div', 'chapter']):
+            # Remove tags
+            tag.decompose()
+
+        return v.prettify()
 
 class SwordBook(SwordModule):
     def __init__(self, *argv, **kwargs):
