@@ -118,7 +118,7 @@ wordClasses = {
     'N': lambda x: parse_robinson_declination(x, "nom"),
     'P': parse_robinson_personal,
     'PREP': lambda x: "préposition",
-    'PRT': lambda x: "particule"
+    'PRT': lambda x: "particule",
     'Q': lambda x: "pronom corrélatif ou interrogatif",
     'R': lambda x: parse_robinson_declination(x, "pronom relatif"),
     'S': lambda x: "pronom possessif",
