@@ -71,15 +71,13 @@ def parse_robinson_verb(subMorph):
         voice.get(tvm[-2], '?')
         )
 
-
-
     return "verbe ({}, {})".format(tvmAnalysed, endAnalysed)
 
 def parse_robinson_conjugation(pn):
     return "{} du {}".format(
             person.get(pn[0], '?'),
             number.get(pn[1], '?')
-            ) 
+            )
 
 def parse_robinson_personal(subMorph):
     cn = subMorph[0]
@@ -94,8 +92,9 @@ def parse_robinson_declination(subMorph, wordType):
     cngAnalysed = "{} {} {}".format(
         case.get(cng[0], '?'),
         gender.get(cng[2], '?'),
-        number.get(cng[1], '?') 
+        number.get(cng[1], '?')
         )
+
     if wordType == "verbe":
         return cngAnalysed
     else:
@@ -103,8 +102,6 @@ def parse_robinson_declination(subMorph, wordType):
             wordType,
             cngAnalysed
         )
-
-
 
 wordClasses = {
     'A': lambda x: parse_robinson_declination(x, "adjectif"),
