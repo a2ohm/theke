@@ -39,14 +39,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         super().__init__()
 
         self._navigator = navigator
-        self._setup_view()
+        # self._setup_view()
 
         # TODO: Normalement, l'appel de self.show_all() n'est pas nécessaire
         #       car lorsque la fenêtre est créé, la fonction .preset() est appelée
         #       et elle même appelle .show()
-        self.show_all()
+        # self.show_all()
 
-    def _setup_view(self):
+    def finish_setup(self):
 
         # TOP
         #   = navigation bar
@@ -107,6 +107,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... Ctrl+s: save modifications in the personal dictionary
         key, mod = Gtk.accelerator_parse('<Control>s')
         self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+
+        # TODO: Normalement, l'appel de self.show_all() n'est pas nécessaire
+        #       car lorsque la fenêtre est créé, la fonction .preset() est appelée
+        #       et elle même appelle .show()
+        self.show_all()
 
     ### Callbacks (from glade)
     @Gtk.Template.Callback()
