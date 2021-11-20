@@ -8,9 +8,6 @@ from gi.repository import WebKit2
 import theke
 import theke.reference
 
-
-from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
-
 # Import needed to load the gui
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
