@@ -75,7 +75,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._toc_treeView.append_column(column)
 
         # Setup the expand/reduce button
-        self._toc_reduceExpand_button.set_orientation(self._toc_reduceExpand_button.ORIENTATION_LEFT)
+        self._toc_reduceExpand_button.set_orientation(self._toc_reduceExpand_button.ORIENTATION_RIGHT)
 
         # Connect
         self._ThekeLocalSearchBar.connect("notify::search-entry", self._local_search_entry_changed_cb)
