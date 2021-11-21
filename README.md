@@ -3,56 +3,93 @@
 
 ![screenshot](assets/img/screenshots/theke_v0.2.png)
 
-## Installation
+## Participer au développement de Theke
 
-Theke s'appuie sur diverses bibliothèques que vous devez avoir sur votre ordinateur pour utiliser l'application.
+Voici quelques indications qui vous permettront de télécharger Theke et de l'utiliser à partir de son code source. De cete manière, vous pourrez le bidouiller et participer à son développement.
 
-### SWORD
+L'installation se fait en 3 temps.
 
-**Debian / Ubuntu (⩾ 21.04)**
+1. [15 min] Installer la librairie Sword.
+2. [5 min] Télécharger le code source de Theke.
+3. [10 min] Mettre en place l'environnement virtuel python.
 
-Installer Sword. Si le paquet `python3-sword` n'est pas disponible pour votre distribution (par exemple pour les versions d'Ubuntu inférieures à la version 21.04), consultez la section suivante.
+Comptez une petite demi-heure pour suivre toutes ces étapes.
 
-* `sudo apt install python3-sword`
+**Convention.** `PROJECTS` est le dossier de base à partir duquel nous allons travailler. Il n'est pas nécessairement vide. Il peut déjà contenir d'autres fichiers, d'autres projets.
 
-**Debian / Ubuntu (< 21.04)**
+### 1. [15 min] Installer la librairie Sword.
 
-Même si le packet `python3-sword` n'est pas disponible pour votre distribution, vous pouvez toujours le compiler par vous même.
-
-Installer les utilitaires et les libraires nécessaires à la compilation de sword.
+Installez les utilitaires et les libraires nécessaires à la compilation de Sword.
 
 * `sudo apt install subversion build-essential autotools-dev pkg-config libz-dev libclucene-dev libicu-dev libcurl4-gnutls-dev libtool m4 automake cmake swig`
 
-Créer un dossier de travail et télécharger le code source.
+Créez dans `PROJECTS` un dossier de travail et télécharger le code source de Sword.
 
 * `mkdir sword && cd sword`
 * `svn co http://crosswire.org/svn/sword/trunk sources`
 
-Compiler et installer sword.
+Compilez et installez Sword.
+
 * `mkdir build && cd build`
 * `cmake -DLIBSWORD_LIBRARY_TYPE="Shared" -DCMAKE_INSTALL_PREFIX="/usr" -DSWORD_PYTHON_3:BOOL=TRUE ../sources`
 * `make -j4`
 * `sudo make install`
 
-### GTK+ et PyGObject
+### 2. Télécharger le code source de Theke.
 
-Installer ensuite GTK+ et PyGObject.
+Depuis le dossier `PROJECTS`, téléchargez le code source de Theke.
 
-* `sudo apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0`
+* `cd PROJECTS`
+* `git clone https://github.com/a2ohm/theke.git`
 
-### Autres bibliothèques
+### 3. Mettre en place l'environnement virtuel python.
 
-Autres paquets requis : BeautifulSoup4, Jinja2, PyYaml.
+Pour faire fonctionner Theke, vous devez installer plusieurs librairies python. Pour qu'elles n'interfèrent pas avec le reste de votre système, nous allons mettre en place un environnement virtuel python.
+
+Si besoin, installez `python3-venv`.
+
+* `sudo apt install python3-venv`
+
+Dans le dossier contenant le code source de Theke, créez l'environnement virtuel et basculez dedans.
+
+* `cd theke`
+* `python3 -m venv .venv`
+* `source .venv/bin/activate`
+
+**Remarque.** En fonction de votre shell, peut-être devrez-vous utiliser `source .venv/bin/activate.csh` ou `source .venv/bin/activate.fish`.
+
+Pour indiquer que vous êtes maintenant dans l'environnement virtuel, vous devez lire `(.venv)` devant l'invite de commande de votre terminal.
+
+Mettez à jour les paquets de base.
+
+* `pip3 install --update pip`
+* `pip3 install --update setuptools`
+
+#### PyGObject
+
+Installez PyGObject.
+
+(source : [https://pygobject.readthedocs.io/en/latest/getting_started.html](https://pygobject.readthedocs.io/en/latest/getting_started.html#ubuntu-logo-ubuntu-debian-logo-debian) )
+
+* `sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-3.0 `
+* `pip3 install pycairo`
+* `pip3 install PyGObject`
+
+#### Autres librairies
+
+Installez les autres librairies requises : BeautifulSoup4, Jinja2, PyYaml.
 
 * `pip3 install beautifulsoup4`
 * `pip3 install Jinja2`
 * `pip3 install pyyaml`
 
-### Theke
+#### Sword
 
-Il ne vous reste plus qu'à télécharger le code source de Theke.
+Installez le paquet Sword que vous avez compilez tout à l'heure.
 
-* `git clone https://github.com/a2ohm/theke.git`
+* `python ../sword/build/bindings/swig/python3/setup.py install`
+
+Et voilà !
 
 ## Utilisation
 
