@@ -17,7 +17,7 @@ Comptez une petite demi-heure pour suivre toutes ces étapes.
 
 **Convention.** `PROJECTS` est le dossier de base à partir duquel nous allons travailler. Il n'est pas nécessairement vide. Il peut déjà contenir d'autres fichiers, d'autres projets.
 
-### 1. [15 min] Installer la librairie Sword.
+### 1. Installer la librairie Sword.
 
 Installez les utilitaires et les libraires nécessaires à la compilation de Sword.
 
