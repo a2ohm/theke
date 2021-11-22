@@ -74,9 +74,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeSearchView.connect("start", self.handle_search_start)
         self._ThekeSearchView.connect("finish", self.handle_search_finish)
 
-        # Set size.
-        # builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
-
         # ... tools view
         self._ThekeToolsBox.search_button_connect(self.handle_morphview_searchButton_clicked)
         self._navigator.connect("click_on_word", self.handle_selected_word_changed)
