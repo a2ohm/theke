@@ -7,16 +7,16 @@ from gi.repository import WebKit2
 import theke
 import theke.reference
 
-from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
-from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
+
 from theke.gui.widget_ThekeTableOfContent import ThekeTableOfContent
 
 # Import needed to load the gui
+from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
+from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeDocumentView import ThekeDocumentView
 from theke.gui.widget_ThekeSearchView import ThekeSearchView
 from theke.gui.widget_ThekeToolsBox import ThekeToolsBox
-from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         'save': (GObject.SignalFlags.RUN_LAST | GObject.SignalFlags.ACTION, None, ())
         }
 
-    _top_box: Gtk.Box = Gtk.Template.Child()
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
+    _ThekeHistoryBar : Gtk.ButtonBox = Gtk.Template.Child()
     _ThekeGotoBar : Gtk.SearchEntry = Gtk.Template.Child()
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
     _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
@@ -53,12 +53,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # TOP
         #   = navigation bar
         #   ... historybar: shortcuts to last viewed documents
-        self.historybar = ThekeHistoryBar(on_button_clicked_callback = self.on_history_button_clicked)
+        self._ThekeHistoryBar.set_button_clicked_callback(self.on_history_button_clicked)
 
         #   ... gotobar: entry to open any document
         self._ThekeGotoBar.connect("activate", self.handle_gotobar_activate)
-
-        self._top_box.pack_end(self.historybar, True, True, 1)
 
         #   ... document view
         #   ... document view > TOC
@@ -134,7 +132,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._statusbar.push(contextId, str(self._navigator.title))
 
             # Update the history bar
-            self.historybar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
+            self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
             # Update the table of content
             if self._navigator.toc is None:

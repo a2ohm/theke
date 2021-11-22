@@ -43,7 +43,17 @@ Author: a2ohm
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <placeholder/>
+              <object class="ThekeHistoryBar" id="_ThekeHistoryBar">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="homogeneous">False</property>
+                <property name="layout-style">expand</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="ThekeGotoBar" id="_ThekeGotoBar">

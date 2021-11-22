@@ -11,16 +11,17 @@ import theke.uri
 
 home_uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
 
+@Gtk.Template.from_file('./theke/gui/templates/ThekeHistoryBar.glade')
 class ThekeHistoryBar(Gtk.ButtonBox):
-    def __init__(self, on_button_clicked_callback, *args, **kwargs):
-        Gtk.Box.__init__(self, orientation = Gtk.Orientation.HORIZONTAL, *args, **kwargs)
-        self.set_layout(Gtk.ButtonBoxStyle.EXPAND)
-        self.set_homogeneous(False)
+    __gtype_name__ = "ThekeHistoryBar"
 
-        self.on_button_clicked = on_button_clicked_callback
+    _home_button = Gtk.Template.Child()
+
+    def __init__(self):
+        super().__init__()
+        self.on_button_clicked = None
 
         self.history = OrderedDict()
-
         self.clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
 
         # Menu appearing right clicking on a button
@@ -31,18 +32,13 @@ class ThekeHistoryBar(Gtk.ButtonBox):
         self.button_right_click_menu.append(self.menu_copy_uri_to_clipboard)
         self.menu_copy_uri_to_clipboard.show()
 
-        # Add the home button at the beginning
-        home_icon = Gtk.Image()
-        home_icon.set_from_stock(Gtk.STOCK_HOME, Gtk.IconSize.BUTTON)
-        button = Gtk.Button(image = home_icon, use_underline=False)
+        # Set the home button
+        self._home_button.set_tooltip_text(theke.uri.inAppURI['welcome'].shortTitle)
+        self._home_button.uri = home_uri
 
-        button.set_tooltip_text(theke.uri.inAppURI['welcome'].shortTitle)
-        button.uri = home_uri
-
-        button.connect('clicked', self.on_button_clicked)
-        button.show_all()
-
-        self.pack_start(button, False, False, 0)
+    def set_button_clicked_callback(self, on_button_clicked_callback):
+        self.on_button_clicked = on_button_clicked_callback
+        self._home_button.connect('clicked', self.on_button_clicked)
 
     def add_uri_to_history(self, label, uri):
         """Add an uri to the HistoryBar.
