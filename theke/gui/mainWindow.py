@@ -16,6 +16,7 @@ from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
 from theke.gui.widget_ThekeDocumentView import ThekeDocumentView
 from theke.gui.widget_ThekeSearchView import ThekeSearchView
 from theke.gui.widget_ThekeToolsBox import ThekeToolsBox
+from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _top_box: Gtk.Box = Gtk.Template.Child()
     _statusbar: Gtk.Statusbar = Gtk.Template.Child()
 
+    _ThekeGotoBar : Gtk.SearchEntry = Gtk.Template.Child()
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
     _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
     _ThekeSearchView : Gtk.Bin = Gtk.Template.Child()
@@ -54,11 +56,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self.historybar = ThekeHistoryBar(on_button_clicked_callback = self.on_history_button_clicked)
 
         #   ... gotobar: entry to open any document
-        self.gotobar = ThekeGotoBar()
-        self.gotobar.connect("activate", self.handle_gotobar_activate)
-        self.gotobar.autoCompletion.connect("match-selected", self.handle_gotobar_match_selected)
+        self._ThekeGotoBar.connect("activate", self.handle_gotobar_activate)
 
-        self._top_box.pack_end(self.gotobar, False, False, 1)
         self._top_box.pack_end(self.historybar, True, True, 1)
 
         #   ... document view
@@ -94,7 +93,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # ... Ctrl+l: give focus to the gotobar
         key, mod = Gtk.accelerator_parse('<Control>l')
-        self.gotobar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
+        self._ThekeGotoBar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
 
         # ... Ctrl+s: save modifications in the personal dictionary
         key, mod = Gtk.accelerator_parse('<Control>s')
@@ -127,15 +126,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         ref = theke.reference.parse_reference(entry.get_text().strip())
         if ref.type != theke.TYPE_UNKNOWN:
             self._navigator.goto_ref(ref)
-
-    def handle_gotobar_match_selected(self, entry_completion, model, iter):
-        # TODO: give name to column (and dont use a numerical value)
-        # Update the text in the GotoBar
-        self.gotobar.set_text("{} ".format(model.get_value(iter, 0)))
-
-        # Move the cursor to the end
-        self.gotobar.set_position(-1)
-        return True
 
     def handle_document_load_changed(self, obj, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
