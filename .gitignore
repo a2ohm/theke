@@ -6,6 +6,9 @@ dist/
 *.py[cod]
 *$py.class
 
+# Python Virtual Environment
+.venv/
+
 # Visual Studio Code
 .vscode/
 

@@ -1,13 +1,10 @@
-import gi
-
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import GLib
 
 import os
 import theke
-import theke.gui.mainwindow
+import theke.gui.mainWindow
 import theke.index
 import theke.navigator
 import theke.sword
@@ -34,8 +31,8 @@ class ThekeApp(Gtk.Application):
             None,
         )
 
-        self.window = None
-        self.navigator = None
+        self._window = None
+        self._navigator = None
 
     def do_startup(self):
         """Sets up the application when it first starts
@@ -61,13 +58,13 @@ class ThekeApp(Gtk.Application):
         logger.debug("ThekeApp - Do activate")
 
         # Set the navigator
-        self.navigator = theke.navigator.ThekeNavigator()
+        self._navigator = theke.navigator.ThekeNavigator()
 
-        if not self.window:
+        if not self._window:
             logger.debug("ThekeApp - Create a new window")
-            self.window = theke.gui.mainwindow.ThekeWindow(navigator = self.navigator)
-            self.window.set_application(self)
-            self.window.show_all()
+            self._window = theke.gui.mainWindow.ThekeWindow(navigator = self._navigator)
+            self._window.set_application(self)
+            self._window.present()
 
         # From the index ...
         thekeIndex = theke.index.ThekeIndex()
@@ -83,14 +80,14 @@ class ThekeApp(Gtk.Application):
 
         # ... populate the gotobar autocompletion list
         for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
-            self.window.gotobar.autoCompletionlist.append((documentData.name, 'powder blue'))
+            self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
 
         for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BOOK):
-            self.window.gotobar.autoCompletionlist.append((documentData.name, 'white smoke'))
+            self._window._ThekeGotoBar.append((documentData.name, 'white smoke'))
 
         # Register application screens in the GotoBar
         # for inAppUriKey in theke.uri.inAppURI.keys():
-        #     self.window.gotobar.autoCompletionlist.append((inAppUriKey, 'sandy brown'))
+        #     self.window.gotobar.append((inAppUriKey, 'sandy brown'))
 
         # Build templates
         theke.templates.build_template('welcome', {'BibleMods': bible_mods})
@@ -99,4 +96,4 @@ class ThekeApp(Gtk.Application):
 
         # Load the main screen
         uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
-        self.navigator.goto_uri(uri)
+        self._navigator.goto_uri(uri)

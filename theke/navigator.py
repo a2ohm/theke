@@ -1,7 +1,5 @@
 from collections import namedtuple
-import gi
 
-gi.require_version('Gtk', '3.0')
 from gi.repository import Gio
 from gi.repository import GLib
 from gi.repository import GObject

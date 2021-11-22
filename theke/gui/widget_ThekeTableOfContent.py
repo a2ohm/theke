@@ -1,7 +1,4 @@
 import logging
-import gi
-
-gi.require_version('Gtk', '3.0')
 
 from gi.repository import Gtk
 from gi.repository import GObject
@@ -34,8 +31,6 @@ class ThekeTableOfContent(GObject.Object):
 
         self.wgToc.get_selection().connect("changed", self.handle_selection_changed)
         self.wgReduceExpandButton.connect("clicked", self.handle_reduceExpand_button_clicked)
-
-    
 
     def show(self) -> None:
         """Show the table of content

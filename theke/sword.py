@@ -6,10 +6,6 @@ from bs4 import BeautifulSoup
 
 import Sword
 
-import gi
-
-gi.require_version('Gtk', '3.0')
-
 from gi.repository import GLib
 
 logger = logging.getLogger(__name__)

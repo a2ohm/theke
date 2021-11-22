@@ -1,30 +1,20 @@
-import gi
-
-gi.require_version('Gtk', '3.0')
-
 from gi.repository import Gtk
 
 import theke.morphology
 
+@Gtk.Template.from_file('./theke/gui/templates/ThekeMorphoView.glade')
+class ThekeMorphoView(Gtk.Bin):
+    __gtype_name__ = "ThekeMorphoView"
 
-class ThekeMorphoView():
-    def __init__(self, builder):
-        self.morphoView_frame = builder.get_object("morphoView_frame")
-        self.label_morph_raw = builder.get_object("morphoView_rawMorph")
-        self.label_morph_parsed = builder.get_object("morphoView_parsedMorph")
+    _rawMorph_label = Gtk.Template.Child()
+    _parsedMorph_label = Gtk.Template.Child()
 
     def set_morph(self, word, morph):
         analysis = theke.morphology.parse(morph)
 
         if analysis:
-            self.label_morph_raw.set_label(morph)
-            self.label_morph_parsed.set_label(' / '.join(analysis))
+            self._rawMorph_label.set_label(morph)
+            self._parsedMorph_label.set_label(' / '.join(analysis))
         else:
-            self.label_morph_raw.set_label("-")
-            self.label_morph_parsed.set_label('')
-
-    def hide(self):
-        self.morphoView_frame.hide()
-
-    def show(self):
-        self.morphoView_frame.show()
+            self._rawMorph_label.set_label("-")
+            self._parsedMorph_label.set_label('')
