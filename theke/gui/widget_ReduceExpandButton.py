@@ -30,7 +30,7 @@ class ReduceExpandButton(Gtk.Button):
 
         self.connect("notify::orientation", self.update_icon_cb)
 
-    def finish_setup(self, orientation = None) -> None:
+    def set_orientation(self, orientation = None) -> None:
         self.props.orientation = orientation or self.ORIENTATION_UP
 
     ### Callbacks

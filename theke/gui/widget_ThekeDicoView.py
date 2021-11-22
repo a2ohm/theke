@@ -24,8 +24,10 @@ class ThekeDicoView(Gtk.Box):
 
         self.myDicoView_textInput_buffer = None
         self.myDicoView_textInput_loaded = ""
+
+        self._setup_view()
     
-    def finish_setup(self) -> None:
+    def _setup_view(self) -> None:
         self.myDicoView_textInput_buffer = self._myDico_textInput.get_buffer()
         self._myDico_label.set_markup("Dictionnaire personnel")
 

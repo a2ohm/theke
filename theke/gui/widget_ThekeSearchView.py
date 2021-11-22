@@ -42,12 +42,14 @@ class ThekeSearchView(Gtk.Bin):
 
         self.results = None
 
-    def finish_setup(self) -> None:
+        self._setup_view()
+
+    def _setup_view(self) -> None:
         column = Gtk.TreeViewColumn("Référence", Gtk.CellRendererText(), text=0)
         self._results_treeView.append_column(column)
 
         # Setup the expand/reduce button
-        self._reduceExpand_button.finish_setup(orientation = self._reduceExpand_button.ORIENTATION_LEFT)
+        self._reduceExpand_button.set_orientation(self._reduceExpand_button.ORIENTATION_LEFT)
 
     ### Callbacks (from glade)
     @Gtk.Template.Callback()

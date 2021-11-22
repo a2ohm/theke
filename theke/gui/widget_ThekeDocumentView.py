@@ -37,6 +37,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._navigator = None
         self._webview = ThekeWebView()
 
+        self._setup_view()
         self._setup_callbacks()
 
     def _setup_callbacks(self) -> None:
@@ -45,7 +46,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._webview.connect("load_changed", self._document_load_changed_cb)
         self._webview.connect("mouse-target-changed", self._webview_mouse_target_changed_cb)
 
-    def finish_setup(self) -> None:
+    def _setup_view(self) -> None:
         # Add the webview into the document view
         # (this cannot be done in Glade)
         self._webview_scrolledWindow.add(self._webview)
@@ -56,7 +57,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._toc_treeView.append_column(column)
 
         # Setup the expand/reduce button
-        self._toc_reduceExpand_button.finish_setup(orientation = self._toc_reduceExpand_button.ORIENTATION_LEFT)
+        self._toc_reduceExpand_button.set_orientation(self._toc_reduceExpand_button.ORIENTATION_LEFT)
 
     def register_navigator(self, navigator):
         self._webview.register_navigator(navigator)

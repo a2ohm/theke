@@ -28,11 +28,11 @@ class ThekeToolsBox(Gtk.Box):
     _toolsBox_morphoView = Gtk.Template.Child()
     _toolsBox_dicoView = Gtk.Template.Child()
 
-    def finish_setup(self) -> None:
-        self._toolsBox_dicoView.finish_setup()
+    def __init__(self) -> None:
+        super().__init__()
 
         # Setup the expand/reduce button
-        self._toolsBox_reduceExpand_button.finish_setup(orientation = self._toolsBox_reduceExpand_button.ORIENTATION_DOWN)
+        self._toolsBox_reduceExpand_button.set_orientation(self._toolsBox_reduceExpand_button.ORIENTATION_DOWN)
 
     ### Callbacks (from glade)
     @Gtk.Template.Callback()

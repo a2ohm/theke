@@ -62,7 +62,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._top_box.pack_end(self.historybar, True, True, 1)
 
         #   ... document view
-        self._ThekeDocumentView.finish_setup()
         #   ... document view > TOC
         self._ThekeDocumentView.connect("toc-selection-changed", self.handle_toc_selection_changed)
         # ... document view > webview: where the document is displayed
@@ -71,9 +70,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.connect("webview-mouse-target-changed", self.handle_mouse_target_changed)
 
         #   ... search panel
-        #self.searchPane = ThekeSearchPane(builder)
-        self._ThekeSearchView.finish_setup()
-
         self._ThekeSearchView.connect("selection-changed", self.handle_searchResults_selection_changed)
         self._ThekeSearchView.connect("start", self.handle_search_start)
         self._ThekeSearchView.connect("finish", self.handle_search_finish)
@@ -82,7 +78,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # builder.get_object("searchPane").connect("notify::max-position", self.handle_maxPosition_changed)
 
         # ... tools view
-        self._ThekeToolsBox.finish_setup()
         self._ThekeToolsBox.search_button_connect(self.handle_morphview_searchButton_clicked)
         self._navigator.connect("click_on_word", self.handle_selected_word_changed)
 
