@@ -85,11 +85,16 @@ Installez les autres librairies requises : BeautifulSoup4, Jinja2, PyYaml.
 
 #### Sword
 
-Installez le paquet Sword que vous avez compilez tout à l'heure.
+Installez le paquet Sword que vous avez compilé tout à l'heure.
 
-* `python ../sword/build/bindings/swig/python3/setup.py install`
+* `cd  ../sword/build/bindings/swig/python3/`
+* `python setup.py install`
 
-Et voilà !
+#### Theke
+Et voilà ! Pour lancer Theke, **revenez dans le répertoir du projet** et exécutez la commande suivante.
+
+* `cd PROJECTS/theke`
+* `python3 theke.py`
 
 ## Utilisation
 
