@@ -5,7 +5,7 @@
 
 ## Participer au développement de Theke
 
-Voici quelques indications qui vous permettront de télécharger Theke et de l'utiliser à partir de son code source. De cete manière, vous pourrez le bidouiller et participer à son développement.
+Voici quelques indications qui vous permettront de télécharger Theke et de l'utiliser à partir de son code source. De cette manière, vous pourrez le bidouiller et participer à son développement.
 
 L'installation se fait en 3 temps.
 
@@ -60,6 +60,8 @@ Dans le dossier contenant le code source de Theke, créez l'environnement virtue
 
 Pour indiquer que vous êtes maintenant dans l'environnement virtuel, vous devez lire `(.venv)` devant l'invite de commande de votre terminal.
 
+**Remarque.** Pour sortir de l'environnement virtuel, il suffit de lancer la commande `deactivate`.
+
 Mettez à jour les paquets de base.
 
 * `pip3 install --update pip`
@@ -91,7 +93,7 @@ Installez le paquet Sword que vous avez compilé tout à l'heure.
 * `python setup.py install`
 
 #### Theke
-Et voilà ! Pour lancer Theke, **revenez dans le répertoir du projet** et exécutez la commande suivante.
+Et voilà ! Pour lancer Theke, **revenez dans le répertoire du projet** et exécutez la commande suivante.
 
 * `cd PROJECTS/theke`
 * `python3 theke.py`
@@ -109,6 +111,7 @@ Nom du module | Nom du dépôt | Description
 OSHB | CrossWire > Texte bibliques > ﬠברית מקראית | Open Scriptures Hebrew Bible
 EarlyFathers | Xiphos > Livres > English | -
 MorphGNT | CrossWire > Textes bibliques > Κοινὴ Ἑλληνική | Morphologically Parsed Greek New Testament based on the SBLGNT
+2TGreek | Xiphos > Textes bibliques > Κοινὴ Ἑλληνική | Morphologically Parsed Greek Old and New Testament
 
 ### Theke
 
