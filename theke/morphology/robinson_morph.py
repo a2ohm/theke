@@ -26,6 +26,7 @@ voice = {
     'A': "actif",
     'M': "moyen",
     'P': "passif",
+    'N': "moyen ou passif déponent",
 }
 
 person = {
