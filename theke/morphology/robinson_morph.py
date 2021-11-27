@@ -26,6 +26,7 @@ voice = {
     'A': "actif",
     'M': "moyen",
     'P': "passif",
+    'N': "moyen ou passif déponent",
 }
 
 person = {
@@ -54,24 +55,27 @@ gender = {
 }
 
 def parse_robinson_verb(subMorph):
+    # submorph = [tence / voice / mood]
     # submorph = [tence / voice / mood][person / number]
     # submorph = [tence / voice / mood][case / number / gender]
 
     tvm = subMorph[0]
-    end = subMorph[1]
-    endAnalysed = '?'
-    if len(end) == 2:
-        endAnalysed = parse_robinson_conjugation(end)
-    elif len(end) == 3:
-        endAnalysed = parse_robinson_declination([end], "verbe")
-
     tvmAnalysed = "{} {} {}".format(
         mood.get(tvm[-1], '?'),
         tence.get(tvm[:-2], '?'),
         voice.get(tvm[-2], '?')
-        )
+    )
 
-    return "verbe ({}, {})".format(tvmAnalysed, endAnalysed)
+    if len(subMorph) == 2:
+        end = subMorph[1]
+        endAnalysed = '?'
+        if len(end) == 2:
+            endAnalysed = parse_robinson_conjugation(end)
+        elif len(end) == 3:
+            endAnalysed = parse_robinson_declination([end], "verbe")
+        return "verbe ({}, {})".format(tvmAnalysed, endAnalysed)
+
+    return "verbe ({})".format(tvmAnalysed)
 
 def parse_robinson_conjugation(pn):
     return "{} du {}".format(
