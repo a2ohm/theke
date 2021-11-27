@@ -178,7 +178,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_morphview_searchButton_clicked(self, button):
         self._ThekeSearchView.show()
-        self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.strong)
+        self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.rawStrong)
 
     def handle_searchResults_selection_changed(self, object, result):
         ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)

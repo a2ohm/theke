@@ -17,7 +17,7 @@ import theke.tableofcontent
 import logging
 logger = logging.getLogger(__name__)
 
-SelectedWord = namedtuple('selectedWord',['word','lemma','strong','morph','source'])
+SelectedWord = namedtuple('selectedWord',['word','lemma','rawStrong', 'strong','morph','source'])
 
 # Return codes when the context is updated
 SAME_DOCUMENT = 0
@@ -321,7 +321,7 @@ class ThekeNavigator(GObject.Object):
         Action(s):
             - update morphological data
         """
-        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong_key>\w)(?P<strong_nb>\d+))?')
+        pattern_signal_clickOnWord = re.compile(r'(lemma.Strong:(?P<lemma>\w+))?\s?(strong:(?P<strong_raw>(?P<strong_key>\w)(?P<strong_nb>\d+)))?')
         match_signal_clickOnWord = pattern_signal_clickOnWord.match(uri.params.get('lemma', ''))
 
         # Format the Strong number adding padding zeros
@@ -334,6 +334,7 @@ class ThekeNavigator(GObject.Object):
         self.set_property("selectedWord", SelectedWord(
             uri.params.get('word', '?'),
             match_signal_clickOnWord.group('lemma'),
+            match_signal_clickOnWord.group('strong_raw'),
             strong,
             uri.params.get('morph', '-'),
             uri.params.get('source')
