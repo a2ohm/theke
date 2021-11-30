@@ -148,7 +148,14 @@ class ThekeDocumentView(Gtk.Paned):
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
         self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
 
-    ###
+    ### API of the local search bar
+    def local_search_bar_has_focus(self) -> bool:
+        return self._ThekeLocalSearchBar._search_bar.has_focus()
+
+    def local_search_bar_grab_focus(self) -> None:
+        self._ThekeLocalSearchBar._search_bar.grab_focus()
+
+    ### API of the webview
 
     def grabe_focus(self) -> None:
         self._webview.grab_focus()

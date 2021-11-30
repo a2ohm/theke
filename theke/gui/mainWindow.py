@@ -116,7 +116,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Open search bar on Ctrl + F
             if keyval == Gdk.KEY_f:
                 searchMode = self.props.local_search_mode_active
-                self.props.local_search_mode_active = not searchMode
+                if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
+                    self._ThekeDocumentView.local_search_bar_grab_focus()
+                else:
+                    self.props.local_search_mode_active = not searchMode
                 return True
 
     @Gtk.Template.Callback()
