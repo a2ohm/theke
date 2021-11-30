@@ -212,6 +212,12 @@ class ThekeDocumentView(Gtk.Paned):
                 logger.debug("Export the current document [canceled]")
 
             dialog.destroy()
+    def get_scrolled_value(self) -> float:
+        return self._webview_scrolledWindow.get_vscrollbar().get_value()
+
+    def set_scrolled_value(self, value) -> None:
+        print("set scrolled value: {}".format(value))
+        self._webview_scrolledWindow.get_vscrollbar().set_value(value)
 
     # def scroll_to_verse(self, verse) -> None:
     #     self._webview.scroll_to_verse(verse)

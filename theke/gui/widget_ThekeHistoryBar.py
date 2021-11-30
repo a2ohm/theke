@@ -84,6 +84,12 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
             self.pack_start(button, False, False, 0)
 
+    def save_scrolled_value(self, value) -> None:
+        """Save the scrolled value of the current document view
+        """
+        button = self.get_children()[-1]
+        button.scrolledValue = value
+
     def on_button_release(self, button, event):
         if event.type == Gdk.EventType.BUTTON_RELEASE:
             if event.button == 3: # Right click

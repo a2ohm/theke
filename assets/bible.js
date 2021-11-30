@@ -14,6 +14,15 @@ function upTo(el, id) {
     return null;
   }
 
+function get_scroll_position() {
+    // Get scroll position
+    scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Send its out of the webview
+    r = "theke:/signal/scroll_position?y_scroll=" + scrollTop;
+    fetch(r);
+}
+
 function jump_to_verse(verseTag) {
     var verse_to_scroll_to = document.getElementById(verseTag);
 

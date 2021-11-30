@@ -181,6 +181,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.fill_gotobar_with_current_reference()
 
             # Update the history bar
+            self._ThekeHistoryBar.save_scrolled_value(self._ThekeDocumentView.get_scrolled_value())
             self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
             # Hide the morphoView, if necessary
@@ -274,6 +275,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
+        self._ThekeDocumentView.set_scrolled_value(button.scrolledValue)
         return True
 
     def fill_gotobar_with_current_reference(self) -> None:
