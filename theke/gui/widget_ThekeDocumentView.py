@@ -103,7 +103,7 @@ class ThekeDocumentView(Gtk.Paned):
     def _toc_treeSelection_changed_cb(self, tree_selection):
         self.emit("toc-selection-changed", tree_selection)
 
-    ### Others
+    ### Other callbacks (from _webview)
     def _document_load_changed_cb(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # Update the table of content
@@ -126,7 +126,10 @@ class ThekeDocumentView(Gtk.Paned):
 
         self.emit("document-load-changed", web_view, load_event)
 
-    ### Others
+    def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
+        self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
+
+    ### Other callbacks (local search)
 
     def _local_search_mode_active_cb(self, object, value) -> None:
         if not self.props.local_search_mode_active:
@@ -144,9 +147,6 @@ class ThekeDocumentView(Gtk.Paned):
         self._webview_findController.search(
             self._ThekeLocalSearchBar.search_entry,
             WebKit2.FindOptions.WRAP_AROUND, 100)
-
-    def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
-        self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:
