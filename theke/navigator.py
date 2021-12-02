@@ -38,11 +38,6 @@ class ThekeNavigator(GObject.Object):
     Outside of the webview workflow, it has to be called to open an uri or a reference.
     """
 
-    __gsignals__ = {
-        'click_on_word': (GObject.SIGNAL_RUN_FIRST, None,
-                      (object,))
-        }
-
     ref = GObject.Property(type=object)
 
     toc = GObject.Property(type=object)
@@ -64,6 +59,7 @@ class ThekeNavigator(GObject.Object):
         """Register a reference to the webview this navigator is going to interact with.
         """
         self.webview = webview
+        self.webview.connect("click-on-word", self.handle_webview_click_on_word_cb)
 
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
@@ -176,20 +172,17 @@ class ThekeNavigator(GObject.Object):
 
     ### Get content
 
-    def get_content_from_theke_uri(self, uri, request) -> None:
+    def get_content_from_theke_uri(self, uri, request) -> str:
         """Return a stream to the content pointed by the theke uri.
         NB. The context has been updated by handle_navigation_action()
 
-        Case 1. The uri is a path to an assets file
-            eg. uri = theke:/app/assets/css/default.css
+        # Case 1. The uri is a path to an assets file
+        #     eg. uri = theke:/app/assets/css/default.css
 
-        Case 2. The uri is a path to an inapp alias
-            eg. uri = theke:/app/welcome
+        # Case 2. The uri is a path to an inapp alias
+        #     eg. uri = theke:/app/welcome
 
-        Case 3. The uri is a signal
-            eg. uri = theke:/signal/click_on_word?word=...
-
-        Case 4. The uri is a path to a document
+        Case 3. The uri is a path to a document
             eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
 
         @param uri: (ThekeUri)
@@ -212,16 +205,8 @@ class ThekeNavigator(GObject.Object):
                 request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
         else:
-            if uri.path[1] == theke.uri.SEGM_SIGNAL:
-                # Case 3. The uri is a signal
-                logger.debug("ThekeNavigator - [get_content_from_theke_uri] Catch a sword signal: %s", uri)
-
-                if uri.path[2] == 'click_on_word':
-                    self.emit("click_on_word", uri)
-                    html = ""
-
-            elif uri.path[1] == theke.uri.SEGM_DOC:
-                # Case 4. The uri is a path to a document
+            if uri.path[1] == theke.uri.SEGM_DOC:
+                # Case 3. The uri is a path to a document
                 if uri.path[2] == theke.uri.SEGM_BIBLE:
                     logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
                     html = self.get_sword_bible_content()
@@ -316,7 +301,7 @@ class ThekeNavigator(GObject.Object):
 
     ### Signals handling
 
-    def do_click_on_word(self, uri) -> None:
+    def handle_webview_click_on_word_cb(self, object, uri) -> None:
         """Do what should be do when a new word is selected in the webview
         Action(s):
             - update morphological data

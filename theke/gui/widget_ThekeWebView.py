@@ -1,3 +1,6 @@
+from gi.repository import Gio
+from gi.repository import GLib
+from gi.repository import GObject
 from gi.repository import WebKit2
 
 import theke.uri
@@ -6,6 +9,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ThekeWebView(WebKit2.WebView):
+
+    __gsignals__ = {
+        'click_on_word': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,))
+        }
+
     def __init__(self, *args, **kwargs):
         logger.debug("ThekeWebView - Create a new instance")
 
@@ -39,8 +48,31 @@ class ThekeWebView(WebKit2.WebView):
         return False
 
     def handle_theke_uri(self, request, *user_data):
+        """Return a stream to the content pointed by the theke uri.
+
+        Handle localy some uri. Others are handle by _navigator.
+
+        Case 1. The uri is a Theke signal
+            eg. uri = theke:/signal/click_on_word?word=...
+        """
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
-        self._navigator.get_content_from_theke_uri(uri, request)
+
+
+        if uri.path[1] == theke.uri.SEGM_SIGNAL:
+            # Case 1. The uri is a signal
+            logger.debug("ThekeWebView - Catch a sword signal: %s", uri)
+
+            if uri.path[2] == 'click_on_word':
+                self.emit("click_on_word", uri)
+                
+            html_bytes = GLib.Bytes.new("".encode('utf-8'))
+            tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
+
+            request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
+
+        else:
+            # Other cases. Handled by the navigator
+            self._navigator.get_content_from_theke_uri(uri, request)
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:

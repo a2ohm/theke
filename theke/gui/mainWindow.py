@@ -73,7 +73,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # ... tools view
         self._ThekeToolsBox.search_button_connect(self.handle_morphview_searchButton_clicked)
-        self._navigator.connect("click_on_word", self.handle_selected_word_changed)
+        self._navigator.connect("notify::selectedWord", self.handle_selected_word_changed)
 
         # BOTTOM
         #   ... sources bar
@@ -197,7 +197,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def handle_search_finish(self, object):
         self._ThekeToolsBox._toolsBox_search_button.set_sensitive(True)
 
-    def handle_selected_word_changed(self, instance, param):
+    def handle_selected_word_changed(self, object, params):
         w = self._navigator.selectedWord
 
         self._ThekeToolsBox.set_morph(w.word, w.morph)
