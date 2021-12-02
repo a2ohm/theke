@@ -45,6 +45,8 @@ Author: a2ohm
               <object class="GtkTextView" id="_myDico_textInput">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
+                <property name="wrap-mode">word-char</property>
+                <property name="indent">-10</property>
               </object>
             </child>
           </object>
