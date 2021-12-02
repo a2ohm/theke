@@ -4,6 +4,7 @@ from gi.repository import GObject
 from gi.repository import WebKit2
 
 import theke.uri
+import theke.navigator
 
 import logging
 logger = logging.getLogger(__name__)
@@ -31,21 +32,63 @@ class ThekeWebView(WebKit2.WebView):
     def register_navigator(self, navigator):
         self._navigator = navigator
 
-    def jump_to_anchor(self, anchor):
-        script = """var element_to_scroll_to = document.getElementById('{}');
-        element_to_scroll_to.scrollIntoView({{behavior: "smooth", block: "center", inline: "nearest"}});
-        """.format(anchor)
-        self.run_javascript(script, None, None, None)
+    # Signals callbacks
+    def do_click_on_word(self, uri) -> None:
+        self._navigator.handle_webview_click_on_word_cb(None, uri)
 
-    def scroll_to_verse(self, verse):
-        if verse > 0:
-            script = 'jump_to_verse("verse-{}")'.format(verse)
-            self.run_javascript(script, None, None, None)
-
+    # Webview callbacks
     def handle_decide_policy(self, web_view, decision, decision_type):
-        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
-            return self._navigator.handle_navigation_action(decision)
-        return False
+        """Screen navigation actions and update the context accordingly.
+
+        Case 1. The uri is a path to an assets file
+            eg. uri = theke:/app/assets/css/default.css
+
+        Case 2. The uri is a path to an inapp alias
+            eg. uri = theke:/app/welcome
+
+        Case 3. The uri is a signal
+            eg. uri = theke:/signal/click_on_word?word=...
+
+        Case 4. The uri is a path to a document
+            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
+
+        @param decision: (WebKit2.NavigationPolicyDecision)
+        """
+
+        if decision_type != WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+            return False
+
+        uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
+
+        if uri.scheme not in theke.uri.validSchemes:
+            raise ValueError('Unsupported uri: {}.'.format(uri))
+
+        if uri.path[1] == theke.uri.SEGM_APP:
+            if uri.path[2] != theke.uri.SEGM_ASSETS:
+                # Case 2. InApp uri
+                self._navigator.update_context(uri)
+                return False
+
+        elif uri.path[1] == theke.uri.SEGM_DOC:
+            # Case 4. The uri is a path to a document
+            if uri.path[2] == theke.uri.SEGM_BIBLE:
+                if self._navigator.update_context(uri) == theke.navigator.NEW_VERSE:
+                    # Ignore the navigation action
+                    # and just scroll to the new verse
+                    decision.ignore()
+                    self.scroll_to_verse(self._navigator.ref.verse)
+                    return True
+
+                else:
+                    return False
+
+            if uri.path[2] == theke.uri.SEGM_BOOK:
+                self._navigator.update_context(uri)
+                return False
+
+        else:
+            return False
+        
 
     def handle_theke_uri(self, request, *user_data):
         """Return a stream to the content pointed by the theke uri.
@@ -56,7 +99,6 @@ class ThekeWebView(WebKit2.WebView):
             eg. uri = theke:/signal/click_on_word?word=...
         """
         uri = theke.uri.parse(request.get_uri(), isEncoded = True)
-
 
         if uri.path[1] == theke.uri.SEGM_SIGNAL:
             # Case 1. The uri is a signal
@@ -82,3 +124,15 @@ class ThekeWebView(WebKit2.WebView):
                 # Those uri are loaded out of the navigator scope
                 # so they have to be registered manually
                 self._navigator.register_web_uri(uri, web_view.get_title())
+
+    # Webview API
+    def jump_to_anchor(self, anchor):
+        script = """var element_to_scroll_to = document.getElementById('{}');
+        element_to_scroll_to.scrollIntoView({{behavior: "smooth", block: "center", inline: "nearest"}});
+        """.format(anchor)
+        self.run_javascript(script, None, None, None)
+
+    def scroll_to_verse(self, verse):
+        if verse > 0:
+            script = 'jump_to_verse("verse-{}")'.format(verse)
+            self.run_javascript(script, None, None, None)

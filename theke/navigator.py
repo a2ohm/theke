@@ -59,7 +59,6 @@ class ThekeNavigator(GObject.Object):
         """Register a reference to the webview this navigator is going to interact with.
         """
         self.webview = webview
-        self.webview.connect("click-on-word", self.handle_webview_click_on_word_cb)
 
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
@@ -324,54 +323,6 @@ class ThekeNavigator(GObject.Object):
             uri.params.get('morph', '-'),
             uri.params.get('source')
         ))
-
-    def handle_navigation_action(self, decision) -> bool:
-        """Screen navigation actions and update the context accordingly.
-
-        Case 1. The uri is a path to an assets file
-            eg. uri = theke:/app/assets/css/default.css
-
-        Case 2. The uri is a path to an inapp alias
-            eg. uri = theke:/app/welcome
-
-        Case 3. The uri is a signal
-            eg. uri = theke:/signal/click_on_word?word=...
-
-        Case 4. The uri is a path to a document
-            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
-
-        @param decision: (WebKit2.NavigationPolicyDecision)
-        """
-        uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
-
-        if uri.scheme not in theke.uri.validSchemes:
-            raise ValueError('Unsupported uri: {}.'.format(uri))
-
-        if uri.path[1] == theke.uri.SEGM_APP:
-            if uri.path[2] != theke.uri.SEGM_ASSETS:
-                # Case 2. InApp uri
-                self.update_context(uri)
-                return False
-
-        elif uri.path[1] == theke.uri.SEGM_DOC:
-            # Case 4. The uri is a path to a document
-            if uri.path[2] == theke.uri.SEGM_BIBLE:
-                if self.update_context(uri) == NEW_VERSE:
-                    # Ignore the navigation action
-                    # and just scroll to the new verse
-                    decision.ignore()
-                    self.webview.scroll_to_verse(self.ref.verse)
-                    return True
-
-                else:
-                    return False
-
-            if uri.path[2] == theke.uri.SEGM_BOOK:
-                self.update_context(uri)
-                return False
-
-        else:
-            return False
 
     @GObject.Property(type=str)
     def availableSources(self):
