@@ -118,7 +118,7 @@ class ThekeNavigator(GObject.Object):
         """
         if self.ref is not None and uri == self.ref.get_uri():
             # This is not a new uri, the context stays the same
-            logger.debug("ThekeNavigator − Update context (skip)")
+            logger.debug("Update context (skip)")
             self.emit("context-updated", SAME_DOCUMENT)
             return
 
@@ -140,7 +140,7 @@ class ThekeNavigator(GObject.Object):
         """
 
         if ref.type == theke.TYPE_BIBLE:
-            logger.debug("ThekeNavigator − Update context [bible]")
+            logger.debug("Update context [bible]")
 
             # Update the table of content only if the document name is different
             if self.ref is None or ref.documentName != self.ref.documentName:
@@ -166,7 +166,7 @@ class ThekeNavigator(GObject.Object):
             return
 
         else:
-            logger.debug("ThekeNavigator − Update context [book/inApp]")
+            logger.debug("Update context [book/inApp]")
 
             self.set_property("ref", ref)
             self.set_property("toc", None)
