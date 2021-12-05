@@ -40,7 +40,7 @@ class ThekeWebView(WebKit2.WebView):
         self._navigator.handle_webview_click_on_word_cb(None, uri)
 
     # Navigator callbacks
-    def _navigator_context_updated_cb(self, object, uri, update_type) -> None:
+    def _navigator_context_updated_cb(self, object, update_type) -> None:
         """Handle update of context
 
         @param uri: (str) raw uri
@@ -50,6 +50,8 @@ class ThekeWebView(WebKit2.WebView):
             = theke.NEW_VERSE --> jump to the verse
         """
         if update_type == theke.navigator.NEW_DOCUMENT:
+            uri = self._navigator.uri.get_encoded_URI()
+
             logger.debug("Loading: %s", uri)
 
             self._doLoadUriFlag = True
@@ -96,7 +98,7 @@ class ThekeWebView(WebKit2.WebView):
 
             if uri.path[1] in [theke.uri.SEGM_APP, theke.uri.SEGM_DOC] :
                 logger.debug("Navigation action submited to the navigator: %s", uri)
-                self._navigator.update_context(uri)
+                self._navigator.update_context_from_uri(uri)
                 decision.ignore()
                 return True
 

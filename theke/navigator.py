@@ -39,7 +39,7 @@ class ThekeNavigator(GObject.Object):
     """
 
     __gsignals__ = {
-        'context-updated': (GObject.SignalFlags.RUN_LAST, None, (str, int,))
+        'context-updated': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
     ref = GObject.Property(type=object)
@@ -67,19 +67,21 @@ class ThekeNavigator(GObject.Object):
         @parm uri: (string or ThekeUri)
         """
         if reload or self.ref is None or uri != self.ref.get_uri():
-            logger.debug("Goto: %s", uri)
+            logger.debug("Goto uri: %s", uri)
 
             if isinstance(uri, str):
                 uri = theke.uri.parse(uri, isEncoded=True)
 
-            self.update_context(uri)
+            self.update_context_from_uri(uri)
 
     ### GOTO functions
 
-    def goto_ref(self, ref) -> None:
+    def goto_ref(self, ref, reload = False) -> None:
         """Ask the webview to load a given reference
         """
-        self.goto_uri(ref.get_uri())
+        if reload or self.ref is None or ref != self.ref:
+            logger.debug("Goto ref: %s", ref)
+            self.update_context_from_ref(ref)
 
     def goto_section(self, tocData) -> None:
         """Ask the webview to load a document section
@@ -92,7 +94,7 @@ class ThekeNavigator(GObject.Object):
             if self.ref.chapter != tocData:
                 self.ref.chapter = tocData
                 self.ref.verse = 0
-                self.emit("context-updated", self.ref.get_uri(), NEW_DOCUMENT)
+                self.emit("context-updated", NEW_DOCUMENT)
 
         else:
             logging.error("This type of TOC (%s) is not supported yet.", self.toc.type)
@@ -111,8 +113,20 @@ class ThekeNavigator(GObject.Object):
 
     ### Update context (from URI)
 
-    def update_context(self, uri) -> None:
+    def update_context_from_uri(self, uri) -> None:
         """Update local context according to the uri
+        """
+        if self.ref is not None and uri == self.ref.get_uri():
+            # This is not a new uri, the context stays the same
+            logger.debug("ThekeNavigator − Update context (skip)")
+            self.emit("context-updated", SAME_DOCUMENT)
+            return
+
+        ref = theke.reference.get_reference_from_uri(uri)
+        self.update_context_from_ref(ref)
+
+    def update_context_from_ref(self, ref) -> None:
+        """Update local context according to the ref
 
         Returning code:
          - SAME_DOCUMENT: same uri as that of the open document
@@ -124,13 +138,6 @@ class ThekeNavigator(GObject.Object):
          - NEW_DOCUMENT: different uri
             --> the context is updated
         """
-        if self.ref is not None and uri == self.ref.get_uri():
-            # This is not a new uri, the context stays the same
-            logger.debug("ThekeNavigator − Update context (skip)")
-            self.emit("context-updated", uri, SAME_DOCUMENT)
-            return
-
-        ref = theke.reference.get_reference_from_uri(uri)
 
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("ThekeNavigator − Update context [bible]")
@@ -147,7 +154,7 @@ class ThekeNavigator(GObject.Object):
                 # Same reference except the verse number
                 self.ref.verse = ref.verse
 
-                self.emit("context-updated", uri, NEW_VERSE)
+                self.emit("context-updated", NEW_VERSE)
                 return
 
             # Different reference, update all the context
@@ -155,7 +162,7 @@ class ThekeNavigator(GObject.Object):
 
             self.notify("sources")
             self.notify("availableSources")
-            self.emit("context-updated", uri, NEW_DOCUMENT)
+            self.emit("context-updated", NEW_DOCUMENT)
             return
 
         else:
@@ -166,7 +173,7 @@ class ThekeNavigator(GObject.Object):
             self.set_property("isMorphAvailable", False)
 
             self.notify("availableSources")
-            self.emit("context-updated", uri, NEW_DOCUMENT)
+            self.emit("context-updated", NEW_DOCUMENT)
             return
 
     ### Get content
