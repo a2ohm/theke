@@ -23,6 +23,8 @@ class ThekeWebView(WebKit2.WebView):
 
         self._navigator = None
 
+        self._doLoadUriFlag = False
+
         self.connect("load-changed", self.handle_load_changed)
         self.connect("decide-policy", self.handle_decide_policy)
 
@@ -31,71 +33,74 @@ class ThekeWebView(WebKit2.WebView):
 
     def register_navigator(self, navigator):
         self._navigator = navigator
-        self._navigator.connect("context-ready", self._navigator_context_ready_cb)
+        self._navigator.connect("context-updated", self._navigator_context_updated_cb)
 
     # Signals callbacks
     def do_click_on_word(self, uri) -> None:
         self._navigator.handle_webview_click_on_word_cb(None, uri)
 
     # Navigator callbacks
-    def _navigator_context_ready_cb(self, object, uri) -> None:
-        logger.debug("ThekeWebview - Loading: %s", uri)
-        self.load_uri(uri)
-        self.grab_focus()
+    def _navigator_context_updated_cb(self, object, uri, update_type) -> None:
+        """Handle update of context
+
+        @param uri: (str) raw uri
+        @param update_type: (int) type of the update
+
+            = theke.NEW_DOCUMENT --> load the uri
+            = theke.NEW_VERSE --> jump to the verse
+        """
+        if update_type == theke.navigator.NEW_DOCUMENT:
+            logger.debug("Loading: %s", uri)
+
+            self._doLoadUriFlag = True
+            self.load_uri(uri)
+
+            self.grab_focus()
+
+        elif update_type == theke.navigator.NEW_VERSE:
+            self.scroll_to_verse(self._navigator.ref.verse)
+            self.grab_focus()
+
+        else:
+            logger.debug("ThekeWebview - Unknown navigator context update type: %s", update_type)
 
     # Webview callbacks
     def handle_decide_policy(self, web_view, decision, decision_type):
-        """Screen navigation actions and update the context accordingly.
+        """Decide where navigation actions are sent
 
-        Case 1. The uri is a path to an assets file
-            eg. uri = theke:/app/assets/css/default.css
+        By default, navigation actions are submited to the navigator in
+        order to update the context.
 
-        Case 2. The uri is a path to an inapp alias
-            eg. uri = theke:/app/welcome
-
-        Case 3. The uri is a signal
-            eg. uri = theke:/signal/click_on_word?word=...
-
-        Case 4. The uri is a path to a document
-            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
+        Then, the navigator will rise the context-updated signal.
+        Then, the webview check if new content should be loaded
+        (see self._navigator_context_updated_cb()). In this case, the
+        _doLoadUri flag is risen and the navigation should not be submited
+        to the navigator and should continue its own way.
 
         @param decision: (WebKit2.NavigationPolicyDecision)
+        @param decision_type: (WebKit2.PolicyDecisionType)
         """
 
-        if decision_type != WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
-            return False
-
-        uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
-
-        if uri.scheme not in theke.uri.validSchemes:
-            raise ValueError('Unsupported uri: {}.'.format(uri))
-
-        if uri.path[1] == theke.uri.SEGM_APP:
-            if uri.path[2] != theke.uri.SEGM_ASSETS:
-                # Case 2. InApp uri
-                self._navigator.update_context(uri)
+        if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+            # If the doLoadUri flag is up, just accept this navigation action
+            if self._doLoadUriFlag:
+                self._doLoadUriFlag = False
+                decision.use()
                 return False
 
-        elif uri.path[1] == theke.uri.SEGM_DOC:
-            # Case 4. The uri is a path to a document
-            if uri.path[2] == theke.uri.SEGM_BIBLE:
-                if self._navigator.update_context(uri) == theke.navigator.NEW_VERSE:
-                    # Ignore the navigation action
-                    # and just scroll to the new verse
-                    decision.ignore()
-                    self.scroll_to_verse(self._navigator.ref.verse)
-                    return True
+            uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
 
-                else:
-                    return False
-
-            if uri.path[2] == theke.uri.SEGM_BOOK:
-                self._navigator.update_context(uri)
+            if uri.scheme not in theke.uri.validSchemes:
+                logger.error("Unsupported uri: %s", uri)
                 return False
 
-        else:
-            return False
-        
+            if uri.path[1] in [theke.uri.SEGM_APP, theke.uri.SEGM_DOC] :
+                logger.debug("Navigation action submited to the navigator: %s", uri)
+                self._navigator.update_context(uri)
+                decision.ignore()
+                return True
+
+        return False
 
     def handle_theke_uri(self, request, *user_data):
         """Return a stream to the content pointed by the theke uri.
