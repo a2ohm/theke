@@ -17,7 +17,7 @@ class ThekeWebView(WebKit2.WebView):
         }
 
     def __init__(self, *args, **kwargs):
-        logger.debug("ThekeWebView - Create a new instance")
+        logger.debug("Create a new instance")
 
         WebKit2.WebView.__init__(self, *args, **kwargs)
 
@@ -62,7 +62,7 @@ class ThekeWebView(WebKit2.WebView):
             self.grab_focus()
 
         else:
-            logger.debug("ThekeWebview - Unknown navigator context update type: %s", update_type)
+            logger.debug("Unknown navigator context update type: %s", update_type)
 
     # Webview callbacks
     def handle_decide_policy(self, web_view, decision, decision_type):
@@ -114,7 +114,7 @@ class ThekeWebView(WebKit2.WebView):
 
         if uri.path[1] == theke.uri.SEGM_SIGNAL:
             # Case 1. The uri is a signal
-            logger.debug("ThekeWebView - Catch a sword signal: %s", uri)
+            logger.debug("Catch a sword signal: %s", uri)
 
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)

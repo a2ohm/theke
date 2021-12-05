@@ -50,7 +50,7 @@ class ThekeNavigator(GObject.Object):
     selectedWord = GObject.Property(type=object)
 
     def __init__(self, *args, **kwargs) -> None:
-        logger.debug("ThekeNavigator - Create a new instance")
+        logger.debug("Create a new instance")
 
         super().__init__(*args, **kwargs)
 
@@ -67,7 +67,7 @@ class ThekeNavigator(GObject.Object):
         @parm uri: (string or ThekeUri)
         """
         if reload or self.ref is None or uri != self.ref.get_uri():
-            logger.debug("ThekeNavigator - Goto: %s", uri)
+            logger.debug("Goto: %s", uri)
 
             if isinstance(uri, str):
                 uri = theke.uri.parse(uri, isEncoded=True)
@@ -85,7 +85,7 @@ class ThekeNavigator(GObject.Object):
         """Ask the webview to load a document section
         """
 
-        logger.debug("ThekeNavigator - Goto section: %s", tocData)
+        logger.debug("Goto section: %s", tocData)
 
         if self.toc.type == theke.TYPE_BIBLE:
             # tocData (int): chapter
@@ -190,7 +190,7 @@ class ThekeNavigator(GObject.Object):
         This function is only called by a webview.
         """
 
-        logger.debug("ThekeNavigator - Get content from a theke uri: %s", uri)
+        logger.debug("Get content from a theke uri: %s", uri)
 
         if uri.path[1] == theke.uri.SEGM_APP:
             if uri.path[2] == theke.uri.SEGM_ASSETS:
@@ -207,20 +207,20 @@ class ThekeNavigator(GObject.Object):
             if uri.path[1] == theke.uri.SEGM_DOC:
                 # Case 3. The uri is a path to a document
                 if uri.path[2] == theke.uri.SEGM_BIBLE:
-                    logger.debug("ThekeNavigator - Load as a sword uri (BIBLE): %s", uri)
+                    logger.debug("Load as a sword uri (BIBLE): %s", uri)
                     html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
                     sourceType = self.index.get_source_type(self.ref.sources[0])
 
                     if sourceType == theke.index.SOURCETYPE_SWORD:
-                        logger.debug("ThekeNavigator - Load as a sword uri (BOOK): %s", uri)
+                        logger.debug("Load as a sword uri (BOOK): %s", uri)
                         html = self.get_sword_book_content()
 
                     elif sourceType == theke.index.SOURCETYPE_EXTERN:
                         externalUri = self.index.get_source_uri(self.ref.sources[0])
 
-                        logger.debug("ThekeNavigator - Load as a external uri (BOOK): %s", uri)
+                        logger.debug("Load as a external uri (BOOK): %s", uri)
                         self.preventRefUpdateOnNextWebUriRegistering = True
                         html = self.get_external_book_content(externalUri)
 
@@ -233,7 +233,7 @@ class ThekeNavigator(GObject.Object):
             request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
     def get_sword_bible_content(self) -> str:
-        logger.debug("ThekeNavigator - Load content")
+        logger.debug("Load content")
 
         documents = []
         verses = []
