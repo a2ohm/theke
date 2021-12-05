@@ -125,6 +125,9 @@ class Reference():
             return other == self.get_repr()
         return False
 
+    def __repr__(self) -> str:
+        return self.get_repr()
+
 class DocumentReference(Reference):
     def update_default_source(self) -> None:
         """Update the default source of a reference
