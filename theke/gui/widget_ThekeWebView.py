@@ -31,10 +31,17 @@ class ThekeWebView(WebKit2.WebView):
 
     def register_navigator(self, navigator):
         self._navigator = navigator
+        self._navigator.connect("context-ready", self._navigator_context_ready_cb)
 
     # Signals callbacks
     def do_click_on_word(self, uri) -> None:
         self._navigator.handle_webview_click_on_word_cb(None, uri)
+
+    # Navigator callbacks
+    def _navigator_context_ready_cb(self, object, uri) -> None:
+        logger.debug("ThekeWebview - Loading: %s", uri)
+        self.load_uri(uri)
+        self.grab_focus()
 
     # Webview callbacks
     def handle_decide_policy(self, web_view, decision, decision_type):

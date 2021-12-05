@@ -85,7 +85,6 @@ class ThekeDocumentView(Gtk.Paned):
     def register_navigator(self, navigator):
         self._navigator = navigator
         self._webview.register_navigator(navigator)
-        navigator.register_webview(self._webview)
 
     ### Callbacks (from glade)
     @Gtk.Template.Callback()

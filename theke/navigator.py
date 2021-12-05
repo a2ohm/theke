@@ -38,6 +38,10 @@ class ThekeNavigator(GObject.Object):
     Outside of the webview workflow, it has to be called to open an uri or a reference.
     """
 
+    __gsignals__ = {
+        'context-ready': (GObject.SignalFlags.RUN_LAST, None, (str,))
+        }
+
     ref = GObject.Property(type=object)
 
     toc = GObject.Property(type=object)
@@ -50,15 +54,9 @@ class ThekeNavigator(GObject.Object):
 
         super().__init__(*args, **kwargs)
 
-        self.webview = None
         self.index = theke.index.ThekeIndex()
 
         self.preventRefUpdateOnNextWebUriRegistering = False
-
-    def register_webview(self, webview) -> None:
-        """Register a reference to the webview this navigator is going to interact with.
-        """
-        self.webview = webview
 
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
@@ -72,13 +70,11 @@ class ThekeNavigator(GObject.Object):
             logger.debug("ThekeNavigator - Goto: %s", uri)
 
             if isinstance(uri, str):
-                self.webview.load_uri(uri)
+                self.emit("context-ready", uri)
             elif isinstance(uri, theke.uri.ThekeURI):
-                self.webview.load_uri(uri.get_encoded_URI())
+                self.emit("context-ready", uri.get_encoded_URI())
             else:
                 raise ValueError('This is not an uri: {}.'.format(uri))
-
-        self.webview.grab_focus()
 
     def goto_ref(self, ref) -> None:
         """Ask the webview to load a given reference
