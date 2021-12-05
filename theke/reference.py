@@ -118,6 +118,13 @@ class Reference():
     def get_uri(self):
         raise NotImplementedError
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Reference):
+            return other.get_repr() == self.get_repr()
+        elif isinstance(other, str):
+            return other == self.get_repr()
+        return False
+
 class DocumentReference(Reference):
     def update_default_source(self) -> None:
         """Update the default source of a reference
