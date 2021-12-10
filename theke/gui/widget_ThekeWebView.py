@@ -49,7 +49,8 @@ class ThekeWebView(WebKit2.WebView):
             = theke.NEW_DOCUMENT --> load the uri
             = theke.NEW_VERSE --> jump to the verse
         """
-        if update_type == theke.navigator.NEW_DOCUMENT:
+        if update_type == theke.navigator.NEW_DOCUMENT \
+            or update_type == theke.navigator.SOURCES_UPDATED:
             uri = self._navigator.uri.get_encoded_URI()
 
             logger.debug("Loading: %s", uri)

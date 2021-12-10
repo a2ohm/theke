@@ -25,6 +25,8 @@ NEW_DOCUMENT = 1
 NEW_SECTION = 2
 NEW_VERSE = 3
 
+SOURCES_UPDATED = 4
+
 def format_sword_syntax(text) -> str:
     '''Format rendered text from sword into a theke comprehensible syntax
     '''
@@ -104,12 +106,12 @@ class ThekeNavigator(GObject.Object):
     def add_source(self, sourceName) -> None:
         if self.ref.add_source(sourceName):
             self.notify("sources")
-            self.goto_uri(self.ref.get_uri(), reload = True)
+            self.emit("context-updated", SOURCES_UPDATED)
 
     def delete_source(self, sourceName) -> None:
         if self.ref.remove_source(sourceName):
             self.notify("sources")
-            self.goto_uri(self.ref.get_uri(), reload = True)
+            self.emit("context-updated", SOURCES_UPDATED)
 
     ### Update context (from URI)
 
