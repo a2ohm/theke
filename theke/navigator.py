@@ -58,8 +58,6 @@ class ThekeNavigator(GObject.Object):
 
         self.index = theke.index.ThekeIndex()
 
-        self.preventRefUpdateOnNextWebUriRegistering = False
-
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
 
@@ -221,13 +219,6 @@ class ThekeNavigator(GObject.Object):
                         logger.debug("Load as a sword uri (BOOK): %s", uri)
                         html = self.get_sword_book_content()
 
-                    elif sourceType == theke.index.SOURCETYPE_EXTERN:
-                        externalUri = self.index.get_source_uri(self.ref.sources[0])
-
-                        logger.debug("Load as a external uri (BOOK): %s", uri)
-                        self.preventRefUpdateOnNextWebUriRegistering = True
-                        html = self.get_external_book_content(externalUri)
-
             else:
                 raise ValueError('Unsupported theke uri: {}.'.format(uri))
 
@@ -287,19 +278,6 @@ class ThekeNavigator(GObject.Object):
             'ref': self.ref,
             'uri': externalUri})
 
-    def register_web_uri(self, uri, title) -> None:
-        """Update properties according to this web page data.
-        """
-
-        if self.preventRefUpdateOnNextWebUriRegistering:
-            self.preventRefUpdateOnNextWebUriRegistering = False
-        else:
-            self.set_property("ref", theke.reference.WebpageReference(title, uri = uri))
-
-        self.set_property("toc", None)
-
-        self.set_property("isMorphAvailable", False)
-
     ### Signals handling
 
     def handle_webview_click_on_word_cb(self, object, uri) -> None:
@@ -350,8 +328,22 @@ class ThekeNavigator(GObject.Object):
         """
         return self.ref.sources
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=object)
     def uri(self):
         """URI of the current documment
         """
         return self.ref.get_uri()
+
+    @GObject.Property(type=str)
+    def contentUri(self):
+        """Encoded URI to be used to recover the document content.
+
+        This is the theke uri except for external documents.
+        """
+        if self.ref.type == theke.TYPE_BOOK:
+            sourceType = self.index.get_source_type(self.ref.sources[0])
+
+            if sourceType == theke.index.SOURCETYPE_EXTERN:
+                return self.index.get_source_uri(self.ref.sources[0])
+            
+        return self.ref.get_uri().get_encoded_URI()

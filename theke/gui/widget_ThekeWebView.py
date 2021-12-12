@@ -3,6 +3,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import WebKit2
 
+import theke
 import theke.uri
 import theke.navigator
 
@@ -51,7 +52,7 @@ class ThekeWebView(WebKit2.WebView):
         """
         if update_type == theke.navigator.NEW_DOCUMENT \
             or update_type == theke.navigator.SOURCES_UPDATED:
-            uri = self._navigator.uri.get_encoded_URI()
+            uri = self._navigator.contentUri
 
             logger.debug("Loading: %s", uri)
 
@@ -89,13 +90,19 @@ class ThekeWebView(WebKit2.WebView):
             if self._doLoadUriFlag:
                 self._doLoadUriFlag = False
                 decision.use()
-                return False
+                return True
 
             uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
 
             if uri.scheme not in theke.uri.validSchemes:
                 logger.error("Unsupported uri: %s", uri)
                 return False
+
+            if uri.scheme in theke.uri.webpageSchemes:
+                logger.debug("Navigation action submited to the navigator: %s", uri)
+                self._navigator.update_context_from_uri(uri)
+                decision.ignore()
+                return True
 
             if uri.path[1] in [theke.uri.SEGM_APP, theke.uri.SEGM_DOC] :
                 logger.debug("Navigation action submited to the navigator: %s", uri)
@@ -133,12 +140,9 @@ class ThekeWebView(WebKit2.WebView):
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
-            uri = theke.uri.parse(web_view.get_uri())
-
-            if uri.scheme in ['http', 'https']:
-                # Those uri are loaded out of the navigator scope
-                # so they have to be registered manually
-                self._navigator.register_web_uri(uri, web_view.get_title())
+            # The title of external webpage can only be set when the page is loaded
+            if self._navigator.ref.type == theke.TYPE_WEBPAGE:
+                self._navigator.ref.set_title(web_view.get_title())
 
     # Webview API
     def jump_to_anchor(self, anchor):

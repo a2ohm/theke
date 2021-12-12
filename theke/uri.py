@@ -1,6 +1,7 @@
 import urllib.parse
 from collections import namedtuple
 
+webpageSchemes = ['http', 'https']
 validSchemes = ['theke', 'http', 'https']
 
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
