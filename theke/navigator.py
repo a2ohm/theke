@@ -105,12 +105,10 @@ class ThekeNavigator(GObject.Object):
 
     def add_source(self, sourceName) -> None:
         if self.ref.add_source(sourceName):
-            self.notify("sources")
             self.emit("context-updated", SOURCES_UPDATED)
 
     def delete_source(self, sourceName) -> None:
         if self.ref.remove_source(sourceName):
-            self.notify("sources")
             self.emit("context-updated", SOURCES_UPDATED)
 
     ### Update context (from URI)
@@ -162,8 +160,6 @@ class ThekeNavigator(GObject.Object):
             # Different reference, update all the context
             self.set_property("ref", ref)
 
-            self.notify("sources")
-            self.notify("availableSources")
             self.emit("context-updated", NEW_DOCUMENT)
             return
 
@@ -174,7 +170,6 @@ class ThekeNavigator(GObject.Object):
             self.set_property("toc", None)
             self.set_property("isMorphAvailable", False)
 
-            self.notify("availableSources")
             self.emit("context-updated", NEW_DOCUMENT)
             return
 
@@ -304,8 +299,6 @@ class ThekeNavigator(GObject.Object):
         self.set_property("toc", None)
 
         self.set_property("isMorphAvailable", False)
-
-        self.notify("availableSources")
 
     ### Signals handling
 

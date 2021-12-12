@@ -79,8 +79,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... sources bar
         self._ThekeSourcesBar.connect("source-requested", self.handle_source_requested)
         self._ThekeSourcesBar.connect("delete-source", self.handle_delete_source)
-        self._navigator.connect("notify::sources", self.handle_sources_updated)
-        self._navigator.connect("notify::availableSources", self.handle_availableSources_updated)
+
+        self._navigator.connect("context-updated", self._navigator_context_updated_cb)
 
         # SET BINDINGS
         self.bind_property(
@@ -135,8 +135,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeToolsBox._toolsBox_dicoView.save()
     ###
 
-    def handle_availableSources_updated(self, object, param) -> None:
-        self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
+    ### Callbacks (_navigator)
+    def _navigator_context_updated_cb(self, object, update_type) -> None:
+        if update_type == theke.navigator.NEW_DOCUMENT:
+            self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
+            self._ThekeSourcesBar.updateSources(self._navigator.sources)
+
+        if update_type == theke.navigator.SOURCES_UPDATED:
+            self._ThekeSourcesBar.updateSources(self._navigator.sources)
+
+    ### Callbacks (other)
 
     def handle_delete_source(self, object, sourceName):
         self._navigator.delete_source(sourceName)
@@ -208,9 +216,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_source_requested(self, object, sourceName):
         self._navigator.add_source(sourceName)
-
-    def handle_sources_updated(self, object, params) -> None:
-        self._ThekeSourcesBar.updateSources(self._navigator.sources)
 
     def handle_toc_selection_changed(self, object, tree_selection):
         model, treeIter = tree_selection.get_selected()
