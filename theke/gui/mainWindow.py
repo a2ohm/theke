@@ -161,6 +161,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_document_load_changed(self, obj, web_view, load_event):
         if load_event == WebKit2.LoadEvent.STARTED:
+            # Update the status bar with the title of the just loaded page
+            contextId = self._statusbar.get_context_id("navigation")
+            self._statusbar.push(contextId, "Chargement ...")
+
+            # Show the sourcesBar, if necessary
+            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
+                self._ThekeSourcesBar.show()
+                self._statusbar.hide()
+            else:
+                self._ThekeSourcesBar.hide()
+                self._statusbar.show()
+
             self._loading_spinner.start()
 
         elif load_event == WebKit2.LoadEvent.FINISHED:
@@ -174,14 +186,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Hide the morphoView, if necessary
             if not self._navigator.isMorphAvailable:
                 self._ThekeToolsBox.hide()
-
-            # Show the sourcesBar, if necessary
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
-                self._ThekeSourcesBar.show()
-                self._statusbar.hide()
-            else:
-                self._ThekeSourcesBar.hide()
-                self._statusbar.show()
 
             self._loading_spinner.stop()
 
