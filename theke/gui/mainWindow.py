@@ -37,6 +37,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _ThekeSearchView : Gtk.Bin = Gtk.Template.Child()
     _ThekeToolsBox : Gtk.Box = Gtk.Template.Child()
 
+    _loading_spinner : Gtk.Spinner = Gtk.Template.Child()
+
     def __init__(self, navigator):
         super().__init__()
 
@@ -158,7 +160,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._navigator.goto_ref(ref)
 
     def handle_document_load_changed(self, obj, web_view, load_event):
-        if load_event == WebKit2.LoadEvent.FINISHED:
+        if load_event == WebKit2.LoadEvent.STARTED:
+            self._loading_spinner.start()
+
+        elif load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
             contextId = self._statusbar.get_context_id("navigation")
             self._statusbar.push(contextId, str(self._navigator.title))
@@ -177,6 +182,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
             else:
                 self._ThekeSourcesBar.hide()
                 self._statusbar.show()
+
+            self._loading_spinner.stop()
 
     def handle_mouse_target_changed(self, obj, web_view, hit_test_result, modifiers):
         if hit_test_result.context_is_link():
