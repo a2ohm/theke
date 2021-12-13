@@ -140,10 +140,6 @@ class ThekeNavigator(GObject.Object):
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
-            # Update the table of content only if the document name is different
-            if self.ref is None or ref.documentName != self.ref.documentName:
-                self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
-
             if (self.ref.type == theke.TYPE_BIBLE and
                 self.ref.bookName == ref.bookName and
                 self.ref.chapter == ref.chapter and
@@ -155,8 +151,13 @@ class ThekeNavigator(GObject.Object):
                 self.emit("context-updated", NEW_VERSE)
                 return
 
-            # Different reference, update all the context
-            self.set_property("ref", ref)
+            with self.freeze_notify():
+                # Update the table of content only if the document name is different
+                if self.ref is None or ref.documentName != self.ref.documentName:
+                    self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
+
+                # Different reference, update all the context
+                self.set_property("ref", ref)
 
             self.emit("context-updated", NEW_DOCUMENT)
             return
@@ -164,9 +165,10 @@ class ThekeNavigator(GObject.Object):
         else:
             logger.debug("Update context [book/inApp]")
 
-            self.set_property("ref", ref)
-            self.set_property("toc", None)
-            self.set_property("isMorphAvailable", False)
+            with self.freeze_notify():
+                self.set_property("ref", ref)
+                self.set_property("toc", None)
+                self.set_property("isMorphAvailable", False)
 
             self.emit("context-updated", NEW_DOCUMENT)
             return

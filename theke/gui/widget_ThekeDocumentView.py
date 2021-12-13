@@ -104,11 +104,14 @@ class ThekeDocumentView(Gtk.Paned):
 
     ### Other callbacks (from _webview)
     def _document_load_changed_cb(self, web_view, load_event):
-        if load_event == WebKit2.LoadEvent.FINISHED:
+        if load_event == WebKit2.LoadEvent.STARTED:
             # Update the table of content
             if self._navigator.toc is None:
                 self.hide_toc()
-            else:
+
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            # Update the table of content
+            if self._navigator.toc is not None:
                 self.set_title(self._navigator.ref.documentName)
                 self.set_content(self._navigator.toc.toc)
 
