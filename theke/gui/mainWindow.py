@@ -168,13 +168,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # Show the sourcesBar, if necessary
             if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
-                self._ThekeSourcesBar.show()
+                self._ThekeSourcesBar.set_reveal_child(True)
                 self._statusbar_revealer.set_reveal_child(False)
-                #self._statusbar.hide()
             else:
-                self._ThekeSourcesBar.hide()
+                self._ThekeSourcesBar.set_reveal_child(False)
                 self._statusbar_revealer.set_reveal_child(True)
-                #self._statusbar.show()
 
             self._loading_spinner.start()
 

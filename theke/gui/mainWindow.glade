@@ -162,7 +162,7 @@ Author: a2ohm
                           <object class="ThekeSourcesBar" id="_ThekeSourcesBar">
                             <property name="can-focus">False</property>
                             <property name="no-show-all">True</property>
-                            <property name="spacing">4</property>
+                            <property name="transition-type">crossfade</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
