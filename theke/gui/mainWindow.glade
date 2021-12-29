@@ -137,13 +137,20 @@ Author: a2ohm
                         <property name="margin-end">4</property>
                         <property name="margin-top">2</property>
                         <child>
-                          <object class="GtkStatusbar" id="_statusbar">
+                          <object class="GtkRevealer" id="_statusbar_revealer">
                             <property name="visible">True</property>
                             <property name="can-focus">False</property>
-                            <property name="margin-top">3</property>
-                            <property name="margin-bottom">3</property>
-                            <property name="orientation">vertical</property>
-                            <property name="spacing">2</property>
+                            <property name="transition-type">slide-right</property>
+                            <child>
+                              <object class="GtkStatusbar" id="_statusbar">
+                                <property name="visible">True</property>
+                                <property name="can-focus">False</property>
+                                <property name="margin-top">3</property>
+                                <property name="margin-bottom">3</property>
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">2</property>
+                              </object>
+                            </child>
                           </object>
                           <packing>
                             <property name="expand">False</property>

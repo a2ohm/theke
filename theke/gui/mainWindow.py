@@ -28,7 +28,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     local_search_mode_active = GObject.Property(type=bool, default=False)
 
-    _statusbar: Gtk.Statusbar = Gtk.Template.Child()
+    _statusbar : Gtk.Statusbar = Gtk.Template.Child()
+    _statusbar_revealer : Gtk.Revealer = Gtk.Template.Child()
 
     _ThekeHistoryBar : Gtk.ButtonBox = Gtk.Template.Child()
     _ThekeGotoBar : Gtk.SearchEntry = Gtk.Template.Child()
@@ -168,10 +169,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Show the sourcesBar, if necessary
             if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.show()
-                self._statusbar.hide()
+                self._statusbar_revealer.set_reveal_child(False)
+                #self._statusbar.hide()
             else:
                 self._ThekeSourcesBar.hide()
-                self._statusbar.show()
+                self._statusbar_revealer.set_reveal_child(True)
+                #self._statusbar.show()
 
             self._loading_spinner.start()
 
