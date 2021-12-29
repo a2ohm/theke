@@ -22,7 +22,9 @@ class ThekeDocumentView(Gtk.Paned):
                       (object, object)),
         'webview-mouse-target-changed': (GObject.SIGNAL_RUN_LAST, None,
                       (object, object, int)),
-        'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
+        'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,)),
+        'webview-scroll-changed': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,)),
         }
 
     isReduce = GObject.Property(type=bool, default=True)
@@ -59,6 +61,7 @@ class ThekeDocumentView(Gtk.Paned):
         # ... document view > webview > find controller
         self._webview_findController.connect("found-text", self._local_search_found_text_cb)
         self._webview_findController.connect("failed-to-find-text", self._local_search_failed_to_find_text_cb)
+        self._webview.connect("scroll-changed", self._webview_scroll_changed_cb)
 
     def _setup_view(self) -> None:
         self.bind_property(
@@ -144,6 +147,9 @@ class ThekeDocumentView(Gtk.Paned):
 
         self.emit("document-load-changed", web_view, load_event)
 
+    def _webview_scroll_changed_cb(self, object, uri):
+        self.emit("webview-scroll-changed", uri)
+
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
         self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
 
@@ -212,12 +218,10 @@ class ThekeDocumentView(Gtk.Paned):
                 logger.debug("Export the current document [canceled]")
 
             dialog.destroy()
-    def get_scrolled_value(self) -> float:
-        return self._webview_scrolledWindow.get_vscrollbar().get_value()
 
     def set_scrolled_value(self, value) -> None:
-        print("set scrolled value: {}".format(value))
-        self._webview_scrolledWindow.get_vscrollbar().set_value(value)
+        logging.debug("set scrolled value: %d".format(value))
+        self._webview.scroll_to_value(value)
 
     # def scroll_to_verse(self, verse) -> None:
     #     self._webview.scroll_to_verse(verse)

@@ -60,6 +60,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.register_navigator(self._navigator)
         self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
         self._ThekeDocumentView.connect("navigation-error", self._documentView_navigation_error_cb)
+        self._ThekeDocumentView.connect("webview-scroll-changed", self.handle_scroll_changed)
         self._ThekeDocumentView.connect("webview-mouse-target-changed", self._documentView_mouse_target_changed_cb)
 
         #   ... search panel
@@ -181,12 +182,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self.fill_gotobar_with_current_reference()
 
             # Update the history bar
-            self._ThekeHistoryBar.save_scrolled_value(self._ThekeDocumentView.get_scrolled_value())
             self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
             # Hide the morphoView, if necessary
             if not self._navigator.isMorphAvailable:
                 self._ThekeToolsBox.hide()
+
+            # Scroll to the last position
+            self._ThekeDocumentView.set_scrolled_value(self._ThekeHistoryBar.get_scrolled_value())
 
             # Turn of the loading flag
             self.is_loading = False
@@ -196,6 +199,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Display an error message in a modal
             self.display_warning_modal("La source externe est inaccessible.",
                 "Vérifiez votre connexion internet.")
+
+            
 
     def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
         """Links hovered over by the mouse are shown in the status bar
@@ -207,6 +212,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         else:
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
+    
+    def handle_scroll_changed(self, object, uri):
+        self._ThekeHistoryBar.save_scrolled_value(int(uri.params['y_scroll']))
 
     ### Callbacks (_navigator)
     def _navigator_context_updated_cb(self, object, update_type) -> None:
@@ -275,7 +283,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
-        self._ThekeDocumentView.set_scrolled_value(button.scrolledValue)
         return True
 
     def fill_gotobar_with_current_reference(self) -> None:

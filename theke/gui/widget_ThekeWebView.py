@@ -14,6 +14,8 @@ class ThekeWebView(WebKit2.WebView):
 
     __gsignals__ = {
         'click_on_word': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,)),
+        'scroll-changed': (GObject.SIGNAL_RUN_FIRST, None,
                       (object,))
         }
 
@@ -132,6 +134,9 @@ class ThekeWebView(WebKit2.WebView):
 
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)
+
+            if uri.path[2] == 'scroll_position':
+                self.emit("scroll-changed", uri)
                 
             html_bytes = GLib.Bytes.new("".encode('utf-8'))
             tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
@@ -148,6 +153,27 @@ class ThekeWebView(WebKit2.WebView):
             if self._navigator.ref.type == theke.TYPE_WEBPAGE:
                 self._navigator.ref.set_title(web_view.get_title())
 
+            # Inject the scrolling handler
+            # see https://www.codeguage.com/courses/js/events-scroll-event
+            script = """// Scrolling handler
+            var timeout = null;
+
+            window.onscroll = function(e) {
+                // clear any previously queued up timeout
+                clearTimeout(timeout);
+
+                // then create a fresh, new timeout
+                timeout = setTimeout(function(e) {
+                    // Get scroll position
+                    scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // Send its out of the webview
+                    r = "theke:/signal/scroll_position?y_scroll=" + scrollTop;
+                    fetch(r);
+            }, 500);
+            }"""
+            self.run_javascript(script, None, None, None)
+
     # Webview API
     def jump_to_anchor(self, anchor):
         """Ask the webview to scroll to an inner anchor
@@ -161,6 +187,14 @@ class ThekeWebView(WebKit2.WebView):
         e = document.getElementsByName('{anchor}');
         e[0].scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});
         """.format(anchor = anchor)
+        self.run_javascript(script, None, None, None)
+    
+    def scroll_to_value(self, value, smooth = False):
+        if smooth: 
+            script = 'window.scroll({{left: 0, top: {}, behavior: "smooth"}});'.format(value)
+        else:
+            script = 'window.scroll(0, {});'.format(value)
+
         self.run_javascript(script, None, None, None)
 
     def scroll_to_verse(self, verse):
