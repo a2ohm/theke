@@ -54,6 +54,9 @@ class ThekeDocumentView(Gtk.Paned):
         # ... document view > webview: where the document is displayed
         self._webview.connect("load_changed", self._document_load_changed_cb)
         self._webview.connect("mouse-target-changed", self._webview_mouse_target_changed_cb)
+        # ... document view > webview > find controller
+        self._webview_findController.connect("found-text", self._local_search_found_text_cb)
+        self._webview_findController.connect("failed-to-find-text", self._local_search_failed_to_find_text_cb)
 
     def _setup_view(self) -> None:
         self.bind_property(
@@ -154,6 +157,12 @@ class ThekeDocumentView(Gtk.Paned):
         self._webview_findController.search(
             self._ThekeLocalSearchBar.search_entry,
             WebKit2.FindOptions.WRAP_AROUND, 100)
+
+    def _local_search_found_text_cb(self, find_controller, match_count) -> None:
+        self._ThekeLocalSearchBar.display_match_count(match_count)
+
+    def _local_search_failed_to_find_text_cb(self, find_controller) -> None:
+        self._ThekeLocalSearchBar.display_match_count(0)
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:

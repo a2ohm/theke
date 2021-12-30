@@ -9,17 +9,16 @@
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
-        <property name="spacing">1</property>
+        <property name="spacing">2</property>
         <child type="center">
           <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="spacing">2</property>
             <child>
               <object class="GtkSearchEntry" id="_search_bar">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="margin-start">2</property>
-                <property name="margin-end">2</property>
                 <property name="margin-top">2</property>
                 <property name="margin-bottom">2</property>
                 <property name="primary-icon-name">edit-find-symbolic</property>
@@ -86,6 +85,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">True</property>
+                <property name="pack-type">end</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -93,7 +93,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="position">3</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -111,6 +111,19 @@
                 <property name="icon-name">window-close-symbolic</property>
               </object>
             </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack-type">end</property>
+            <property name="position">3</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="_search_count_label">
+            <property name="can-focus">False</property>
+            <property name="no-show-all">True</property>
+            <property name="label" translatable="yes">(pas d'occurence)</property>
           </object>
           <packing>
             <property name="expand">False</property>

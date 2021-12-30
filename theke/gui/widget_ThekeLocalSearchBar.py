@@ -16,6 +16,7 @@ class ThekeLocalSearchBar(Gtk.Revealer):
     search_entry = GObject.Property(type=str, default="")
 
     _search_bar = Gtk.Template.Child()
+    _search_count_label = Gtk.Template.Child()
 
     def __init__(self) -> None:
         super().__init__()
@@ -49,4 +50,22 @@ class ThekeLocalSearchBar(Gtk.Revealer):
 
         else:
             self.set_reveal_child(False)
+            self._search_count_label.hide()
+
+    def display_match_count(self, count):
+        if self._search_bar.get_text() == '':
+            self._search_count_label.hide()
+
+        else:
+            if count == 0:
+                txt = "(pas d'occurence)"
+            elif count == 1:
+                txt = "(1 occurence)"
+            elif count == GObject.G_MAXUINT:
+                txt = "(beaucoup d'occurences)"
+            else:
+                txt = "({} occurences)".format(count)
+
+            self._search_count_label.set_text(txt)
+            self._search_count_label.show()
     ###
