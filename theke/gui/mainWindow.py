@@ -231,11 +231,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         if treeIter is not None:
             self._navigator.goto_section(model[treeIter][1])
 
-    def handle_maxPosition_changed(self, object, param):
-        """Move the pane to its maximal value
-        """
-        object.set_position(object.props.max_position)
-
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
         return True
