@@ -96,6 +96,8 @@ class ThekeDocumentView(Gtk.Paned):
 
     @Gtk.Template.Callback()
     def _toc_treeSelection_changed_cb(self, tree_selection):
+        """Go to the selected item of the toc
+        """
         model, treeIter = tree_selection.get_selected()
 
         if treeIter is not None:
