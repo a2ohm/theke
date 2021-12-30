@@ -220,7 +220,7 @@ class ThekeDocumentView(Gtk.Paned):
             dialog.destroy()
 
     def set_scrolled_value(self, value) -> None:
-        logging.debug("set scrolled value: %d".format(value))
+        logger.debug("Set scrolled value: %d", value)
         self._webview.scroll_to_value(value)
 
     # def scroll_to_verse(self, verse) -> None:
