@@ -17,8 +17,6 @@ class ThekeDocumentView(Gtk.Paned):
     __gtype_name__ = "ThekeDocumentView"
 
     __gsignals__ = {
-        'toc-selection-changed': (GObject.SIGNAL_RUN_FIRST, None,
-                      (object,)),
         'document-load-changed': (GObject.SIGNAL_RUN_LAST, None,
                       (object, object)),
         'webview-mouse-target-changed': (GObject.SIGNAL_RUN_LAST, None,
@@ -98,7 +96,10 @@ class ThekeDocumentView(Gtk.Paned):
 
     @Gtk.Template.Callback()
     def _toc_treeSelection_changed_cb(self, tree_selection):
-        self.emit("toc-selection-changed", tree_selection)
+        model, treeIter = tree_selection.get_selected()
+
+        if treeIter is not None:
+            self._navigator.goto_section(model[treeIter][1])
 
     ### Other callbacks (from _webview)
     def _document_load_changed_cb(self, web_view, load_event):

@@ -59,8 +59,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeHistoryBar.set_button_clicked_callback(self.on_history_button_clicked)
 
         #   ... document view
-        #   ... document view > TOC
-        self._ThekeDocumentView.connect("toc-selection-changed", self.handle_toc_selection_changed)
         # ... document view > webview: where the document is displayed
         self._ThekeDocumentView.register_navigator(self._navigator)
         self._ThekeDocumentView.connect("document-load-changed", self.handle_document_load_changed)
@@ -224,12 +222,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_source_requested(self, object, sourceName):
         self._navigator.add_source(sourceName)
-
-    def handle_toc_selection_changed(self, object, tree_selection):
-        model, treeIter = tree_selection.get_selected()
-
-        if treeIter is not None:
-            self._navigator.goto_section(model[treeIter][1])
 
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
