@@ -123,11 +123,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 return True
 
     @Gtk.Template.Callback()
-    def _document_toolsBox_pane_max_position_notify_cb(self, object, param) -> None:
-        object.set_position(object.props.max_position)
-
-    @Gtk.Template.Callback()
-    def _document_search_pane_max_position_notify_cb(self, object, param) -> None:
+    def _pane_max_position_notify_cb(self, object, param) -> None:
+        """Set a pane to its maximal position
+        """
         object.set_position(object.props.max_position)
 
     @Gtk.Template.Callback()

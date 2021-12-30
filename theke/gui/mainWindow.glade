@@ -86,7 +86,7 @@ Author: a2ohm
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="orientation">vertical</property>
-            <signal name="notify::max-position" handler="_document_toolsBox_pane_max_position_notify_cb" swapped="no"/>
+            <signal name="notify::max-position" handler="_pane_max_position_notify_cb" swapped="no"/>
             <child>
               <object class="GtkBox">
                 <property name="visible">True</property>
@@ -98,7 +98,7 @@ Author: a2ohm
                     <property name="can-focus">True</property>
                     <property name="position">450</property>
                     <property name="position-set">True</property>
-                    <signal name="notify::max-position" handler="_document_search_pane_max_position_notify_cb" swapped="no"/>
+                    <signal name="notify::max-position" handler="_pane_max_position_notify_cb" swapped="no"/>
                     <child>
                       <object class="ThekeDocumentView" id="_ThekeDocumentView">
                         <property name="visible">True</property>
