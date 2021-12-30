@@ -124,7 +124,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 if self._ThekeGotoBar.has_focus():
                     self.fill_gotobar_with_current_reference()
                     self._ThekeDocumentView.grab_focus()
+                    return True
 
+                if self.props.local_search_mode_active:
+                    self.props.local_search_mode_active = False
+                    return True
 
     @Gtk.Template.Callback()
     def _pane_max_position_notify_cb(self, object, param) -> None:
