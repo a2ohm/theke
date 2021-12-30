@@ -116,6 +116,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox._toolsBox_dicoView.save()
                 return True
 
+        else:
+            if keyval == Gdk.KEY_Escape:
+                # If the gotobar has the focus, cancel,
+                # fill it with the current reference
+                # and give the focus back to the document view
+                if self._ThekeGotoBar.has_focus():
+                    self.fill_gotobar_with_current_reference()
+                    self._ThekeDocumentView.grab_focus()
+
+
     @Gtk.Template.Callback()
     def _pane_max_position_notify_cb(self, object, param) -> None:
         """Set a pane to its maximal position
@@ -156,6 +166,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the status bar with the title of the just loaded page
             contextId = self._statusbar.get_context_id("navigation")
             self._statusbar.push(contextId, str(self._navigator.title))
+
+            # Update the goto bar with the current reference
+            self.fill_gotobar_with_current_reference()
 
             # Update the history bar
             self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
@@ -226,3 +239,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
         return True
+
+    def fill_gotobar_with_current_reference(self) -> None:
+        """Fill the gotobar with the current reference
+        """
+        if self._navigator.ref.type in [theke.TYPE_BOOK, theke.TYPE_BIBLE]:
+            self._ThekeGotoBar.set_text(self._navigator.ref.get_short_repr())
+        else:
+            self._ThekeGotoBar.set_text('')
