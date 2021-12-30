@@ -22,10 +22,6 @@ logger = logging.getLogger(__name__)
 class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
-    __gsignals__ = {
-        'save': (GObject.SignalFlags.RUN_LAST | GObject.SignalFlags.ACTION, None, ())
-        }
-
     local_search_mode_active = GObject.Property(type=bool, default=False)
 
     _statusbar : Gtk.Statusbar = Gtk.Template.Child()
@@ -117,7 +113,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # ... Ctrl+s: save modifications in the personal dictionary
             elif keyval == Gdk.KEY_s:
-                self.emit("save")
+                self._ThekeToolsBox._toolsBox_dicoView.save()
                 return True
 
     @Gtk.Template.Callback()
@@ -134,11 +130,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         ref = theke.reference.parse_reference(entry.get_text().strip())
         if ref.type != theke.TYPE_UNKNOWN:
             self._navigator.goto_ref(ref)
-    
-    ### Signal handlers
-    def do_save(self) -> None:
-        self._ThekeToolsBox._toolsBox_dicoView.save()
-    ###
 
     ### Callbacks (_documentView)
     def _documentView_load_changed_cb(self, obj, web_view, load_event):
