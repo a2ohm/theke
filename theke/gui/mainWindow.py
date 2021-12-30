@@ -58,9 +58,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... historybar: shortcuts to last viewed documents
         self._ThekeHistoryBar.set_button_clicked_callback(self.on_history_button_clicked)
 
-        #   ... gotobar: entry to open any document
-        self._ThekeGotoBar.connect("activate", self.handle_gotobar_activate)
-
         #   ... document view
         #   ... document view > TOC
         self._ThekeDocumentView.connect("toc-selection-changed", self.handle_toc_selection_changed)
@@ -132,6 +129,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
     @Gtk.Template.Callback()
     def _document_search_pane_max_position_notify_cb(self, object, param) -> None:
         object.set_position(object.props.max_position)
+
+    @Gtk.Template.Callback()
+    def _ThekeGotoBar_activate_cb(self, entry):
+        '''@param entry: the object which received the signal.
+        '''
+
+        ref = theke.reference.parse_reference(entry.get_text().strip())
+        if ref.type != theke.TYPE_UNKNOWN:
+            self._navigator.goto_ref(ref)
     
     ### Signal handlers
     def do_save(self) -> None:
@@ -151,14 +157,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     def handle_delete_source(self, object, sourceName):
         self._navigator.delete_source(sourceName)
-
-    def handle_gotobar_activate(self, entry):
-        '''@param entry: the object which received the signal.
-        '''
-
-        ref = theke.reference.parse_reference(entry.get_text().strip())
-        if ref.type != theke.TYPE_UNKNOWN:
-            self._navigator.goto_ref(ref)
 
     def handle_document_load_changed(self, obj, web_view, load_event):
         if load_event == WebKit2.LoadEvent.STARTED:

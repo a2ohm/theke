@@ -65,6 +65,7 @@ Author: a2ohm
                 <property name="primary-icon-activatable">False</property>
                 <property name="primary-icon-sensitive">False</property>
                 <property name="placeholder-text" translatable="yes">Ouvrir un document</property>
+                <signal name="activate" handler="_ThekeGotoBar_activate_cb" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
