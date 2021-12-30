@@ -154,24 +154,14 @@ class ThekeWebView(WebKit2.WebView):
                 self._navigator.ref.set_title(web_view.get_title())
 
             # Inject the scrolling handler
-            # see https://www.codeguage.com/courses/js/events-scroll-event
-            script = """// Scrolling handler
-            var timeout = null;
-
-            window.onscroll = function(e) {
-                // clear any previously queued up timeout
-                clearTimeout(timeout);
-
-                // then create a fresh, new timeout
-                timeout = setTimeout(function(e) {
+            script = """
+                // Scrolling handler
+                window.onbeforeunload = function(){
                     // Get scroll position
                     scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    
-                    // Send its out of the webview
                     r = "theke:/signal/scroll_position?y_scroll=" + scrollTop;
                     fetch(r);
-            }, 500);
-            }"""
+                };"""
             self.run_javascript(script, None, None, None)
 
     # Webview API
