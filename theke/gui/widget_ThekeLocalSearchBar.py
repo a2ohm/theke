@@ -17,7 +17,9 @@ class ThekeLocalSearchBar(Gtk.Revealer):
 
     _search_bar = Gtk.Template.Child()
 
-    def finish_setup(self) -> None:
+    def __init__(self) -> None:
+        super().__init__()
+
         self.connect("notify::search-mode-active", self._search_mode_active_cb)
         self._search_bar.connect("next-match", lambda x: self.emit("search-next-match"))
         self._search_bar.connect("previous-match", lambda x: self.emit("search-previous-match"))

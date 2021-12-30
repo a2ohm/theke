@@ -63,8 +63,6 @@ class ThekeDocumentView(Gtk.Paned):
             GObject.BindingFlags.BIDIRECTIONAL
             | GObject.BindingFlags.SYNC_CREATE)
 
-        self._ThekeLocalSearchBar.finish_setup()
-
         # Add the webview into the document view
         # (this cannot be done in Glade)
         self._webview_scrolledWindow.add(self._webview)
