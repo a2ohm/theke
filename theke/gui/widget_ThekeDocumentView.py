@@ -105,6 +105,10 @@ class ThekeDocumentView(Gtk.Paned):
 
     ### Other callbacks (from _webview)
     def _document_load_changed_cb(self, web_view, load_event):
+        """Handle the load changed signal of the document view
+
+        This callback is run before mainWindow._documentView_load_changed_cb().
+        """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Update the table of content
             if self._navigator.toc is None:

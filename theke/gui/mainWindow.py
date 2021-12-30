@@ -61,22 +61,22 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... document view
         # ... document view > webview: where the document is displayed
         self._ThekeDocumentView.register_navigator(self._navigator)
-        self._ThekeDocumentView.connect("document-load-changed", self.handle_document_load_changed)
-        self._ThekeDocumentView.connect("webview-mouse-target-changed", self.handle_mouse_target_changed)
+        self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
+        self._ThekeDocumentView.connect("webview-mouse-target-changed", self._documentView_mouse_target_changed_cb)
 
         #   ... search panel
-        self._ThekeSearchView.connect("selection-changed", self.handle_searchResults_selection_changed)
-        self._ThekeSearchView.connect("start", self.handle_search_start)
-        self._ThekeSearchView.connect("finish", self.handle_search_finish)
+        self._ThekeSearchView.connect("selection-changed", self._searchView_selection_changed)
+        self._ThekeSearchView.connect("start", self._searchView_start_cb)
+        self._ThekeSearchView.connect("finish", self._searchView_finish_cb)
 
         # ... tools view
-        self._ThekeToolsBox.search_button_connect(self.handle_morphview_searchButton_clicked)
-        self._navigator.connect("notify::selectedWord", self.handle_selected_word_changed)
+        self._ThekeToolsBox.search_button_connect(self._toolsBox_searchButton_clicked_cb)
+        self._navigator.connect("notify::selectedWord", self._navigator_selected_word_changed_cb)
 
         # BOTTOM
         #   ... sources bar
-        self._ThekeSourcesBar.connect("source-requested", self.handle_source_requested)
-        self._ThekeSourcesBar.connect("delete-source", self.handle_delete_source)
+        self._ThekeSourcesBar.connect("source-requested", self._sourceBar_source_requested_cb)
+        self._ThekeSourcesBar.connect("delete-source", self._sourceBar_delete_source_cb)
 
         self._navigator.connect("context-updated", self._navigator_context_updated_cb)
 
@@ -140,21 +140,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeToolsBox._toolsBox_dicoView.save()
     ###
 
-    ### Callbacks (_navigator)
-    def _navigator_context_updated_cb(self, object, update_type) -> None:
-        if update_type == theke.navigator.NEW_DOCUMENT:
-            self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
-            self._ThekeSourcesBar.updateSources(self._navigator.sources)
+    ### Callbacks (_documentView)
+    def _documentView_load_changed_cb(self, obj, web_view, load_event):
+        """Handle the load changed signal of the document view
 
-        if update_type == theke.navigator.SOURCES_UPDATED:
-            self._ThekeSourcesBar.updateSources(self._navigator.sources)
-
-    ### Callbacks (other)
-
-    def handle_delete_source(self, object, sourceName):
-        self._navigator.delete_source(sourceName)
-
-    def handle_document_load_changed(self, obj, web_view, load_event):
+        This callback is run after _ThekeDocumentView._document_load_changed_cb().
+        """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Update the status bar with the title of the just loaded page
             contextId = self._statusbar.get_context_id("navigation")
@@ -184,7 +175,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             self._loading_spinner.stop()
 
-    def handle_mouse_target_changed(self, obj, web_view, hit_test_result, modifiers):
+    def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
+        """Links hovered over by the mouse are shown in the status bar
+        """
         if hit_test_result.context_is_link():
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
@@ -193,25 +186,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
 
-    def handle_morphview_searchButton_clicked(self, button):
-        self._ThekeSearchView.show()
-        self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.rawStrong)
+    ### Callbacks (_navigator)
+    def _navigator_context_updated_cb(self, object, update_type) -> None:
+        if update_type == theke.navigator.NEW_DOCUMENT:
+            self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
+            self._ThekeSourcesBar.updateSources(self._navigator.sources)
 
-    def handle_searchResults_selection_changed(self, object, result):
-        ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)
-        
-        if ref.type == theke.TYPE_UNKNOWN:
-            logger.error("Reference type not supported in search results: %s", result.referenceType)
-        else:
-            self._navigator.goto_ref(ref)
+        if update_type == theke.navigator.SOURCES_UPDATED:
+            self._ThekeSourcesBar.updateSources(self._navigator.sources)
 
-    def handle_search_start(self, object, moduleName, lemma):
-        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(False)
-
-    def handle_search_finish(self, object):
-        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(True)
-
-    def handle_selected_word_changed(self, object, params):
+    def _navigator_selected_word_changed_cb(self, object, params):
+        """Transmit the selected word to the tools box
+        """
         w = self._navigator.selectedWord
 
         self._ThekeToolsBox.set_morph(w.word, w.morph)
@@ -220,9 +206,32 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeToolsBox.set_strongs(w.strong)
         self._ThekeToolsBox.show()
 
-    def handle_source_requested(self, object, sourceName):
+    ### Callbacks (_searchView)
+    def _searchView_selection_changed(self, object, result):
+        """Goto to the selected search result
+        """
+        ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)
+        self._navigator.goto_ref(ref)  
+
+    def _searchView_start_cb(self, object, moduleName, lemma):
+        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(False)
+
+    def _searchView_finish_cb(self, object):
+        self._ThekeToolsBox._toolsBox_search_button.set_sensitive(True)  
+
+    ### Callbacks (_sourceBar)
+    def _sourceBar_delete_source_cb(self, object, sourceName):
+        self._navigator.delete_source(sourceName)
+    
+    def _sourceBar_source_requested_cb(self, object, sourceName):
         self._navigator.add_source(sourceName)
 
+    ### Callbacks (_toolsBox)
+    def _toolsBox_searchButton_clicked_cb(self, button):
+        self._ThekeSearchView.show()
+        self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.rawStrong)
+
+    ### Callbacks (other)
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
         return True
