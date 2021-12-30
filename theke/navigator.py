@@ -137,7 +137,11 @@ class ThekeNavigator(GObject.Object):
             --> the context is updated
         """
 
-        if ref.type == theke.TYPE_BIBLE:
+        if ref.type == theke.TYPE_UNKNOWN:
+            logger.error("Reference type not supported: %s", ref)
+            return
+
+        elif ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
             if (self.ref.type == theke.TYPE_BIBLE and
