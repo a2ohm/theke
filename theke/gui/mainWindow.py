@@ -87,18 +87,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             "local-search-mode-active", self._ThekeDocumentView, "local-search-mode-active",
             GObject.BindingFlags.BIDIRECTIONAL
             | GObject.BindingFlags.SYNC_CREATE)
-
-        # SET ACCELERATORS (keyboard shortcuts)
-        accelerators = Gtk.AccelGroup()
-        self.add_accel_group(accelerators)
-
-        # ... Ctrl+l: give focus to the gotobar
-        key, mod = Gtk.accelerator_parse('<Control>l')
-        self._ThekeGotoBar.add_accelerator('grab-focus', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
-
-        # ... Ctrl+s: save modifications in the personal dictionary
-        key, mod = Gtk.accelerator_parse('<Control>s')
-        self.add_accelerator('save', accelerators, key, mod, Gtk.AccelFlags.VISIBLE)
         
         # Set the focus on the webview
         self._ThekeDocumentView.grab_focus()
@@ -106,6 +94,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
     ### Callbacks (from glade)
     @Gtk.Template.Callback()
     def mainWindow_key_press_event_cb(self, widget, event) -> None:
+        """Handle shortcuts
+        """
         modifiers = event.get_state() & Gtk.accelerator_get_default_mod_mask()
         (_, keyval) = event.get_keyval()
 
@@ -113,13 +103,23 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # Ctrl+<KEY>
         if control_mask == modifiers:
-            # Open search bar on Ctrl + F
+            # ... Ctrl+f: open search bar
             if keyval == Gdk.KEY_f:
                 searchMode = self.props.local_search_mode_active
                 if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
                     self._ThekeDocumentView.local_search_bar_grab_focus()
                 else:
                     self.props.local_search_mode_active = not searchMode
+                return True
+
+            # ... Ctrl+l: give focus to the gotobar
+            elif keyval == Gdk.KEY_l:
+                self._ThekeGotoBar.grab_focus()
+                return True
+
+            # ... Ctrl+s: save modifications in the personal dictionary
+            elif keyval == Gdk.KEY_s:
+                self.emit("save")
                 return True
 
     @Gtk.Template.Callback()
