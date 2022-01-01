@@ -79,11 +79,12 @@ Installez PyGObject.
 
 #### Autres librairies
 
-Installez les autres librairies requises : BeautifulSoup4, Jinja2, PyYaml.
+Installez les autres librairies requises : BeautifulSoup4, Jinja2, PyYaml, Requests.
 
 * `pip3 install beautifulsoup4`
 * `pip3 install Jinja2`
 * `pip3 install pyyaml`
+* `pip3 install requests`
 
 #### Sword
 
