@@ -42,7 +42,7 @@ class ThekeApp(Gtk.Application):
         Gtk.Application.do_startup(self)
 
         # Create some directories
-        for path in [theke.PATH_ROOT, theke.PATH_DATA, theke.PATH_EXTERNAL]:
+        for path in [theke.PATH_ROOT, theke.PATH_DATA, theke.PATH_EXTERNAL, theke.PATH_CACHE]:
             if not os.path.isdir(path):
                 logger.debug("ThekeApp − Make dir : %s", path)
                 os.mkdir(path)
