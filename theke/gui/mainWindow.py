@@ -247,7 +247,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def fill_gotobar_with_current_reference(self) -> None:
         """Fill the gotobar with the current reference
         """
-        if self._navigator.ref.type in [theke.TYPE_BOOK, theke.TYPE_BIBLE]:
+        if self._navigator.ref.type == theke.TYPE_BIBLE:
             self._ThekeGotoBar.set_text(self._navigator.ref.get_short_repr())
+        elif self._navigator.ref.type == theke.TYPE_BOOK:
+            self._ThekeGotoBar.set_text(self._navigator.ref.get_repr())
         else:
             self._ThekeGotoBar.set_text('')
