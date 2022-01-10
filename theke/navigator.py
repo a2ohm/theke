@@ -144,7 +144,8 @@ class ThekeNavigator(GObject.Object):
         elif ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
-            if (self.ref.type == theke.TYPE_BIBLE and
+            if (self.ref is not None and
+                self.ref.type == theke.TYPE_BIBLE and
                 self.ref.bookName == ref.bookName and
                 self.ref.chapter == ref.chapter and
                 self.ref.verse != ref.verse):
