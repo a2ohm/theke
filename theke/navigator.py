@@ -173,6 +173,9 @@ class ThekeNavigator(GObject.Object):
                     contentUri = self.index.get_source_uri(ref.sources[0])
                     theke.externalCache.cache_document_from_external_source(ref.sources[0], contentUri)
 
+                if not theke.externalCache.is_cache_cleaned(ref.sources[0]):
+                    theke.externalCache._build_clean_document(ref.sources[0])
+
             with self.freeze_notify():
                 self.set_property("ref", ref)
                 self.set_property("toc", None)
@@ -249,7 +252,14 @@ class ThekeNavigator(GObject.Object):
                         html = self.get_external_book_content()
 
             else:
-                raise ValueError('Unsupported theke uri: {}.'.format(uri))
+                # Temporary solution:
+                #   Permit to load document from a cached source
+                #   even if it contains images and other contents
+                #   that are not cached
+
+                #raise ValueError('Unsupported theke uri: {}.'.format(uri))
+                logger.error('Unsupported theke uri: %s.', uri)
+                html = ''
 
             html_bytes = GLib.Bytes.new(html.encode('utf-8'))
             tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
@@ -304,16 +314,11 @@ class ThekeNavigator(GObject.Object):
         """Load an external source
         """
 
-        text = theke.externalCache.get_document(self.ref.sources[0])
+        document_path = theke.externalCache.get_source_file_path(self.ref.sources[0], relative=True)
 
-        if text is None:
-            text = """<p>Ce texte n'a pas été trouvé.</p>
-            <p>uri : {}</p>""".format(self.ref.get_uri())
-
-        return theke.templates.render('book', {
+        return theke.templates.render('external_book', {
             'ref': self.ref,
-            'mod_description': '',
-            'text': text})
+            'document_path': document_path})
 
     ### Signals handling
 
@@ -373,14 +378,7 @@ class ThekeNavigator(GObject.Object):
 
     @GObject.Property(type=str)
     def contentUri(self):
-        """Encoded URI to be used to recover the document content.
-
-        This is the theke uri except for external documents.
+        """Return the uri of the document
         """
-        if self.ref.type == theke.TYPE_BOOK:
-            sourceType = self.index.get_source_type(self.ref.sources[0])
-
-            if sourceType == theke.index.SOURCETYPE_EXTERN:
-                return self.index.get_source_uri(self.ref.sources[0])
 
         return self.ref.get_uri().get_encoded_URI()
