@@ -38,7 +38,7 @@ class ThekeApp(Gtk.Application):
             GLib.OptionFlags.NONE,
             GLib.OptionArg.STRING,
             "Open this uri",
-            None,
+            "URI",
         )
 
         self._window = None
