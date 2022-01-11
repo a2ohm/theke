@@ -46,7 +46,7 @@ def build(scheme, path, params = None, fragment='', sources = None):
 
     return ThekeURI(scheme, '', path, params, fragment)
 
-def parse(uri, isEncoded = True):
+def parse(uri):
     '''Parse an uri and return a ThekeURI instance.
 
     Valids uri are (for example):
@@ -65,12 +65,11 @@ def parse(uri, isEncoded = True):
     for q in query.split('&'):
         if len(q) > 0:
             name, value = q.split('=')
-            params[name] = urllib.parse.unquote(value) if isEncoded else value
+            params[name] = urllib.parse.unquote(value)
     
-    # Store everything uncoded
-    if isEncoded:
-        path = urllib.parse.unquote(path)
-        fragment = urllib.parse.unquote(fragment)
+    # Store everything without %xx escape equivalent
+    path = urllib.parse.unquote(path)
+    fragment = urllib.parse.unquote(fragment)
 
     # /!\ If the path begins with a '/', the first element of path is an empty string
     #   /bible/John 1:1 --> ['', 'bible', 'John 1:1']
@@ -97,7 +96,7 @@ def unparse_path(path, quote = False):
         return '/'.join(path)
 
 class ThekeURI:
-    def __init__(self, scheme, netlock, path, params, fragment, isEncoded = True):
+    def __init__(self, scheme, netlock, path, params, fragment):
         self.scheme = scheme
         self.netlock = netlock
         self.path = path
@@ -135,16 +134,15 @@ class ThekeURI:
                 return True
         return False
 
-
 if __name__ == "__main__":
-    uri1 = parse("sword:bible/John 1:1?source=MorphGNT")
+    uri1 = parse("theke:/doc/bible/John 1:1?source=MorphGNT")
     print(uri1.get_decoded_URI())
     print(uri1.get_encoded_URI())
 
-    uri2 = parse("theke:pomme/poire/abricot/welcome.html")
+    uri2 = parse("theke:/doc/pomme/poire/abricot/welcome.html")
     print(uri2.get_decoded_URI())
     print(uri2.get_encoded_URI())
 
-    uri3 = parse("sword:bible/John%201%3A1?source=MorphGNT", isEncoded=True)
+    uri3 = parse("theke:/doc/bible/John%201%3A1?source=MorphGNT")
     print(uri3.get_decoded_URI())
     print(uri3.get_encoded_URI())

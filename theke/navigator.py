@@ -70,7 +70,7 @@ class ThekeNavigator(GObject.Object):
             logger.debug("Goto uri: %s", uri)
 
             if isinstance(uri, str):
-                uri = theke.uri.parse(uri, isEncoded=True)
+                uri = theke.uri.parse(uri)
 
             self.update_context_from_uri(uri)
 

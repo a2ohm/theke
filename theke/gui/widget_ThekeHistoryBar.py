@@ -9,7 +9,7 @@ MAX_NUMBER_OF_BUTTONS = 6
 import theke
 import theke.uri
 
-home_uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
+home_uri = theke.uri.parse(theke.URI_WELCOME)
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeHistoryBar.glade')
 class ThekeHistoryBar(Gtk.ButtonBox):

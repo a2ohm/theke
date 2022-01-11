@@ -107,7 +107,7 @@ class ThekeApp(Gtk.Application):
         theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
 
         # Load the main screen
-        uri = theke.uri.parse(self._defaultUri, isEncoded=True)
+        uri = theke.uri.parse(self._defaultUri)
         self._navigator.goto_uri(uri)
 
     def do_command_line(self, command_line):
