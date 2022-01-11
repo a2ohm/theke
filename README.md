@@ -119,18 +119,18 @@ Pour lancer Theke, exécuter la commande suivante depuis le répertoire du proje
 
 * `python3 theke.py`
 
-**Options**
+#### Options
 
 * `--debug, -d` : affiche tous les messages de débogage.
 * `--uri, -u` : lance Theke et ouvre directement l'uri donnée.
 
 **Exemple.** `python3 theke.py --uri "theke:/doc/bible/Hebrews 1?sources=MorphGNT"`
 
-**Uri**
+#### Uri
 
 Chaque document accessible dans Theke est désigné par une [uri](https://fr.wikipedia.org/wiki/Uniform_Resource_Identifier). Cette uri peut aussi indiquer la ou les sources à utiliser pour afficher le document.
 
-* `theke:/app/help` : uri de la page d'aide
+* `theke:/app/help` : uri de la page d'aide.
 * `theke:/doc/bible/Hebrews 1` : uri du premier chapitre de la lettre aux Hébreux.
 * `theke:/doc/bible/Isaiah 6?sources=OSHB` : uri du sixième chapitre du livre d'Isaïe, dans le module OSHB.
 * `theke:/doc/book/Lumen Gentium` : uri vers la constitution *Lumen Gentium*.
