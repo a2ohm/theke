@@ -71,7 +71,7 @@ class ThekeNavigator(GObject.Object):
             logger.debug("Goto uri: %s", uri)
 
             if isinstance(uri, str):
-                uri = theke.uri.parse(uri, isEncoded=True)
+                uri = theke.uri.parse(uri)
 
             self.update_context_from_uri(uri)
 
@@ -141,7 +141,8 @@ class ThekeNavigator(GObject.Object):
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
-            if (self.ref.type == theke.TYPE_BIBLE and
+            if (self.ref is not None and
+                self.ref.type == theke.TYPE_BIBLE and
                 self.ref.bookName == ref.bookName and
                 self.ref.chapter == ref.chapter and
                 self.ref.verse != ref.verse):

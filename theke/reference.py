@@ -24,7 +24,7 @@ def get_reference_from_uri(uri):
         return WebpageReference(uri = uri)
 
     if uri.path[1] == theke.uri.SEGM_APP:
-        return InAppReference(uri.path[2])
+        return InAppReference(uri.path[2], section = uri.fragment)
 
     if uri.path[1] == theke.uri.SEGM_DOC:
         if uri.path[2] == theke.uri.SEGM_BIBLE:
@@ -280,18 +280,20 @@ class BookReference(DocumentReference):
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
 
 class InAppReference(Reference):
-    def __init__(self, rawReference):
+    def __init__(self, rawReference, section = None):
         super().__init__(rawReference)
 
         logger.debug("Reference − Create a inApp reference : %s", rawReference)
 
         self.type = theke.TYPE_INAPP
+        self.section = section or ''
+        
         self.inAppUriData = theke.uri.inAppURI[self.rawReference]
         self.documentName = self.inAppUriData.title
         self.documentShortname = self.inAppUriData.shortTitle
 
     def get_uri(self) -> Any:
-        return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_APP, self.rawReference], fragment=self.section)
 
 class WebpageReference(Reference):
     def __init__(self, title = "???", section = None, uri = None):

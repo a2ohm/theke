@@ -92,7 +92,7 @@ class ThekeWebView(WebKit2.WebView):
                 decision.use()
                 return True
 
-            uri = theke.uri.parse(decision.get_request().get_uri(), isEncoded=True)
+            uri = theke.uri.parse(decision.get_request().get_uri())
 
             if uri.scheme not in theke.uri.validSchemes:
                 logger.error("Unsupported uri: %s", uri)
@@ -120,7 +120,7 @@ class ThekeWebView(WebKit2.WebView):
         Case 1. The uri is a Theke signal
             eg. uri = theke:/signal/click_on_word?word=...
         """
-        uri = theke.uri.parse(request.get_uri(), isEncoded = True)
+        uri = theke.uri.parse(request.get_uri())
 
         if uri.path[1] == theke.uri.SEGM_SIGNAL:
             # Case 1. The uri is a signal

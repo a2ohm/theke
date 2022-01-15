@@ -15,12 +15,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ThekeApp(Gtk.Application):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         logger.debug("ThekeApp - Create a new instance")
 
-        Gtk.Application.__init__(self,
-                                 application_id="com.github.a2ohm.theke",
-                                 flags=Gio.ApplicationFlags.FLAGS_NONE)
+        super().__init__(*args,
+                        application_id="com.github.a2ohm.theke",
+                        flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE,
+                        **kwargs)
 
         self.add_main_option(
             "debug",
@@ -31,8 +32,19 @@ class ThekeApp(Gtk.Application):
             None,
         )
 
+        self.add_main_option(
+            "uri",
+            ord("u"),
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING,
+            "Open this uri",
+            "URI",
+        )
+
         self._window = None
         self._navigator = None
+
+        self._defaultUri = theke.URI_WELCOME
 
     def do_startup(self):
         """Sets up the application when it first starts
@@ -95,5 +107,18 @@ class ThekeApp(Gtk.Application):
         theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
 
         # Load the main screen
-        uri = theke.uri.parse(theke.URI_WELCOME, isEncoded=True)
+        uri = theke.uri.parse(self._defaultUri)
         self._navigator.goto_uri(uri)
+
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        # convert GVariantDict -> GVariant -> dict
+        options = options.end().unpack()
+
+        if "uri" in options:
+            # Start Theke with this uri
+            logger.debug("Uri read from the command line: %s", options["uri"])
+            self._defaultUri = options["uri"]
+
+        self.activate()
+        return 0
