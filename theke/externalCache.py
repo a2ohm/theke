@@ -2,7 +2,8 @@ import logging
 
 import os
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, SoupStrainer
+from bs4.element import NavigableString
 
 import theke
 
@@ -73,41 +74,53 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
 
     with open(path_rawDocument, 'r') as rawFile:
-        soup = BeautifulSoup(rawFile, 'html.parser')
+        soup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
 
-    script_content = "body"
-    clean_content = soup.select_one(script_content)
+    # cleaning_rules = {
+    #     'content': {
+    #         'selector': 'div.documento div.text:nth-child(2)'
+    #     },
+    #     'remove': [
+    #         'p[align=center]:has(:not(b))'
+    #     ],
+    #     'layouts': [
+    #         ('h2', 'p[align=center]:has(b)'),
+    #         ('h3', 'p:has(b)')
+    #     ]
+    # }
 
-    # # Clean things
-    # script_content = "div.documento div.text:nth-child(2)"
-    # script_h1 = "p[align=center]:nth-child(1)"
-    # script_h2 = "p[align=center]:nth-child(n+1)"
+    def remove_empty_tags(tag):
+        """Recursively remove empty tags"""
+        if isinstance(tag, NavigableString):
+            return
 
-    # tags_to_unwrap = ["font"]
-    
-    # # Get the main content
-    # clean_content = soup.select_one(script_content)
+        if tag.get_text(strip=True) == '':
+            tag.decompose()
+            return
 
-    # # Unwrap some tags
-    # for tag in clean_content(tags_to_unwrap):
-    #     tag.unwrap()
+        for childTag in tag.children:
+            remove_empty_tags(childTag)   
 
-    # # Format the main title
-    # tag = clean_content.select_one(script_h1)
-    # tag.name = "h1"
-    # del tag['align']
+    # Get the main content
+    #content = soup.select_one(cleaning_rules['content']['selector'])
+    content = soup.body
+    remove_empty_tags(content)
 
-    # # Format titles
-    # for tag in clean_content.select(script_h2):
-    #     if tag.get_text().strip() == '':
+    # # Remove some tags
+    # for rule in cleaning_rules['remove']:
+    #     for tag in content.select(rule):
     #         tag.decompose()
-    #     else:
-    #         tag.name = "h2"
-    #         del tag['align']
+
+    # # Apply layout rules
+    # for layout, rule in cleaning_rules['layouts']:
+    #     for tag in content.select(rule):
+    #         new_tag = soup.new_tag(layout)
+    #         new_tag.string = tag.get_text(strip = True)
+    #         tag.replace_with(new_tag)
 
     # Save the clean document
     with open(path_cleanDocument, 'w') as cleanFile:
-        cleanFile.write(str(clean_content)) #.prettify()
+        cleanFile.write(str(content)) #.prettify()
 
 def _get_source_path(sourceName) -> str:
     return os.path.join(theke.PATH_CACHE, sourceName)
