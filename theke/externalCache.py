@@ -8,13 +8,16 @@ import theke
 
 logger = logging.getLogger(__name__)
 
+PATH_SUFFIX_RAW = '_raw'
+PATH_SUFFIX_CLEAN = ''
+
 def is_source_cached(sourceName) -> bool:
     """Return true if a source is cached
 
     Notice. By default, the cache is in ~/.local/share/theke/cache/.
     """
 
-    if os.path.isfile(get_source_file_path(sourceName, '_raw')):
+    if os.path.isfile(get_source_file_path(sourceName, PATH_SUFFIX_RAW)):
         logger.debug("Source found in the cache: %s", sourceName)
         return True
 
@@ -38,7 +41,7 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
     logger.debug("Cache a document from an external source: %s [%s]", sourceName, contentUri)
 
     path_source = _get_source_path(sourceName)
-    path_rawDocument = get_source_file_path(sourceName, '_raw')
+    path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
 
     if not os.path.isdir(path_source):
         os.mkdir(path_source)
@@ -67,7 +70,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
     path_cleanDocument = get_source_file_path(sourceName)
 
     if path_rawDocument is None:
-        path_rawDocument = get_source_file_path(sourceName, '_raw')
+        path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
 
     with open(path_rawDocument, 'r') as rawFile:
         soup = BeautifulSoup(rawFile, 'html.parser')
