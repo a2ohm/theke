@@ -1,6 +1,7 @@
 import logging
 
 import os
+import yaml
 import requests
 from bs4 import BeautifulSoup, SoupStrainer
 from bs4.element import NavigableString
@@ -68,26 +69,14 @@ def get_document(sourceName) -> str:
 def _build_clean_document(sourceName, path_rawDocument = None):
     """Build a clean document from a raw one
     """
-    path_cleanDocument = get_source_file_path(sourceName)
-
     if path_rawDocument is None:
         path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
+    
+    logger.debug("Clean: %s", path_rawDocument)
 
+    # Parse the document from the raw source
     with open(path_rawDocument, 'r') as rawFile:
         soup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
-
-    # cleaning_rules = {
-    #     'content': {
-    #         'selector': 'div.documento div.text:nth-child(2)'
-    #     },
-    #     'remove': [
-    #         'p[align=center]:has(:not(b))'
-    #     ],
-    #     'layouts': [
-    #         ('h2', 'p[align=center]:has(b)'),
-    #         ('h3', 'p:has(b)')
-    #     ]
-    # }
 
     def remove_empty_tags(tag):
         """Recursively remove empty tags"""
@@ -99,28 +88,49 @@ def _build_clean_document(sourceName, path_rawDocument = None):
             return
 
         for childTag in tag.children:
-            remove_empty_tags(childTag)   
+            remove_empty_tags(childTag)
 
-    # Get the main content
-    #content = soup.select_one(cleaning_rules['content']['selector'])
-    content = soup.body
-    remove_empty_tags(content)
+    # Load cleaning rules from the source definition
+    path_sourceDefinition = _get_source_definition_path(sourceName)
+    externalData = yaml.safe_load(open(path_sourceDefinition, 'r'))
+    cleaning_rules = externalData.get('cleaning_rules', None)
 
-    # # Remove some tags
-    # for rule in cleaning_rules['remove']:
-    #     for tag in content.select(rule):
-    #         tag.decompose()
+    if cleaning_rules is None:
+        logger.debug("No cleaning rules in %s", path_sourceDefinition)
 
-    # # Apply layout rules
-    # for layout, rule in cleaning_rules['layouts']:
-    #     for tag in content.select(rule):
-    #         new_tag = soup.new_tag(layout)
-    #         new_tag.string = tag.get_text(strip = True)
-    #         tag.replace_with(new_tag)
+        # Get the default main content
+        content = soup.body
+        remove_empty_tags(content)
+
+    else:
+        logger.debug("Use cleaning rules from %s", path_sourceDefinition)
+
+        # Get the main content
+        content = soup.select_one(cleaning_rules['content']['selector'])
+        remove_empty_tags(content)
+
+        # Apply cleaning rules (version 1)...
+        # ... remove some tags
+        for rule in cleaning_rules['remove']:
+            logger.debug("... remove tag: %s", rule)
+            for tag in content.select(rule):
+                tag.decompose()
+
+        # ... apply layout rules
+        for layout in cleaning_rules['layouts']:
+            logger.debug("... apply layout: %s", layout)
+            for tag in content.select(cleaning_rules['layouts'][layout]['selector']):
+                new_tag = soup.new_tag(layout)
+                new_tag.string = tag.get_text(strip = True)
+                tag.replace_with(new_tag)
 
     # Save the clean document
+    path_cleanDocument = get_source_file_path(sourceName)
     with open(path_cleanDocument, 'w') as cleanFile:
-        cleanFile.write(str(content)) #.prettify()
+        cleanFile.write(str(content))
+
+def _get_source_definition_path(sourceName) -> str:
+    return os.path.join(theke.PATH_EXTERNAL, "{}.yaml".format(sourceName))
 
 def _get_source_path(sourceName) -> str:
     return os.path.join(theke.PATH_CACHE, sourceName)
@@ -141,6 +151,9 @@ def get_source_file_path(sourceName, suffix = '', relative = False) -> str:
 if __name__ == "__main__":
     class theke:
         PATH_CACHE = "/home/antoine/.local/share/theke/cache"
+        PATH_EXTERNAL = "/home/antoine/.local/share/theke/external"
+
+    logging.basicConfig(level=logging.DEBUG)
 
     sourceName = "2016_amoris laetitia"
     path_rawDocument = "/home/antoine/.local/share/theke/cache/2016_amoris laetitia/2016_amoris laetitia_raw.html"
