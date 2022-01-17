@@ -11,7 +11,8 @@ import theke
 logger = logging.getLogger(__name__)
 
 PATH_SUFFIX_RAW = '_raw'
-PATH_SUFFIX_CLEAN = ''
+PATH_SUFFIX_AUTOMATICALLY_CLEANED = '_auto'
+PATH_SUFFIX_MANUALLY_CLEANED = ''
 
 def is_source_cached(sourceName) -> bool:
     """Return true if a source is cached
@@ -19,8 +20,8 @@ def is_source_cached(sourceName) -> bool:
     Notice. By default, the cache is in ~/.local/share/theke/cache/.
     """
 
-    if os.path.isfile(get_source_file_path(sourceName, PATH_SUFFIX_RAW)):
-        logger.debug("Source found in the cache: %s", sourceName)
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_RAW)):
+        logger.debug("Raw source found in the cache: %s", sourceName)
         return True
 
     logger.debug("Source not cached: %s", sourceName)
@@ -30,8 +31,12 @@ def is_cache_cleaned(sourceName) -> bool:
     """Return true if a clean version of the cache exist
     """
 
-    if os.path.isfile(get_source_file_path(sourceName)):
-        logger.debug("Clean source found in the cache: %s", sourceName)
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED)):
+        logger.debug("Manually cleaned source found in the cache: %s", sourceName)
+        return True
+
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)):
+        logger.debug("Automatically cleaned source found in the cache: %s", sourceName)
         return True
 
     logger.debug("Source not cleaned: %s", sourceName)
@@ -43,7 +48,7 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
     logger.debug("Cache a document from an external source: %s [%s]", sourceName, contentUri)
 
     path_source = _get_source_path(sourceName)
-    path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
+    path_rawDocument = _get_source_file_path(sourceName, PATH_SUFFIX_RAW)
 
     if not os.path.isdir(path_source):
         os.mkdir(path_source)
@@ -70,7 +75,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
     """Build a clean document from a raw one
     """
     if path_rawDocument is None:
-        path_rawDocument = get_source_file_path(sourceName, PATH_SUFFIX_RAW)
+        path_rawDocument = _get_source_file_path(sourceName, PATH_SUFFIX_RAW)
     
     logger.debug("Clean: %s", path_rawDocument)
 
@@ -111,13 +116,13 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
         # Apply cleaning rules (version 1)...
         # ... remove some tags
-        for rule in cleaning_rules['remove']:
+        for rule in cleaning_rules.get('remove', []):
             logger.debug("... remove tag: %s", rule)
             for tag in content.select(rule):
                 tag.decompose()
 
         # ... apply layout rules
-        for layout in cleaning_rules['layouts']:
+        for layout in cleaning_rules.get('layouts', []):
             logger.debug("... apply layout: %s", layout)
             for tag in content.select(cleaning_rules['layouts'][layout]['selector']):
                 new_tag = soup.new_tag(layout)
@@ -125,7 +130,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                 tag.replace_with(new_tag)
 
     # Save the clean document
-    path_cleanDocument = get_source_file_path(sourceName)
+    path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
     with open(path_cleanDocument, 'w') as cleanFile:
         cleanFile.write(str(content))
 
@@ -135,8 +140,8 @@ def _get_source_definition_path(sourceName) -> str:
 def _get_source_path(sourceName) -> str:
     return os.path.join(theke.PATH_CACHE, sourceName)
 
-def get_source_file_path(sourceName, suffix = '', relative = False) -> str:
-    """Return the absolute path to a source file from the cache
+def _get_source_file_path(sourceName, suffix = '', relative = False) -> str:
+    """Return the path to a source file from the cache
 
     @param sourceName: (str) name of the source
     @param suffix: (str)    '' --> clean version of the source
@@ -147,6 +152,24 @@ def get_source_file_path(sourceName, suffix = '', relative = False) -> str:
         return os.path.join(sourceName, "{}{}.html".format(sourceName, suffix))
     else:
         return os.path.join(_get_source_path(sourceName), "{}{}.html".format(sourceName, suffix))
+
+def get_best_source_file_path(sourceName, relative = False) -> str:
+    """Return the path to to best source file from the cache
+    
+    A source can exist in different version in the cache
+    (from the best to the worst)
+    - manually cleaned: the cleaning was manually improved
+    - automatically cleaned: the source was automatically cleaned
+            according to cleaning rules from the definition file
+    """
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED)):
+        return _get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED, relative)
+
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)):
+        return _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED, relative)
+
+    else:
+        logger.error("No source file found for %s", sourceName)
 
 if __name__ == "__main__":
     class theke:

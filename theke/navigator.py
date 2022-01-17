@@ -315,7 +315,7 @@ class ThekeNavigator(GObject.Object):
         """Load an external source
         """
 
-        document_path = theke.externalCache.get_source_file_path(self.ref.sources[0], relative=True)
+        document_path = theke.externalCache.get_best_source_file_path(self.ref.sources[0], relative=True)
 
         return theke.templates.render('external_book', {
             'ref': self.ref,
