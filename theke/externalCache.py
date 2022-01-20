@@ -1,6 +1,7 @@
 import logging
 
 import os
+import re
 import yaml
 import requests
 from bs4 import BeautifulSoup, SoupStrainer
@@ -112,11 +113,30 @@ def layout_h3_cb(soup, tag, params):
     new_tag.string = tag.get_text(strip = True)
     tag.replace_with(new_tag)
 
+pattern_numberedParagraph = re.compile(r'^(?P<number>\d+)\.(?P<text>.*)')
+
+def layout_p_cb(soup, tag, params):  
+    text = tag.get_text(strip = True)
+    match_numberedParagraph = pattern_numberedParagraph.match(text)
+
+    if match_numberedParagraph:
+        # If the paragraph start with a number, this is a numbered paragraph
+        # then add an anchor
+        anchorTag = soup.new_tag('span')
+        anchorTag.string = "{}.".format(match_numberedParagraph.group('number'))
+        anchorTag['id'] = match_numberedParagraph.group('number')
+        anchorTag['class'] = "paragraph_number"
+
+        tag.string = pattern_numberedParagraph.sub('\g<text>', text)
+        tag.string.insert_before(anchorTag)
+        
 ###
 
+# Layout rules will be applied in this order
 layout_rules_callbacks = [
     ('h2', layout_h2_cb),
-    ('h3', layout_h3_cb)
+    ('h3', layout_h3_cb),
+    ('p', layout_p_cb)
 ]
 
 def _build_clean_document(sourceName, path_rawDocument = None):
