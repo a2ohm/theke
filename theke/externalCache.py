@@ -100,7 +100,24 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
         for chunk in r.iter_content(chunk_size=128):
             fd.write(chunk)
 
+### Layout formatter callbacks
+
+def layout_h2_cb(soup, tag, params):
+    new_tag = soup.new_tag('h2')
+    new_tag.string = tag.get_text(strip = True)
+    tag.replace_with(new_tag)
+
+def layout_h3_cb(soup, tag, params):
+    new_tag = soup.new_tag('h3')
+    new_tag.string = tag.get_text(strip = True)
+    tag.replace_with(new_tag)
+
 ###
+
+layout_rules_callbacks = [
+    ('h2', layout_h2_cb),
+    ('h3', layout_h3_cb)
+]
 
 def _build_clean_document(sourceName, path_rawDocument = None):
     """Build a clean document from a raw one
@@ -153,19 +170,18 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                 tag.decompose()
 
         # ... apply layout rules
-        for layout in cleaning_rules.get('layouts', []):
-            logger.debug("... apply layout: %s", layout)
-            for tag in content.select(cleaning_rules['layouts'][layout]['selector']):
-                new_tag = soup.new_tag(layout)
-                new_tag.string = tag.get_text(strip = True)
-                tag.replace_with(new_tag)
+        for layout, callback in layout_rules_callbacks:
+            rules = cleaning_rules['layouts'].get(layout, None)
+
+            if rules:
+                logger.debug("... apply layout: %s", layout)
+                for tag in content.select(rules['selector']):
+                    callback(soup, tag, rules)
 
     # Save the clean document
     path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
     with open(path_cleanDocument, 'w') as cleanFile:
         cleanFile.write(str(content))
-
-###
 
 if __name__ == "__main__":
     class theke:
