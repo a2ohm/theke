@@ -37,7 +37,7 @@ def get_reference_from_uri(uri):
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
-                return BookReference(uri.path[3], section = DEFAULT_SWORD_BOOK_SECTION)
+                return BookReference(uri.path[3], section = uri.fragment)
 
             return BookReference(uri.path[3], section = uri.path[4])
 
@@ -246,7 +246,7 @@ class BookReference(DocumentReference):
 
         self.type = theke.TYPE_BOOK
         self.documentName = self.rawReference
-        self.section = section
+        self.section = section or DEFAULT_SWORD_BOOK_SECTION
 
         self.update_data_from_index()
         self.update_default_source()
@@ -268,7 +268,8 @@ class BookReference(DocumentReference):
         if self.section is None or self.section == DEFAULT_SWORD_BOOK_SECTION:
             return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName])
 
-        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName, str(self.section)])
+        #return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName, str(self.section)])
+        return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BOOK, self.documentName], fragment=str(self.section))
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
