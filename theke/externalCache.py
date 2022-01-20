@@ -14,6 +14,43 @@ PATH_SUFFIX_RAW = '_raw'
 PATH_SUFFIX_AUTOMATICALLY_CLEANED = '_auto'
 PATH_SUFFIX_MANUALLY_CLEANED = ''
 
+def _get_source_definition_path(sourceName) -> str:
+    return os.path.join(theke.PATH_EXTERNAL, "{}.yaml".format(sourceName))
+
+def _get_source_path(sourceName) -> str:
+    return os.path.join(theke.PATH_CACHE, sourceName)
+
+def _get_source_file_path(sourceName, suffix = '', relative = False) -> str:
+    """Return the path to a source file from the cache
+
+    @param sourceName: (str) name of the source
+    @param suffix: (str)    '' --> clean version of the source
+                            '_raw' --> raw version of the source
+    @param relative: (bool) return the relative path from theke.PATH_CACHE
+    """
+    if relative:
+        return os.path.join(sourceName, "{}{}.html".format(sourceName, suffix))
+    else:
+        return os.path.join(_get_source_path(sourceName), "{}{}.html".format(sourceName, suffix))
+
+def get_best_source_file_path(sourceName, relative = False) -> str:
+    """Return the path to to best source file from the cache
+    
+    A source can exist in different version in the cache
+    (from the best to the worst)
+    - manually cleaned: the cleaning was manually improved
+    - automatically cleaned: the source was automatically cleaned
+            according to cleaning rules from the definition file
+    """
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED)):
+        return _get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED, relative)
+
+    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)):
+        return _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED, relative)
+
+    else:
+        logger.error("No source file found for %s", sourceName)
+
 def is_source_cached(sourceName) -> bool:
     """Return true if a source is cached
 
@@ -62,12 +99,6 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
     with open(path_rawDocument, 'wb') as fd:
         for chunk in r.iter_content(chunk_size=128):
             fd.write(chunk)
-
-def get_document(sourceName) -> str:
-    """Return the cached document designated by an external source
-    """
-    logger.debug("Load a document from cache (source = %s)", sourceName)
-    return None
 
 ###
 
@@ -134,42 +165,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
     with open(path_cleanDocument, 'w') as cleanFile:
         cleanFile.write(str(content))
 
-def _get_source_definition_path(sourceName) -> str:
-    return os.path.join(theke.PATH_EXTERNAL, "{}.yaml".format(sourceName))
-
-def _get_source_path(sourceName) -> str:
-    return os.path.join(theke.PATH_CACHE, sourceName)
-
-def _get_source_file_path(sourceName, suffix = '', relative = False) -> str:
-    """Return the path to a source file from the cache
-
-    @param sourceName: (str) name of the source
-    @param suffix: (str)    '' --> clean version of the source
-                            '_raw' --> raw version of the source
-    @param relative: (bool) return the relative path from theke.PATH_CACHE
-    """
-    if relative:
-        return os.path.join(sourceName, "{}{}.html".format(sourceName, suffix))
-    else:
-        return os.path.join(_get_source_path(sourceName), "{}{}.html".format(sourceName, suffix))
-
-def get_best_source_file_path(sourceName, relative = False) -> str:
-    """Return the path to to best source file from the cache
-    
-    A source can exist in different version in the cache
-    (from the best to the worst)
-    - manually cleaned: the cleaning was manually improved
-    - automatically cleaned: the source was automatically cleaned
-            according to cleaning rules from the definition file
-    """
-    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED)):
-        return _get_source_file_path(sourceName, PATH_SUFFIX_MANUALLY_CLEANED, relative)
-
-    if os.path.isfile(_get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)):
-        return _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED, relative)
-
-    else:
-        logger.error("No source file found for %s", sourceName)
+###
 
 if __name__ == "__main__":
     class theke:
