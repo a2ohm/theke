@@ -304,7 +304,7 @@ class WebpageReference(Reference):
         self.type = theke.TYPE_WEBPAGE
         self.set_title(title)
 
-        self.section = section
+        self.section = section or uri.fragment
         self.uri = uri
 
     def set_title(self, title) -> None:
