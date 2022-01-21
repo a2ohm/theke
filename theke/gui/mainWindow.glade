@@ -59,6 +59,7 @@ Author: a2ohm
             </child>
             <child>
               <object class="ThekeGotoBar" id="_ThekeGotoBar">
+                <property name="width-request">200</property>
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="primary-icon-name">go-next</property>
