@@ -107,27 +107,34 @@ def layout_h2_cb(soup, tag, params):
     new_tag = soup.new_tag('h2')
     new_tag.string = tag.get_text(strip = True)
     tag.replace_with(new_tag)
+    return new_tag
 
 def layout_h3_cb(soup, tag, params):
     new_tag = soup.new_tag('h3')
     new_tag.string = tag.get_text(strip = True)
     tag.replace_with(new_tag)
+    return new_tag
 
-pattern_numberedParagraph = re.compile(r'^(?P<number>\d+)\.(?P<text>.*)')
+def layout_p_cb(soup, tag, params):
+    return tag
 
-def layout_p_cb(soup, tag, params):  
+def layout_numbering(soup, tag, params):
+    """Add anchor to identify paragraph or section numbering
+    """
     text = tag.get_text(strip = True)
-    match_numberedParagraph = pattern_numberedParagraph.match(text)
+    pattern_numbering = re.compile(params['pattern'])
 
-    if match_numberedParagraph:
-        # If the paragraph start with a number, this is a numbered paragraph
+    match_numbering = pattern_numbering.match(text)
+
+    if match_numbering:
+        # If the tag content match the numbering pattern,
         # then add an anchor
         anchorTag = soup.new_tag('span')
-        anchorTag.string = "{}.".format(match_numberedParagraph.group('number'))
-        anchorTag['id'] = match_numberedParagraph.group('number')
-        anchorTag['class'] = "paragraph_number"
+        anchorTag.string = "{}.".format(match_numbering.group('number'))
+        anchorTag['id'] = match_numbering.group('number')
+        anchorTag['class'] = params['class']
 
-        tag.string = pattern_numberedParagraph.sub('\g<text>', text)
+        tag.string = pattern_numbering.sub('\g<text>', text)
         tag.string.insert_before(anchorTag)
         
 ###
@@ -196,7 +203,11 @@ def _build_clean_document(sourceName, path_rawDocument = None):
             if rules:
                 logger.debug("... apply layout: %s", layout)
                 for tag in content.select(rules['selector']):
-                    callback(soup, tag, rules)
+                    new_tag = callback(soup, tag, rules)
+
+                    # If specified, add an anchor to the numbering
+                    if 'numbering' in rules.keys():
+                        layout_numbering(soup, new_tag, rules['numbering'])
 
     # Save the clean document
     path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
