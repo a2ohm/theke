@@ -212,12 +212,22 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
             if rules:
                 logger.debug("... apply layout: %s", layout)
-                for tag in content.select(rules['selector']):
-                    new_tag = callback(soup, tag, rules)
 
-                    # If specified, add an anchor to the numbering
-                    if 'numbering' in rules.keys():
-                        layout_numbering(soup, new_tag, rules['numbering'])
+                # In the layout rules, it is valid to give one selector ...
+                #   selector: p[align=left]
+                # ... or a list of them
+                #   selectors:
+                #       - p[align=left]
+                #       - p[align=right]
+                selectors = rules.get('selectors', None) or [rules.get('selector', None)]
+
+                for selector in selectors:
+                    for tag in content.select(selector):
+                        new_tag = callback(soup, tag, rules)
+
+                        # If specified, add an anchor to the numbering
+                        if 'numbering' in rules.keys():
+                            layout_numbering(soup, new_tag, rules['numbering'])
 
     # Save the clean document
     path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
