@@ -180,13 +180,16 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
         # Get the default main content
         content = soup.body
+        content.name = "main"
         remove_empty_tags(content)
 
     else:
         logger.debug("Use cleaning rules from %s", path_sourceDefinition)
 
         # Get the main content
-        content = soup.select_one(cleaning_rules['content']['selector'])
+        content_tag = soup.new_tag('main')
+        content = soup.select_one(cleaning_rules['content']['selector']).wrap(content_tag)
+
         remove_empty_tags(content)
 
         # Apply cleaning rules (version 1)...
@@ -195,6 +198,12 @@ def _build_clean_document(sourceName, path_rawDocument = None):
             logger.debug("... remove tag: %s", rule)
             for tag in content.select(rule):
                 tag.decompose()
+
+        # ... unwrap some tags
+        for rule in cleaning_rules.get('unwrap', []):
+            logger.debug("... unwrap tag: %s", rule)
+            for tag in content.select(rule):
+                tag.unwrap()
 
         # ... apply layout rules
         for layout, callback in layout_rules_callbacks:
