@@ -116,6 +116,7 @@ def layout_h3_cb(soup, tag, params):
     return new_tag
 
 def layout_p_cb(soup, tag, params):
+    tag.insert_after('\n')
     return tag
 
 def layout_numbering(soup, tag, params):
