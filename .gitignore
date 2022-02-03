@@ -23,5 +23,8 @@ assets/welcome.html
 assets/modules.html
 assets/external_documents.html
 
+# Custom assets
+assets/css/custom.css
+
 # pylint
 .pylintrc
