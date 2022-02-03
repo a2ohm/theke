@@ -135,7 +135,7 @@ def layout_numbering(soup, tag, params):
         anchorTag['id'] = match_numbering.group('number')
         anchorTag['class'] = params['class']
 
-        tag.string = pattern_numbering.sub('\g<text>', text)
+        tag.string = pattern_numbering.sub(' \g<text>', text)
         tag.string.insert_before(anchorTag)
         
 ###
