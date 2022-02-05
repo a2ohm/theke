@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
+    is_loading = GObject.Property(type=bool, default=False)
     local_search_mode_active = GObject.Property(type=bool, default=False)
 
     _statusbar : Gtk.Statusbar = Gtk.Template.Child()
@@ -74,9 +75,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeSourcesBar.connect("source-requested", self._sourceBar_source_requested_cb)
         self._ThekeSourcesBar.connect("delete-source", self._sourceBar_delete_source_cb)
 
+        self.connect("notify::is-loading", self._is_loading_cb)
         self._navigator.connect("context-updated", self._navigator_context_updated_cb)
 
         # SET BINDINGS
+        self.bind_property(
+            "is-loading", self._navigator, "is-loading",
+            GObject.BindingFlags.BIDIRECTIONAL
+            | GObject.BindingFlags.SYNC_CREATE)
+
         self.bind_property(
             "local-search-mode-active", self._ThekeDocumentView, "local-search-mode-active",
             GObject.BindingFlags.BIDIRECTIONAL
@@ -150,12 +157,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """Handle the load changed signal of the document view
 
         This callback is run after _ThekeDocumentView._document_load_changed_cb().
+        This callback is run after _ThekeDocumentView._webview.handle_load_changed().
         """
         if load_event == WebKit2.LoadEvent.STARTED:
-            # Update the status bar with the title of the just loaded page
-            contextId = self._statusbar.get_context_id("navigation")
-            self._statusbar.push(contextId, "Chargement ...")
-
             # Show the sourcesBar, if necessary
             if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.set_reveal_child(True)
@@ -163,8 +167,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             else:
                 self._ThekeSourcesBar.set_reveal_child(False)
                 self._statusbar_revealer.set_reveal_child(True)
-
-            self._loading_spinner.start()
 
         elif load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
@@ -181,7 +183,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
             if not self._navigator.isMorphAvailable:
                 self._ThekeToolsBox.hide()
 
-            self._loading_spinner.stop()
+            # Turn of the loading flag
+            self.is_loading = False
 
     def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
         """Links hovered over by the mouse are shown in the status bar
@@ -240,6 +243,21 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeSearchView.search_start(self._navigator.selectedWord.source, self._navigator.selectedWord.rawStrong)
 
     ### Callbacks (other)
+    def _is_loading_cb(self, object, value) -> None:
+        """Show or hide the loading spinner and a loading message
+        """
+        if self.is_loading:
+            if not self._loading_spinner.props.active:
+                # Start the spinner
+                self._loading_spinner.start()
+
+                # Update the status bar with a loading message
+                contextId = self._statusbar.get_context_id("navigation")
+                self._statusbar.push(contextId, "Chargement ...")
+
+        else:
+            self._loading_spinner.stop()
+
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
         return True

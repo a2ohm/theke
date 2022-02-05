@@ -49,6 +49,7 @@ class ThekeNavigator(GObject.Object):
 
     toc = GObject.Property(type=object)
 
+    is_loading = GObject.Property(type=bool, default=False)
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
@@ -118,6 +119,7 @@ class ThekeNavigator(GObject.Object):
         if self.ref is not None and uri == self.ref.get_uri():
             # This is not a new uri, the context stays the same
             logger.debug("Update context (skip)")
+            self.is_loading = False
             self.emit("context-updated", SAME_DOCUMENT)
             return
 
@@ -137,7 +139,8 @@ class ThekeNavigator(GObject.Object):
          - NEW_DOCUMENT: different uri
             --> the context is updated
         """
-
+        self.is_loading = True
+        
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
@@ -150,6 +153,7 @@ class ThekeNavigator(GObject.Object):
                 # Same reference except the verse number
                 self.ref.verse = ref.verse
 
+                self.is_loading = False
                 self.emit("context-updated", NEW_VERSE)
                 return
 
