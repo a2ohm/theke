@@ -21,8 +21,6 @@ h2 {
     color: #2274A5;
 }
 
-
-
 h3 {
     color: #26403A;
 }
@@ -30,4 +28,12 @@ h3 {
 p {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
+
+    font-size: 12px;
+    text-align: justify;
+    line-height: 1.6em;
+}
+
+.paragraph_number {
+    color: red;
 }
