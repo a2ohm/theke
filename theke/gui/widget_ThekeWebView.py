@@ -150,6 +150,11 @@ class ThekeWebView(WebKit2.WebView):
 
     # Webview API
     def jump_to_anchor(self, anchor):
+        """Ask the webview to scroll to an inner anchor
+        
+        Try to get the object by id (html5). If it fails, try by name.
+        """
+        
         script = """var e = document.getElementById('{anchor}');
         if (e) {{e.scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});}}
         
