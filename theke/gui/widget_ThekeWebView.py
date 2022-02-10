@@ -64,6 +64,10 @@ class ThekeWebView(WebKit2.WebView):
         elif update_type == theke.navigator.NEW_VERSE:
             self.scroll_to_verse(self._navigator.ref.verse)
             self.grab_focus()
+        
+        elif update_type == theke.navigator.NEW_SECTION:
+            self.jump_to_anchor(self._navigator.ref.section)
+            self.grab_focus()
 
         else:
             logger.debug("Unknown navigator context update type: %s", update_type)
@@ -146,9 +150,12 @@ class ThekeWebView(WebKit2.WebView):
 
     # Webview API
     def jump_to_anchor(self, anchor):
-        script = """var element_to_scroll_to = document.getElementById('{}');
-        element_to_scroll_to.scrollIntoView({{behavior: "smooth", block: "center", inline: "nearest"}});
-        """.format(anchor)
+        script = """var e = document.getElementById('{anchor}');
+        if (e) {{e.scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});}}
+        
+        e = document.getElementsByName('{anchor}');
+        e[0].scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});
+        """.format(anchor = anchor)
         self.run_javascript(script, None, None, None)
 
     def scroll_to_verse(self, verse):

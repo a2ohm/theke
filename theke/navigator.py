@@ -115,11 +115,20 @@ class ThekeNavigator(GObject.Object):
     def update_context_from_uri(self, uri) -> None:
         """Update local context according to the uri
         """
-        if self.ref is not None and uri == self.ref.get_uri():
-            # This is not a new uri, the context stays the same
-            logger.debug("Update context (skip)")
-            self.emit("context-updated", SAME_DOCUMENT)
-            return
+        if self.ref is not None:
+            uriComparison = uri & self.ref.get_uri()
+            if uriComparison == theke.uri.comparison.SAME_URI:
+                # This is exactly the current uri, the context stays the same
+                logger.debug("Update context (skip)")
+                self.emit("context-updated", SAME_DOCUMENT)
+                return
+
+            elif uriComparison == theke.uri.comparison.DIFFER_BY_FRAGMENT:
+                # Same uri with a different fragment
+                logger.debug("Update context (section)")
+                self.ref.section = uri.fragment
+                self.emit("context-updated", NEW_SECTION)
+                return
 
         ref = theke.reference.get_reference_from_uri(uri)
         self.update_context_from_ref(ref)
