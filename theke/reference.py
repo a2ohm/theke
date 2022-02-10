@@ -268,9 +268,9 @@ class BiblicalReference(DocumentReference):
         if genericComparaison & comparison.SAME_TYPE:
             # This is two biblical references
             return (genericComparaison
-                | comparison.BR.SAME_BOOKNAME * (self.bookName == other.bookName)
-                | comparison.BR.SAME_CHAPTER * (self.chapter == other.chapter)
-                | comparison.BR.SAME_VERSE * (self.verse == other.verse))
+                | comparison.BR_SAME_BOOKNAME * (self.bookName == other.bookName)
+                | comparison.BR_SAME_CHAPTER * (self.chapter == other.chapter)
+                | comparison.BR_SAME_VERSE * (self.verse == other.verse))
         
         else:
             return genericComparaison
