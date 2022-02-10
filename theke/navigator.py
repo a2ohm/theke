@@ -141,15 +141,11 @@ class ThekeNavigator(GObject.Object):
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
-            if (self.ref is not None and
-                self.ref.type == theke.TYPE_BIBLE and
-                self.ref.bookName == ref.bookName and
-                self.ref.chapter == ref.chapter and
-                self.ref.verse != ref.verse):
+            # If this is the same biblical reference only with a different
+            # verse number, just update the reference
+            if (ref & self.ref) == theke.reference.comparison.BR_DIFFERENT_VERSE:
 
-                # Same reference except the verse number
                 self.ref.verse = ref.verse
-
                 self.emit("context-updated", NEW_VERSE)
                 return
 
