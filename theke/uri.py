@@ -26,6 +26,22 @@ SEGM_BOOK = 'book'
 
 SEGM_SIGNAL = 'signal'
 
+class comparison():
+    """Byte masks for uri comparison
+    """
+    NOTHING_IN_COMMON = 0 << 0
+
+    SAME_SCHEME = 1 << 4
+    SAME_NETLOCK = 1 << 3
+    SAME_PATH = 1 << 2
+    SAME_PARAMS = 1 << 1
+    SAME_FRAGMENT = 1 << 0
+
+    SAME_URI = SAME_SCHEME | SAME_NETLOCK | SAME_PATH | SAME_PARAMS | SAME_FRAGMENT
+
+    # Some mask
+    DIFFER_BY_FRAGMENT = SAME_SCHEME | SAME_NETLOCK | SAME_PATH | SAME_PARAMS
+
 def build(scheme, path, params = None, fragment='', sources = None):
     """Build an uri from seperate elements.
 
@@ -125,6 +141,21 @@ class ThekeURI:
     def __repr__(self):
         return self.get_decoded_URI()
 
+    def __and__(self, other) -> int:
+        if isinstance(other, ThekeURI):
+            # This is two ThekeUri
+            return (comparison.SAME_SCHEME * (self.scheme == other.scheme)
+                | comparison.SAME_NETLOCK * (self.netlock == other.netlock)
+                | comparison.SAME_PATH * (self.path == other.path)
+                | comparison.SAME_PARAMS * (self.params == other.params)
+                | comparison.SAME_FRAGMENT * (self.fragment == other.fragment))
+
+        elif isinstance(other, str) and other == self.get_encoded_URI():
+            return comparison.SAME_URI
+
+        else:
+            return comparison.NOTHING_IN_COMMON
+    
     def __eq__(self, other):
         if isinstance(other, ThekeURI):
             if other.get_encoded_URI() == self.get_encoded_URI():
