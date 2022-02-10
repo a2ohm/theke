@@ -12,6 +12,19 @@ index = theke.index.ThekeIndex()
 
 DEFAULT_SWORD_BOOK_SECTION = "Couverture"
 
+class comparison():
+    """Byte masks for reference comparison
+    """
+    NOTHING_IN_COMMON = 0 << 0
+    SAME_TYPE = 1 << 0
+
+    # For biblical references comparison...
+    BR_SAME_BOOKNAME = 1 << 1
+    BR_SAME_CHAPTER = 1 << 2
+    BR_SAME_VERSE = 1 << 3
+
+    BR_DIFFERENT_VERSE = SAME_TYPE | BR_SAME_BOOKNAME | BR_SAME_CHAPTER
+
 def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
         theke:/app/welcome --> inApp reference to the welcome page
@@ -127,6 +140,15 @@ class Reference():
         elif isinstance(other, str):
             return other == self.get_repr()
         return False
+    
+    def __and__(self, other) -> int:
+        if isinstance(other, Reference):
+            if self.type == other.type:
+                return comparison.SAME_TYPE
+            else:
+                return comparison.NOTHING_IN_COMMON
+        else:
+            return comparison.NOTHING_IN_COMMON
 
     def __repr__(self) -> str:
         return self.get_repr()
@@ -239,6 +261,19 @@ class BiblicalReference(DocumentReference):
         documentNames = index.get_biblical_book_names(self.bookName)
         self.documentName = documentNames['names'][0]
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+
+    def __and__(self, other) -> int:
+        genericComparaison = super().__and__(other)
+
+        if genericComparaison & comparison.SAME_TYPE:
+            # This is two biblical references
+            return (genericComparaison
+                | comparison.BR.SAME_BOOKNAME * (self.bookName == other.bookName)
+                | comparison.BR.SAME_CHAPTER * (self.chapter == other.chapter)
+                | comparison.BR.SAME_VERSE * (self.verse == other.verse))
+        
+        else:
+            return genericComparaison
 
 class BookReference(DocumentReference):
     def __init__(self, rawReference, rawSources = None, section = None):
