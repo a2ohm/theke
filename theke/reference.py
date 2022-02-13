@@ -25,6 +25,12 @@ class comparison():
 
     BR_DIFFERENT_VERSE = SAME_TYPE | BR_SAME_BOOKNAME | BR_SAME_CHAPTER
 
+    # For book references comparison...
+    SAME_DOCUMENTNAME = 1 << 1
+    SAME_SECTION = 1 << 2
+
+    DIFFER_BY_SECTION = SAME_TYPE | SAME_DOCUMENTNAME
+
 def get_reference_from_uri(uri):
     '''Return a reference according to an uri.
         theke:/app/welcome --> inApp reference to the welcome page
@@ -313,6 +319,18 @@ class BookReference(DocumentReference):
         documentNames = index.get_document_names(self.documentName)
         self.documentName = documentNames['names'][0]
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+
+    def __and__(self, other) -> int:
+        genericComparaison = super().__and__(other)
+
+        if genericComparaison & comparison.SAME_TYPE:
+            # This is two book references
+            return (genericComparaison
+                | comparison.SAME_DOCUMENTNAME * (self.documentName == other.documentName)
+                | comparison.SAME_SECTION * (self.section == other.section))
+        
+        else:
+            return genericComparaison
 
 class InAppReference(Reference):
     def __init__(self, rawReference, section = None):
