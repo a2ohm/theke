@@ -58,6 +58,11 @@ class ThekeApp(Gtk.Application):
             if not os.path.isdir(path):
                 logger.debug("ThekeApp − Make dir : %s", path)
                 os.mkdir(path)
+        
+        # Create the custom.css file if necessary
+        if not os.path.isfile(theke.PATH_CUSTOM_CSS):
+            with open(theke.PATH_CUSTOM_CSS, 'w') as f:
+                pass
 
         # Index sword modules
         indexBuilder = theke.index.ThekeIndexBuilder()
