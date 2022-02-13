@@ -25,3 +25,5 @@ PATH_ROOT = os.path.join(GLib.get_user_data_dir(), 'theke')
 PATH_DATA = os.path.join(PATH_ROOT, 'data')
 PATH_EXTERNAL = os.path.join(PATH_ROOT, 'external')
 PATH_CACHE = os.path.join(PATH_ROOT, 'cache')
+
+PATH_CUSTOM_CSS = './assets/css/custom.css'
