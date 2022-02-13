@@ -29,6 +29,7 @@ class ThekeGotoBar(Gtk.SearchEntry):
         self.set_text("{} ".format(model.get_value(iter, 0)))
 
         # Move the cursor to the end
+        self.grab_focus()
         self.set_position(-1)
         return True
     ###
