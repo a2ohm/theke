@@ -252,11 +252,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._loading_spinner.start()
 
                 # Update the status bar with a loading message
-                contextId = self._statusbar.get_context_id("navigation")
+                contextId = self._statusbar.get_context_id("loading")
                 self._statusbar.push(contextId, "Chargement ...")
 
         else:
             self._loading_spinner.stop()
+
+            # Remove the loading message from the status bar
+            contextId = self._statusbar.get_context_id("loading")
+            self._statusbar.pop(contextId)
 
     def on_history_button_clicked(self, button):
         self._navigator.goto_uri(button.uri)
