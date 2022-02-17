@@ -97,9 +97,9 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
 
     r = requests.get(contentUri, stream=True)
 
-    with open(path_rawDocument, 'wb') as fd:
+    with open(path_rawDocument, 'w', encoding="utf-8") as fd:
         for chunk in r.iter_content(chunk_size=128):
-            fd.write(chunk)
+            fd.write(chunk.decode(r.encoding))
 
 ### Layout formatter callbacks
 
