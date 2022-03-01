@@ -120,6 +120,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # ... Ctrl+s: save modifications in the personal dictionary
             elif keyval == Gdk.KEY_s:
+                self._ThekeDocumentView.export_document(self)
                 self._ThekeToolsBox._toolsBox_dicoView.save()
                 return True
 

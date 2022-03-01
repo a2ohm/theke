@@ -1,6 +1,7 @@
 import logging
 
 from gi.repository import Gtk
+from gi.repository import Gio
 from gi.repository import GObject
 from gi.repository import WebKit2
 
@@ -175,6 +176,29 @@ class ThekeDocumentView(Gtk.Paned):
 
     def grabe_focus(self) -> None:
         self._webview.grab_focus()
+
+    def export_document(self, window) -> None:
+        if self._webview.has_focus():
+            # Save the current document in a html file
+            logger.debug("Export the current document...")
+
+            dialog = Gtk.FileChooserDialog("Exporter le document", window,
+                Gtk.FileChooserAction.SAVE,
+                (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+            dialog.set_current_name("{}.mhtml".format(self._navigator.title))
+
+            response = dialog.run()
+
+            if response == Gtk.ResponseType.OK:
+                logger.debug("Export the current document in %s", dialog.get_filename())
+                file = Gio.File.new_for_path(dialog.get_filename())
+                self._webview.save_to_file(file, WebKit2.SaveMode.MHTML, None, None, None)
+
+            elif response == Gtk.ResponseType.CANCEL:
+                logger.debug("Export the current document [canceled]")
+
+            dialog.destroy()
 
     # def scroll_to_verse(self, verse) -> None:
     #     self._webview.scroll_to_verse(verse)
