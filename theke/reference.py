@@ -23,7 +23,7 @@ class comparison():
     BR_SAME_CHAPTER = 1 << 2
     BR_SAME_VERSE = 1 << 3
 
-    BR_DIFFERENT_VERSE = SAME_TYPE | BR_SAME_BOOKNAME | BR_SAME_CHAPTER
+    DIFFER_BY_VERSE = SAME_TYPE | BR_SAME_BOOKNAME | BR_SAME_CHAPTER
 
     # For book references comparison...
     SAME_DOCUMENTNAME = 1 << 1

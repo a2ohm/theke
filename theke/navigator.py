@@ -155,7 +155,7 @@ class ThekeNavigator(GObject.Object):
             logger.debug("Update context [bible]")
 
             # Same biblical reference with a different verse number
-            if (ref & self.ref) == theke.reference.comparison.BR_DIFFERENT_VERSE:
+            if (ref & self.ref) == theke.reference.comparison.DIFFER_BY_VERSE:
 
                 self.ref.verse = ref.verse
 
