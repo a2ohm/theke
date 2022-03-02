@@ -153,6 +153,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         ref = theke.reference.parse_reference(entry.get_text().strip())
         if ref.type != theke.TYPE_UNKNOWN:
             self._navigator.goto_ref(ref)
+        else:
+            self.display_warning_modal("Référence inconnue.")
 
     ### Callbacks (_documentView)
     def _documentView_load_changed_cb(self, obj, web_view, load_event):
@@ -285,11 +287,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._ThekeGotoBar.set_text('')
 
     ### Helpers
-    def display_warning_modal(self, mainText, secondaryText = ""):
+    def display_warning_modal(self, mainText, secondaryText = None):
         """Display a message dialog with a warning message
         """
         dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
             Gtk.ButtonsType.OK, mainText)
-        dialog.format_secondary_text(secondaryText)
+            
+        if secondaryText:
+            dialog.format_secondary_text(secondaryText)
+
         dialog.run()
         dialog.destroy()
