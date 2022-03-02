@@ -191,12 +191,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _documentView_navigation_error_cb(self, object, error):
         if error == theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE:
             # Display an error message in a modal
-            dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
-                Gtk.ButtonsType.OK, "La source externe est inaccessible.")
-            dialog.format_secondary_text(
+            self.display_warning_modal("La source externe est inaccessible.",
                 "Vérifiez votre connexion internet.")
-            dialog.run()
-            dialog.destroy()
 
     def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
         """Links hovered over by the mouse are shown in the status bar
@@ -287,3 +283,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._ThekeGotoBar.set_text(self._navigator.ref.get_repr())
         else:
             self._ThekeGotoBar.set_text('')
+
+    ### Helpers
+    def display_warning_modal(self, mainText, secondaryText = ""):
+        """Display a message dialog with a warning message
+        """
+        dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
+            Gtk.ButtonsType.OK, mainText)
+        dialog.format_secondary_text(secondaryText)
+        dialog.run()
+        dialog.destroy()
