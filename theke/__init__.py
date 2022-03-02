@@ -20,6 +20,11 @@ TYPE_BOOK = 2
 TYPE_INAPP = 3
 TYPE_WEBPAGE = 4
 
+# Errors
+class NavigationErrors:
+    EXTERNAL_SOURCE_INACCESSIBLE = 0
+    DOCUMENT_UNKNOWN = 1
+
 # Paths
 PATH_ROOT = os.path.join(GLib.get_user_data_dir(), 'theke')
 PATH_DATA = os.path.join(PATH_ROOT, 'data')

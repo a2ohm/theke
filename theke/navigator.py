@@ -42,7 +42,8 @@ class ThekeNavigator(GObject.Object):
     """
 
     __gsignals__ = {
-        'context-updated': (GObject.SignalFlags.RUN_LAST, None, (int,))
+        'context-updated': (GObject.SignalFlags.RUN_LAST, None, (int,)),
+        'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
     ref = GObject.Property(type=object)
@@ -193,6 +194,7 @@ class ThekeNavigator(GObject.Object):
                     if not theke.externalCache.cache_document_from_external_source(ref.sources[0], contentUri):
                         # Fail to cache the document from the external source
                         self.is_loading = False
+                        self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
                         return
 
                 if not theke.externalCache.is_cache_cleaned(ref.sources[0]):
