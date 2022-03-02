@@ -19,11 +19,11 @@ class comparison():
     SAME_TYPE = 1 << 0
 
     # For biblical references comparison...
-    BR_SAME_BOOKNAME = 1 << 1
-    BR_SAME_CHAPTER = 1 << 2
-    BR_SAME_VERSE = 1 << 3
+    SAME_BOOKNAME = 1 << 1
+    SAME_CHAPTER = 1 << 2
+    SAME_VERSE = 1 << 3
 
-    DIFFER_BY_VERSE = SAME_TYPE | BR_SAME_BOOKNAME | BR_SAME_CHAPTER
+    DIFFER_BY_VERSE = SAME_TYPE | SAME_BOOKNAME | SAME_CHAPTER
 
     # For book references comparison...
     SAME_DOCUMENTNAME = 1 << 1
@@ -277,9 +277,9 @@ class BiblicalReference(DocumentReference):
         if genericComparaison & comparison.SAME_TYPE:
             # This is two biblical references
             return (genericComparaison
-                | comparison.BR_SAME_BOOKNAME * (self.bookName == other.bookName)
-                | comparison.BR_SAME_CHAPTER * (self.chapter == other.chapter)
-                | comparison.BR_SAME_VERSE * (self.verse == other.verse))
+                | comparison.SAME_BOOKNAME * (self.bookName == other.bookName)
+                | comparison.SAME_CHAPTER * (self.chapter == other.chapter)
+                | comparison.SAME_VERSE * (self.verse == other.verse))
         
         else:
             return genericComparaison
