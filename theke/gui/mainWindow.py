@@ -59,6 +59,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         # ... document view > webview: where the document is displayed
         self._ThekeDocumentView.register_navigator(self._navigator)
         self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
+        self._ThekeDocumentView.connect("navigation-error", self._documentView_navigation_error_cb)
         self._ThekeDocumentView.connect("webview-mouse-target-changed", self._documentView_mouse_target_changed_cb)
 
         #   ... search panel
@@ -186,6 +187,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # Turn of the loading flag
             self.is_loading = False
+    
+    def _documentView_navigation_error_cb(self, object, error):
+        if error == theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE:
+            # Display an error message in a modal
+            dialog = Gtk.MessageDialog(self, 0, Gtk.MessageType.WARNING,
+                Gtk.ButtonsType.OK, "La source externe est inaccessible.")
+            dialog.format_secondary_text(
+                "Vérifiez votre connexion internet.")
+            dialog.run()
+            dialog.destroy()
 
     def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
         """Links hovered over by the mouse are shown in the status bar
