@@ -190,7 +190,10 @@ class ThekeNavigator(GObject.Object):
             if sourceType == theke.index.SOURCETYPE_EXTERN:
                 if not theke.externalCache.is_source_cached(ref.sources[0]):
                     contentUri = self.index.get_source_uri(ref.sources[0])
-                    theke.externalCache.cache_document_from_external_source(ref.sources[0], contentUri)
+                    if not theke.externalCache.cache_document_from_external_source(ref.sources[0], contentUri):
+                        # Fail to cache the document from the external source
+                        self.is_loading = False
+                        return
 
                 if not theke.externalCache.is_cache_cleaned(ref.sources[0]):
                     theke.externalCache._build_clean_document(ref.sources[0])

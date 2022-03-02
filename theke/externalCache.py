@@ -80,7 +80,7 @@ def is_cache_cleaned(sourceName) -> bool:
     logger.debug("Source not cleaned: %s", sourceName)
     return False
 
-def cache_document_from_external_source(sourceName, contentUri) -> None:
+def cache_document_from_external_source(sourceName, contentUri) -> bool:
     """Download and cache the document designated by an external source
     """
     logger.debug("Cache a document from an external source: %s [%s]", sourceName, contentUri)
@@ -95,11 +95,22 @@ def cache_document_from_external_source(sourceName, contentUri) -> None:
     # and save it to a file
     # cf. https://docs.python-requests.org/en/latest/user/quickstart/#raw-response-content
 
-    r = requests.get(contentUri, stream=True)
+    try:
+        r = requests.get(contentUri, stream=True, timeout=1)
 
-    with open(path_rawDocument, 'w', encoding="utf-8") as fd:
-        for chunk in r.iter_content(chunk_size=128):
-            fd.write(chunk.decode(r.encoding))
+        with open(path_rawDocument, 'w', encoding="utf-8") as fd:
+            for chunk in r.iter_content(chunk_size=128):
+                fd.write(chunk.decode(r.encoding))
+
+        return True
+    
+    except requests.ConnectTimeout:
+        logger.debug("External source inaccessible, check your internet connection")
+        return False
+    
+    except requests.ConnectionError:
+        logger.debug("External source inaccessible, check your internet connection")
+        return False
 
 ### Layout formatter callbacks
 
