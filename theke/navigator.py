@@ -165,7 +165,7 @@ class ThekeNavigator(GObject.Object):
 
             with self.freeze_notify():
                 # Update the table of content only if the document name is different
-                if self.ref is None or ref.documentName != self.ref.documentName:
+                if not ((ref & self.ref) & theke.reference.comparison.SAME_BOOKNAME):
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
                 # Different reference, update all the context
