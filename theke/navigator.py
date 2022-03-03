@@ -451,7 +451,7 @@ class ThekeNavigator(GObject.Object):
 
     @GObject.Property(type=object)
     def selectedSourcesNames(self):
-        """Short title of the current documment
+        """Set of selected sources names
         """
         return self._selectedSourcesNames
 
