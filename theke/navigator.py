@@ -467,7 +467,9 @@ class ThekeNavigator(GObject.Object):
         """URI of the current documment (with sources)
         """
         uri = self.ref.get_uri()
-        uri.params.update({'sources': ";".join(self._selectedSourcesNames)})
+
+        if self._selectedSourcesNames:
+            uri.params.update({'sources': ";".join(self._selectedSourcesNames)})
 
         return uri
 
