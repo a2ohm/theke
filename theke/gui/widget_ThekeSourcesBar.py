@@ -50,6 +50,7 @@ class ThekeSourcesBar(Gtk.Revealer):
                 source = availableSources[sourceName]
 
                 menuItem_source = Gtk.MenuItem("{} {}".format(LANG_FLAGS.get(source.lang, ''), source.name))
+                menuItem_source.sourceName = sourceName
                 menuItem_source.connect('activate', self.handle_sourceItem_request)
 
                 self.addSourceMenu.append(menuItem_source)
@@ -80,7 +81,7 @@ class ThekeSourcesBar(Gtk.Revealer):
         self.emit("delete-source", menu_item.sourceName)
 
     def handle_sourceItem_request(self, menu_item):
-        self.emit("source-requested", menu_item.get_label())
+        self.emit("source-requested", menu_item.sourceName)
     
     @Gtk.Template.Callback()
     def _addSource_button_clicked_cb(self, button):
