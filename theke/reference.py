@@ -1,3 +1,5 @@
+from gi.repository import GObject
+
 import re
 import logging
 
@@ -108,7 +110,7 @@ def parse_biblical_reference(rawReference):
     # This is not a biblical reference
     return None
 
-class Reference():
+class Reference(GObject.Object):
     '''Reference of any document readable by Theke.
     (application screen, Sword reference)
     '''
@@ -120,7 +122,7 @@ class Reference():
         self.type = theke.TYPE_UNKNOWN
 
         self.sources = None
-        self.availableSources = None
+        self._availableSources = None
         self.defaultSource = None
 
     def get_repr(self):
@@ -143,6 +145,11 @@ class Reference():
     def get_uri(self):
         raise NotImplementedError
 
+    def _get_available_sources(self):
+        """Get the list of available sources from the index for this reference
+        """
+        return {s.name: s for s in index.list_document_sources(self.documentName)}
+
     def __eq__(self, other) -> bool:
         if isinstance(other, Reference):
             return other.get_repr() == self.get_repr()
@@ -162,17 +169,27 @@ class Reference():
     def __repr__(self) -> str:
         return self.get_repr()
 
+    @GObject.Property
+    def availableSources(self):
+        """Available sources of the current reference
+        """
+        if self._availableSources is None:
+            self._availableSources = self._get_available_sources()
+
+        return self._availableSources
+
 class DocumentReference(Reference):
     def update_default_source(self) -> None:
         """Update the default source of a reference
         """
-        # TOFIX: la source par défaut serait à choisir depuis l'index
-        self.defaultSource = next(iter(self.availableSources))
+        # TOFIX: cette fonction doit être supprimée car le choix des sources
+        #        doit être fait par navigator.
+        self.defaultSource = list(self.availableSources.keys())[0]
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
         """
-        self.availableSources = set(index.list_document_sources(self.documentName))
+        pass
 
 class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, wantedSources = None, tags = None):
@@ -197,7 +214,7 @@ class BiblicalReference(DocumentReference):
         self.update_default_source()
 
         if wantedSources is not None:
-            self.sources = self.availableSources & wantedSources
+            self.sources = set(self.availableSources.keys()) & wantedSources
             if len(self.sources) == 0:
                 self.sources = {self.defaultSource}
 
@@ -209,7 +226,7 @@ class BiblicalReference(DocumentReference):
         Return True if the source was added
         """
 
-        if source not in self.availableSources:
+        if source not in self.availableSources.keys():
             logger.debug("ThekeReference − This document is not available in this source: %s", source)
             return False
 

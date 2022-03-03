@@ -13,7 +13,7 @@ import theke.sword
 
 logger = logging.getLogger(__name__)
 
-SourceData = namedtuple('SourceData',['name', 'type', 'contentType', 'description'])
+SourceData = namedtuple('SourceData',['name', 'type', 'contentType', 'lang', 'description'])
 DocumentData = namedtuple('documentData',['name', 'type'])
 ExternalDocumentData = namedtuple('externalDocumentData',['name', 'uri'])
 
@@ -207,7 +207,7 @@ class ThekeIndex:
                 (sourceType,))
 
         else:
-            rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sourceDescriptions.description
+            rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sources.lang, sourceDescriptions.description
                 FROM sources
                 LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
                 WHERE sources.type =? AND sources.contentType=?;""",
@@ -262,13 +262,15 @@ class ThekeIndex:
 
         documentId = self.get_document_id(documentName)
 
-        rawDocumentSources = self.con.execute("""SELECT sources.name
+        rawSourcesData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sources.lang, sourceDescriptions.description
             FROM sources
+            LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
             INNER JOIN link_document_source ON link_document_source.id_source = sources.id
             WHERE link_document_source.id_document = ?;""",
             (documentId,)).fetchall()
 
-        return [rawDocumentSource[0] for rawDocumentSource in rawDocumentSources]
+        for rawSourceData in rawSourcesData:
+            yield SourceData._make(rawSourceData)
 
 class ThekeIndexBuilder:
     """Helper the build the index of Theke

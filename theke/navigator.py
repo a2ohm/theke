@@ -374,7 +374,7 @@ class ThekeNavigator(GObject.Object):
     def availableSources(self):
         """Available sources of the current documment
         """
-        return self.ref.availableSources
+        return list(self.ref.availableSources.keys())
 
     @GObject.Property(type=str)
     def title(self):
