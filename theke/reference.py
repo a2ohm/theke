@@ -110,7 +110,7 @@ def parse_biblical_reference(rawReference):
     # This is not a biblical reference
     return None
 
-class Reference(GObject.Object):
+class Reference():
     '''Reference of any document readable by Theke.
     (application screen, Sword reference)
     '''
@@ -145,10 +145,13 @@ class Reference(GObject.Object):
     def get_uri(self):
         raise NotImplementedError
 
-    def _get_available_sources(self):
+    def get_available_sources(self):
         """Get the list of available sources from the index for this reference
         """
-        return {s.name: s for s in index.list_document_sources(self.documentName)}
+        if self._availableSources is None:
+            self._availableSources = {s.name: s for s in index.list_document_sources(self.documentName)}
+
+        return self._availableSources
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Reference):
@@ -169,22 +172,13 @@ class Reference(GObject.Object):
     def __repr__(self) -> str:
         return self.get_repr()
 
-    @GObject.Property
-    def availableSources(self):
-        """Available sources of the current reference
-        """
-        if self._availableSources is None:
-            self._availableSources = self._get_available_sources()
-
-        return self._availableSources
-
 class DocumentReference(Reference):
     def update_default_source(self) -> None:
         """Update the default source of a reference
         """
         # TOFIX: cette fonction doit être supprimée car le choix des sources
         #        doit être fait par navigator.
-        self.defaultSource = list(self.availableSources.keys())[0]
+        self.defaultSource = list(self.get_available_sources().keys())[0]
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
@@ -214,7 +208,7 @@ class BiblicalReference(DocumentReference):
         self.update_default_source()
 
         if wantedSources is not None:
-            self.sources = set(self.availableSources.keys()) & wantedSources
+            self.sources = set(self.get_available_sources().keys()) & wantedSources
             if len(self.sources) == 0:
                 self.sources = {self.defaultSource}
 
@@ -226,7 +220,7 @@ class BiblicalReference(DocumentReference):
         Return True if the source was added
         """
 
-        if source not in self.availableSources.keys():
+        if source not in self.get_available_sources().keys():
             logger.debug("ThekeReference − This document is not available in this source: %s", source)
             return False
 
