@@ -242,7 +242,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     ### Callbacks (_sourceBar)
     def _sourceBar_delete_source_cb(self, object, sourceName):
-        self._navigator.delete_source(sourceName)
+        self._navigator.remove_source(sourceName)
     
     def _sourceBar_source_requested_cb(self, object, sourceName):
         self._navigator.add_source(sourceName)
