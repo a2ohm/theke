@@ -177,7 +177,7 @@ class BiblicalReference(DocumentReference):
         """
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a biblical reference : %s", rawReference)
+        logger.debug("Create a biblical reference : %s", rawReference)
 
         self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
@@ -284,7 +284,7 @@ class InAppReference(Reference):
     def __init__(self, rawReference, section = None):
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a inApp reference : %s", rawReference)
+        logger.debug("Create a inApp reference : %s", rawReference)
 
         self.type = theke.TYPE_INAPP
         self.section = section or ''
@@ -300,7 +300,7 @@ class WebpageReference(Reference):
     def __init__(self, title = "???", section = None, uri = None):
         super().__init__(rawReference = title)
 
-        logger.debug("Reference − Create an external reference : %s", title)
+        logger.debug("Create an external reference : %s", title)
 
         self.type = theke.TYPE_WEBPAGE
         self.set_title(title)
