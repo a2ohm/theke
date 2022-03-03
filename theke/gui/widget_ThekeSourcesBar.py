@@ -5,6 +5,13 @@ from gi.repository import GObject
 import logging
 logger = logging.getLogger(__name__)
 
+LANG_FLAGS = {
+    'fr': '🇫🇷️',
+    'grc': '🇬🇷️',
+    'hbo' : '🇮🇱️',
+    'lat' : '🇻🇦️',
+}
+
 @Gtk.Template.from_file('./theke/gui/templates/ThekeSourcesBar.glade')
 class ThekeSourcesBar(Gtk.Revealer):
     __gtype_name__ = "ThekeSourcesBar"
@@ -36,25 +43,27 @@ class ThekeSourcesBar(Gtk.Revealer):
         self._addSource_button.connect("clicked", callback)
 
     def updateAvailableSources(self, availableSources):
-        if availableSources is None:
-            self.set_reveal_child(False)
-
-        else:
+        if availableSources:
             self.addSourceMenu = Gtk.Menu()
 
-            for source in availableSources:
-                menuItem_source = Gtk.MenuItem("{}".format(source))
+            for sourceName in sorted(availableSources):
+                source = availableSources[sourceName]
+
+                menuItem_source = Gtk.MenuItem("{} {}".format(LANG_FLAGS.get(source.lang, ''), source.name))
                 menuItem_source.connect('activate', self.handle_sourceItem_request)
 
                 self.addSourceMenu.append(menuItem_source)
                 menuItem_source.show()
+
+        else:
+            self.set_reveal_child(False)
 
     def updateSources(self, sources):
         if sources:
             self._listOfButtons.foreach(lambda y: self._listOfButtons.remove(y))
 
             for source in sources:
-                button = Gtk.Button(label=source, use_underline=False)
+                button = Gtk.Button(label=source.name, use_underline=False)
                 button.connect("clicked", self.handle_sourceButton_clicked)
                 button.show_all()
 

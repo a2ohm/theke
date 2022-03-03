@@ -211,10 +211,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _navigator_context_updated_cb(self, object, update_type) -> None:
         if update_type == theke.navigator.NEW_DOCUMENT:
             self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
-            self._ThekeSourcesBar.updateSources(self._navigator.selectedSourcesNames)
+            self._ThekeSourcesBar.updateSources(self._navigator.selectedSources)
 
         if update_type == theke.navigator.SOURCES_UPDATED:
-            self._ThekeSourcesBar.updateSources(self._navigator.selectedSourcesNames)
+            self._ThekeSourcesBar.updateSources(self._navigator.selectedSources)
 
     def _navigator_selected_word_changed_cb(self, object, params):
         """Transmit the selected word to the tools box

@@ -435,7 +435,7 @@ class ThekeNavigator(GObject.Object):
     def availableSources(self):
         """Available sources of the current documment
         """
-        return list(self.ref.get_available_sources().keys())
+        return self.ref.get_available_sources()
 
     @GObject.Property(type=str)
     def title(self):
@@ -454,6 +454,13 @@ class ThekeNavigator(GObject.Object):
         """Set of selected sources names
         """
         return self._selectedSourcesNames
+    
+    @GObject.Property(type=object)
+    def selectedSources(self):
+        """List of selected sources
+        """
+        availableSources = self.ref.get_available_sources()
+        return [availableSources[sourceName] for sourceName in self._selectedSourcesNames]
 
     @GObject.Property(type=object)
     def uri(self):
