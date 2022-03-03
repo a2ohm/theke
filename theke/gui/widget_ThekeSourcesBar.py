@@ -50,10 +50,7 @@ class ThekeSourcesBar(Gtk.Revealer):
                 menuItem_source.show()
 
     def updateSources(self, sources):
-        if sources is None:
-            self.set_reveal_child(False)
-
-        else:
+        if sources:
             self._listOfButtons.foreach(lambda y: self._listOfButtons.remove(y))
 
             for source in sources:
@@ -62,6 +59,9 @@ class ThekeSourcesBar(Gtk.Revealer):
                 button.show_all()
 
                 self._listOfButtons.add(button)
+
+        else:
+            self.set_reveal_child(False)
 
     def handle_sourceButton_clicked(self, button):
         self.sourceMenu.popup_at_widget(button, Gdk.Gravity.SOUTH_WEST, Gdk.Gravity.NORTH_WEST, None)
