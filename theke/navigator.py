@@ -61,19 +61,19 @@ class ThekeNavigator(GObject.Object):
 
         self.index = theke.index.ThekeIndex()
 
-        self._selectedSourcesNames = set()
+        self._selectedSourcesNames = list()
 
         # Load default biblical sources names from the settings file
         dbsn = settings.get("defaultBiblicalSourcesNames", None)
         if dbsn:
             self._defaultBiblicalSourcesNames = {
-                theke.BIBLE_OT: set(dbsn.get('ot', ['OSHB', 'FreCrampon'])),
-                theke.BIBLE_NT: set(dbsn.get('nt', ['MorphGNT', 'FreCrampon']))
+                theke.BIBLE_OT: dbsn.get('ot', ['OSHB', 'FreCrampon']),
+                theke.BIBLE_NT: dbsn.get('nt', ['MorphGNT', 'FreCrampon']),
             }
         else:
             self._defaultBiblicalSourcesNames = {
-                theke.BIBLE_OT: {'OSHB', 'FreCrampon'},
-                theke.BIBLE_NT: {'MorphGNT', 'FreCrampon'}
+                theke.BIBLE_OT: ['OSHB', 'FreCrampon'],
+                theke.BIBLE_NT: ['MorphGNT', 'FreCrampon'],
             }
 
     def goto_uri(self, uri, reload = False) -> None:
@@ -91,7 +91,7 @@ class ThekeNavigator(GObject.Object):
                 uri = theke.uri.parse(uri)
 
             # Reset selected sources
-            self._selectedSourcesNames = set()
+            self._selectedSourcesNames = list()
 
             self.update_context_from_uri(uri)
 
@@ -104,7 +104,7 @@ class ThekeNavigator(GObject.Object):
             logger.debug("Goto ref: %s", ref)
 
             # Reset selected sources
-            self._selectedSourcesNames = set()
+            self._selectedSourcesNames = list()
 
             self.update_context_from_ref(ref)
 
@@ -136,10 +136,10 @@ class ThekeNavigator(GObject.Object):
 
         elif sourceName not in self._selectedSourcesNames:
             logger.debug("Add source %s", sourceName)
-            self._selectedSourcesNames.add(sourceName)
+            self._selectedSourcesNames.append(sourceName)
 
             if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesNames[self.ref.testament].add(sourceName)
+                self._defaultBiblicalSourcesNames[self.ref.testament].append(sourceName)
 
             self.emit("context-updated", SOURCES_UPDATED)
 
@@ -149,10 +149,10 @@ class ThekeNavigator(GObject.Object):
         if sourceName in self._selectedSourcesNames:
 
             logger.debug("Remove source %s", sourceName)
-            self._selectedSourcesNames.discard(sourceName)
+            self._selectedSourcesNames.remove(sourceName)
 
             if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesNames[self.ref.testament].discard(sourceName)
+                self._defaultBiblicalSourcesNames[self.ref.testament].remove(sourceName)
 
             # A source should be selected
             # Set a default source if needed
@@ -194,7 +194,7 @@ class ThekeNavigator(GObject.Object):
         wantedSources = uri.params.get('sources', '')
         for wantedSource in wantedSources.split(";"):
             if wantedSource and wantedSource in ref.availableSources:
-                self._selectedSourcesNames.add(wantedSource)
+                self._selectedSourcesNames.append(wantedSource)
 
         self.update_context_from_ref(ref)
 
@@ -257,7 +257,7 @@ class ThekeNavigator(GObject.Object):
             if not self._selectedSourcesNames:
                 self._select_book_sources(ref)
 
-            source = ref.availableSources.get(list(self._selectedSourcesNames)[0])
+            source = ref.availableSources.get(self._selectedSourcesNames[0])
 
             if source.type == theke.index.SOURCETYPE_EXTERN:
                 if not theke.externalCache.is_source_cached(source.name):
@@ -336,7 +336,7 @@ class ThekeNavigator(GObject.Object):
                     html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
-                    source = self.ref.availableSources.get(list(self._selectedSourcesNames)[0])
+                    source = self.ref.availableSources.get(self._selectedSourcesNames[0])
 
                     if source.type == theke.index.SOURCETYPE_SWORD:
                         logger.debug("Load as a sword uri (BOOK): %s", uri)
@@ -449,18 +449,18 @@ class ThekeNavigator(GObject.Object):
 
         for sourceName in self._defaultBiblicalSourcesNames[ref.testament]:
             if sourceName in ref.availableSources:
-                self._selectedSourcesNames.add(sourceName)
+                self._selectedSourcesNames.append(sourceName)
         
         if not self._selectedSourcesNames:
             # None of default biblical sources are available for this biblical book
             # so use the first available source
-            self._selectedSourcesNames.add(list(ref.availableSources.keys())[0])
+            self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
 
     def _select_book_sources(self, ref):
         # No sources are selected, the navigator should decide by itself
         logger.debug("Automaticaly add sources ...")
         # TODO: Faire un choix plus intelligent ...
-        self._selectedSourcesNames.add(list(ref.availableSources.keys())[0])
+        self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
     
     ### Properties
     
