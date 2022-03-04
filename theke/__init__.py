@@ -20,6 +20,10 @@ TYPE_BOOK = 2
 TYPE_INAPP = 3
 TYPE_WEBPAGE = 4
 
+# Testament
+BIBLE_OT = 1
+BIBLE_NT = 2
+
 # Errors
 class NavigationErrors:
     EXTERNAL_SOURCE_INACCESSIBLE = 0
