@@ -54,7 +54,7 @@ class ThekeNavigator(GObject.Object):
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, settings, *args, **kwargs) -> None:
         logger.debug("Create a new instance")
 
         super().__init__(*args, **kwargs)
@@ -62,10 +62,19 @@ class ThekeNavigator(GObject.Object):
         self.index = theke.index.ThekeIndex()
 
         self._selectedSourcesNames = set()
-        self._defaultBiblicalSourcesName = {
-            theke.BIBLE_OT: {'OSHB', 'FreCrampon'},
-            theke.BIBLE_NT: {'MorphGNT', 'FreCrampon'}
-        }
+
+        # Load default biblical sources names from the settings file
+        dbsn = settings.get("defaultBiblicalSourcesNames", None)
+        if dbsn:
+            self._defaultBiblicalSourcesName = {
+                theke.BIBLE_OT: set(dbsn.get('ot', ['OSHB', 'FreCrampon'])),
+                theke.BIBLE_NT: set(dbsn.get('nt', ['MorphGNT', 'FreCrampon']))
+            }
+        else:
+            self._defaultBiblicalSourcesName = {
+                theke.BIBLE_OT: {'OSHB', 'FreCrampon'},
+                theke.BIBLE_NT: {'MorphGNT', 'FreCrampon'}
+            }
 
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
