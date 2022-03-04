@@ -116,7 +116,7 @@ class Reference():
         self.documentShortname = rawReference
         self.type = theke.TYPE_UNKNOWN
 
-        self._availableSources = None
+        self.availableSources = None
 
     def get_repr(self):
         """Representation of the reference
@@ -132,14 +132,6 @@ class Reference():
 
     def get_uri(self):
         raise NotImplementedError
-
-    def get_available_sources(self):
-        """Get the list of available sources from the index for this reference
-        """
-        if self._availableSources is None:
-            self._availableSources = {s.name: s for s in index.list_document_sources(self.documentName)}
-
-        return self._availableSources
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Reference):
@@ -165,7 +157,10 @@ class DocumentReference(Reference):
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
         """
-        pass
+
+        # List from the index available sources
+        if self.availableSources is None:
+            self.availableSources = {s.name: s for s in index.list_document_sources(self.documentName)}
 
 class BiblicalReference(DocumentReference):
     def __init__(self, rawReference, tags = None):

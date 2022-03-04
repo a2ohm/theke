@@ -169,7 +169,7 @@ class ThekeNavigator(GObject.Object):
         # Add wanted sources from the uri
         wantedSources = uri.params.get('sources', '')
         for wantedSource in wantedSources.split(";"):
-            if wantedSource in ref.get_available_sources().keys():
+            if wantedSource and wantedSource in ref.availableSources:
                 self._selectedSourcesNames.add(wantedSource)
 
         self.update_context_from_ref(ref)
@@ -233,7 +233,7 @@ class ThekeNavigator(GObject.Object):
             if not self._selectedSourcesNames:
                 self._select_book_sources(ref)
 
-            source = ref.get_available_sources().get(list(self._selectedSourcesNames)[0])
+            source = ref.availableSources.get(list(self._selectedSourcesNames)[0])
 
             if source.type == theke.index.SOURCETYPE_EXTERN:
                 if not theke.externalCache.is_source_cached(source.name):
@@ -312,7 +312,7 @@ class ThekeNavigator(GObject.Object):
                     html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
-                    source = self.ref.get_available_sources().get(list(self._selectedSourcesNames)[0])
+                    source = self.ref.availableSources.get(list(self._selectedSourcesNames)[0])
 
                     if source.type == theke.index.SOURCETYPE_SWORD:
                         logger.debug("Load as a sword uri (BOOK): %s", uri)
@@ -421,13 +421,13 @@ class ThekeNavigator(GObject.Object):
     def _select_biblical_sources(self, ref):
         logger.debug("Automaticaly add sources ...")
         # TODO: Faire un choix plus intelligent ...
-        self._selectedSourcesNames.add(list(ref.get_available_sources().keys())[0])
+        self._selectedSourcesNames.add(list(ref.availableSources.keys())[0])
 
     def _select_book_sources(self, ref):
         # No sources are selected, the navigator should decide by itself
         logger.debug("Automaticaly add sources ...")
         # TODO: Faire un choix plus intelligent ...
-        self._selectedSourcesNames.add(list(ref.get_available_sources().keys())[0])
+        self._selectedSourcesNames.add(list(ref.availableSources.keys())[0])
     
     ### Properties
     
@@ -435,7 +435,7 @@ class ThekeNavigator(GObject.Object):
     def availableSources(self):
         """Available sources of the current documment
         """
-        return self.ref.get_available_sources()
+        return self.ref.availableSources
 
     @GObject.Property(type=str)
     def title(self):
@@ -459,8 +459,7 @@ class ThekeNavigator(GObject.Object):
     def selectedSources(self):
         """List of selected sources
         """
-        availableSources = self.ref.get_available_sources()
-        return [availableSources[sourceName] for sourceName in self._selectedSourcesNames]
+        return [self.ref.availableSources[sourceName] for sourceName in self._selectedSourcesNames]
 
     @GObject.Property(type=object)
     def uri(self):
