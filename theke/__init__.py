@@ -35,4 +35,6 @@ PATH_DATA = os.path.join(PATH_ROOT, 'data')
 PATH_EXTERNAL = os.path.join(PATH_ROOT, 'external')
 PATH_CACHE = os.path.join(PATH_ROOT, 'cache')
 
+PATH_SETTINGS_FILE = os.path.join(PATH_ROOT, 'theke.conf')
+
 PATH_CUSTOM_CSS = './assets/css/custom.css'

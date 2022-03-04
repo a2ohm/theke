@@ -3,6 +3,7 @@ from gi.repository import Gtk
 from gi.repository import GLib
 
 import os
+import yaml
 import theke
 import theke.gui.mainWindow
 import theke.index
@@ -43,6 +44,7 @@ class ThekeApp(Gtk.Application):
 
         self._window = None
         self._navigator = None
+        self._settings = None
 
         self._defaultUri = theke.URI_WELCOME
 
@@ -59,10 +61,11 @@ class ThekeApp(Gtk.Application):
                 logger.debug("ThekeApp − Make dir : %s", path)
                 os.mkdir(path)
         
-        # Create the custom.css file if necessary
-        if not os.path.isfile(theke.PATH_CUSTOM_CSS):
-            with open(theke.PATH_CUSTOM_CSS, 'w') as f:
-                pass
+        # Create some files (eg. theke.conf, custom.css)
+        for path in [theke.PATH_SETTINGS_FILE, theke.PATH_CUSTOM_CSS]:
+            if not os.path.isfile(path):
+                with open(path, 'w') as f:
+                    pass
 
         # Index sword modules
         indexBuilder = theke.index.ThekeIndexBuilder()
@@ -74,8 +77,11 @@ class ThekeApp(Gtk.Application):
         """
         logger.debug("ThekeApp - Do activate")
 
+        # Load settings
+        self._settings = yaml.safe_load(open(theke.PATH_SETTINGS_FILE, 'r'))
+
         # Set the navigator
-        self._navigator = theke.navigator.ThekeNavigator()
+        self._navigator = theke.navigator.ThekeNavigator(self._settings or {})
 
         if not self._window:
             logger.debug("ThekeApp - Create a new window")
