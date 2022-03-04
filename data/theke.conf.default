@@ -1,0 +1,16 @@
+# THEKE − configuration
+
+# This is a default configuration file.
+# To be used, it should be copied to ~/.local/share/theke/theke.conf
+
+# Default biblical sources names
+#   ot: for the old testament (eg. OSBH)
+#   nt: for the new testament (eg. MorphGNT)
+
+defaultBiblicalSourcesNames:
+  ot:
+    - OSHB
+    - FreCrampon
+  nt:
+    - MorphGNT
+    - FreCrampon

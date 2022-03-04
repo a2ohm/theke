@@ -54,12 +54,27 @@ class ThekeNavigator(GObject.Object):
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, settings, *args, **kwargs) -> None:
         logger.debug("Create a new instance")
 
         super().__init__(*args, **kwargs)
 
         self.index = theke.index.ThekeIndex()
+
+        self._selectedSourcesNames = list()
+
+        # Load default biblical sources names from the settings file
+        dbsn = settings.get("defaultBiblicalSourcesNames", None)
+        if dbsn:
+            self._defaultBiblicalSourcesNames = {
+                theke.BIBLE_OT: dbsn.get('ot', ['OSHB', 'FreCrampon']),
+                theke.BIBLE_NT: dbsn.get('nt', ['MorphGNT', 'FreCrampon']),
+            }
+        else:
+            self._defaultBiblicalSourcesNames = {
+                theke.BIBLE_OT: ['OSHB', 'FreCrampon'],
+                theke.BIBLE_NT: ['MorphGNT', 'FreCrampon'],
+            }
 
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
@@ -75,6 +90,9 @@ class ThekeNavigator(GObject.Object):
             if isinstance(uri, str):
                 uri = theke.uri.parse(uri)
 
+            # Reset selected sources
+            self._selectedSourcesNames = list()
+
             self.update_context_from_uri(uri)
 
     ### GOTO functions
@@ -84,6 +102,10 @@ class ThekeNavigator(GObject.Object):
         """
         if reload or self.ref is None or ref != self.ref:
             logger.debug("Goto ref: %s", ref)
+
+            # Reset selected sources
+            self._selectedSourcesNames = list()
+
             self.update_context_from_ref(ref)
 
     def goto_section(self, tocData) -> None:
@@ -105,11 +127,44 @@ class ThekeNavigator(GObject.Object):
     ### Edit the context
 
     def add_source(self, sourceName) -> None:
-        if self.ref.add_source(sourceName):
+        """Add a new source to read the document from
+        Emit a signal if the source was added
+        """
+
+        if sourceName not in self.availableSources:
+            logger.debug("This source is not available for this document: %s", sourceName)
+
+        elif sourceName not in self._selectedSourcesNames:
+            logger.debug("Add source %s", sourceName)
+            self._selectedSourcesNames.append(sourceName)
+
+            if self.ref.type == theke.TYPE_BIBLE:
+                self._defaultBiblicalSourcesNames[self.ref.testament].append(sourceName)
+
             self.emit("context-updated", SOURCES_UPDATED)
 
-    def delete_source(self, sourceName) -> None:
-        if self.ref.remove_source(sourceName):
+    def remove_source(self, sourceName) -> None:
+        """Remove a source from the selection
+        """
+        if sourceName in self._selectedSourcesNames:
+
+            logger.debug("Remove source %s", sourceName)
+            self._selectedSourcesNames.remove(sourceName)
+
+            if self.ref.type == theke.TYPE_BIBLE:
+                self._defaultBiblicalSourcesNames[self.ref.testament].remove(sourceName)
+
+            # A source should be selected
+            # Set a default source if needed
+            if len(self._selectedSourcesNames) == 0:
+                if self.ref.type == theke.TYPE_BIBLE:
+                    logger.debug("Set source to default [bible]")
+                    self._select_default_biblical_sources(self.ref)
+
+                elif self.ref.type == theke.TYPE_BOOK:
+                    logger.debug("Set source to default [book]")
+                    self._select_book_sources(self.ref)
+
             self.emit("context-updated", SOURCES_UPDATED)
 
     ### Update context (from URI)
@@ -134,6 +189,13 @@ class ThekeNavigator(GObject.Object):
                 return
 
         ref = theke.reference.get_reference_from_uri(uri)
+
+        # Add wanted sources from the uri
+        wantedSources = uri.params.get('sources', '')
+        for wantedSource in wantedSources.split(";"):
+            if wantedSource and wantedSource in ref.availableSources:
+                self._selectedSourcesNames.append(wantedSource)
+
         self.update_context_from_ref(ref)
 
     def update_context_from_ref(self, ref) -> None:
@@ -168,6 +230,10 @@ class ThekeNavigator(GObject.Object):
                 if not ((ref & self.ref) & theke.reference.comparison.SAME_BOOKNAME):
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
+                # If needed, select sources to read the document from
+                if not self._selectedSourcesNames:
+                    self._select_default_biblical_sources(ref)
+
                 # Different reference, update all the context
                 self.set_property("ref", ref)
 
@@ -186,19 +252,24 @@ class ThekeNavigator(GObject.Object):
                 return
 
             logger.debug("Update context [book]")
-            sourceType = self.index.get_source_type(ref.sources[0])
 
-            if sourceType == theke.index.SOURCETYPE_EXTERN:
-                if not theke.externalCache.is_source_cached(ref.sources[0]):
-                    contentUri = self.index.get_source_uri(ref.sources[0])
-                    if not theke.externalCache.cache_document_from_external_source(ref.sources[0], contentUri):
+            # If needed, select sources to read the document from
+            if not self._selectedSourcesNames:
+                self._select_book_sources(ref)
+
+            source = ref.availableSources.get(self._selectedSourcesNames[0])
+
+            if source.type == theke.index.SOURCETYPE_EXTERN:
+                if not theke.externalCache.is_source_cached(source.name):
+                    contentUri = self.index.get_source_uri(source.name)
+                    if not theke.externalCache.cache_document_from_external_source(source.name, contentUri):
                         # Fail to cache the document from the external source
                         self.is_loading = False
                         self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
                         return
 
-                if not theke.externalCache.is_cache_cleaned(ref.sources[0]):
-                    theke.externalCache._build_clean_document(ref.sources[0])
+                if not theke.externalCache.is_cache_cleaned(source.name):
+                    theke.externalCache._build_clean_document(source.name)
 
             with self.freeze_notify():
                 self.set_property("ref", ref)
@@ -265,15 +336,15 @@ class ThekeNavigator(GObject.Object):
                     html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
-                    sourceType = self.index.get_source_type(self.ref.sources[0])
+                    source = self.ref.availableSources.get(self._selectedSourcesNames[0])
 
-                    if sourceType == theke.index.SOURCETYPE_SWORD:
+                    if source.type == theke.index.SOURCETYPE_SWORD:
                         logger.debug("Load as a sword uri (BOOK): %s", uri)
-                        html = self.get_sword_book_content()
+                        html = self.get_sword_book_content(source.name)
 
-                    if sourceType == theke.index.SOURCETYPE_EXTERN:
+                    if source.type == theke.index.SOURCETYPE_EXTERN:
                         logger.debug("Load as an extern uri (BOOK): %s", uri)
-                        html = self.get_external_book_content()
+                        html = self.get_external_book_content(source.name)
 
             else:
                 # Temporary solution:
@@ -297,12 +368,12 @@ class ThekeNavigator(GObject.Object):
         verses = []
         isMorphAvailable = False
 
-        for source in self.ref.sources:
-            markup = theke.sword.MARKUP.get(source, theke.sword.FMT_PLAIN)
-            mod = theke.sword.SwordLibrary(markup=markup).get_bible_module(source)
+        for sourceName in self._selectedSourcesNames:
+            markup = theke.sword.MARKUP.get(sourceName, theke.sword.FMT_PLAIN)
+            mod = theke.sword.SwordLibrary(markup=markup).get_bible_module(sourceName)
             documents.append({
                 'lang' : mod.get_lang(),
-                'source': source
+                'source': sourceName
             })
             verses.append(mod.get_chapter(self.ref.bookName, self.ref.chapter))
 
@@ -316,11 +387,11 @@ class ThekeNavigator(GObject.Object):
             'ref': self.ref
         })
 
-    def get_sword_book_content(self) -> str:
+    def get_sword_book_content(self, sourceName) -> str:
         """Load a sword book.
         """
 
-        mod = theke.sword.SwordLibrary().get_book_module(self.ref.get_sources()[0])
+        mod = theke.sword.SwordLibrary().get_book_module(sourceName)
         text = mod.get_paragraph(self.ref.section)
 
         if text is None:
@@ -334,11 +405,11 @@ class ThekeNavigator(GObject.Object):
             'mod_description': mod.get_description(),
             'text': text})
 
-    def get_external_book_content(self) -> None:
+    def get_external_book_content(self, sourceName) -> None:
         """Load an external source
         """
 
-        document_path = theke.externalCache.get_best_source_file_path(self.ref.sources[0], relative=True)
+        document_path = theke.externalCache.get_best_source_file_path(sourceName, relative=True)
 
         return theke.templates.render('external_book', {
             'ref': self.ref,
@@ -370,6 +441,29 @@ class ThekeNavigator(GObject.Object):
             uri.params.get('source')
         ))
 
+    ### Helpers
+    def _select_default_biblical_sources(self, ref):
+        """Select default biblical sources
+        """
+        logger.debug("Automaticaly add sources ...")
+
+        for sourceName in self._defaultBiblicalSourcesNames[ref.testament]:
+            if sourceName in ref.availableSources:
+                self._selectedSourcesNames.append(sourceName)
+        
+        if not self._selectedSourcesNames:
+            # None of default biblical sources are available for this biblical book
+            # so use the first available source
+            self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
+
+    def _select_book_sources(self, ref):
+        # No sources are selected, the navigator should decide by itself
+        logger.debug("Automaticaly add sources ...")
+        # TODO: Faire un choix plus intelligent ...
+        self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
+    
+    ### Properties
+    
     @GObject.Property(type=str)
     def availableSources(self):
         """Available sources of the current documment
@@ -388,17 +482,28 @@ class ThekeNavigator(GObject.Object):
         """
         return self.ref.get_short_repr()
 
-    @GObject.Property(type=str)
-    def sources(self):
-        """Short title of the current documment
+    @GObject.Property(type=object)
+    def selectedSourcesNames(self):
+        """Set of selected sources names
         """
-        return self.ref.sources
+        return self._selectedSourcesNames
+    
+    @GObject.Property(type=object)
+    def selectedSources(self):
+        """List of selected sources
+        """
+        return [self.ref.availableSources[sourceName] for sourceName in self._selectedSourcesNames]
 
     @GObject.Property(type=object)
     def uri(self):
-        """URI of the current documment
+        """URI of the current documment (with sources)
         """
-        return self.ref.get_uri()
+        uri = self.ref.get_uri()
+
+        if self._selectedSourcesNames:
+            uri.params.update({'sources': ";".join(self._selectedSourcesNames)})
+
+        return uri
 
     @GObject.Property(type=str)
     def contentUri(self):

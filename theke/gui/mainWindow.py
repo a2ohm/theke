@@ -211,10 +211,10 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _navigator_context_updated_cb(self, object, update_type) -> None:
         if update_type == theke.navigator.NEW_DOCUMENT:
             self._ThekeSourcesBar.updateAvailableSources(self._navigator.availableSources)
-            self._ThekeSourcesBar.updateSources(self._navigator.sources)
+            self._ThekeSourcesBar.updateSources(self._navigator.selectedSources)
 
         if update_type == theke.navigator.SOURCES_UPDATED:
-            self._ThekeSourcesBar.updateSources(self._navigator.sources)
+            self._ThekeSourcesBar.updateSources(self._navigator.selectedSources)
 
     def _navigator_selected_word_changed_cb(self, object, params):
         """Transmit the selected word to the tools box
@@ -231,7 +231,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _searchView_selection_changed(self, object, result):
         """Goto to the selected search result
         """
-        ref = theke.reference.parse_reference(result.reference, wantedSources = self._navigator.sources)
+        ref = theke.reference.parse_reference(result.reference)
         self._navigator.goto_ref(ref)  
 
     def _searchView_start_cb(self, object, moduleName, lemma):
@@ -242,7 +242,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     ### Callbacks (_sourceBar)
     def _sourceBar_delete_source_cb(self, object, sourceName):
-        self._navigator.delete_source(sourceName)
+        self._navigator.remove_source(sourceName)
     
     def _sourceBar_source_requested_cb(self, object, sourceName):
         self._navigator.add_source(sourceName)

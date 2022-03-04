@@ -1,3 +1,5 @@
+from gi.repository import GObject
+
 import re
 import logging
 
@@ -47,12 +49,7 @@ def get_reference_from_uri(uri):
 
     if uri.path[1] == theke.uri.SEGM_DOC:
         if uri.path[2] == theke.uri.SEGM_BIBLE:
-            wantedSources  = uri.params.get('sources', None)
-
-            if wantedSources is None:
-                return BiblicalReference(uri.path[3])
-            
-            return BiblicalReference(uri.path[3], wantedSources = set(wantedSources.split(';')))
+            return BiblicalReference(uri.path[3])
 
         if uri.path[2] == theke.uri.SEGM_BOOK:
             if len(uri.path) == 4:
@@ -78,7 +75,7 @@ def parse_reference(rawReference, wantedSources = None):
         documentType = theke.index.ThekeIndex().get_document_type(documentName)
 
         if documentType == theke.TYPE_BIBLE:
-            return BiblicalReference(rawReference, wantedSources)
+            return BiblicalReference(rawReference)
 
         if documentType == theke.TYPE_BOOK:
             if match_r.group(2) != '':
@@ -119,9 +116,7 @@ class Reference():
         self.documentShortname = rawReference
         self.type = theke.TYPE_UNKNOWN
 
-        self.sources = None
         self.availableSources = None
-        self.defaultSource = None
 
     def get_repr(self):
         """Representation of the reference
@@ -134,11 +129,6 @@ class Reference():
         eg. short title
         """
         return self.documentShortname
-
-    def get_sources(self):
-        """List of sources designated by the reference
-        """
-        return self.sources if self.sources is not None else [self.defaultSource]
 
     def get_uri(self):
         raise NotImplementedError
@@ -163,19 +153,17 @@ class Reference():
         return self.get_repr()
 
 class DocumentReference(Reference):
-    def update_default_source(self) -> None:
-        """Update the default source of a reference
-        """
-        # TOFIX: la source par défaut serait à choisir depuis l'index
-        self.defaultSource = next(iter(self.availableSources))
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this reference metadata
         """
-        self.availableSources = set(index.list_document_sources(self.documentName))
+
+        # List from the index available sources
+        if self.availableSources is None:
+            self.availableSources = {s.name: s for s in index.list_document_sources(self.documentName)}
 
 class BiblicalReference(DocumentReference):
-    def __init__(self, rawReference, wantedSources = None, tags = None):
+    def __init__(self, rawReference, tags = None):
         """A biblical reference
 
         @param rawReference: (string)
@@ -184,57 +172,17 @@ class BiblicalReference(DocumentReference):
         """
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a biblical reference : %s", rawReference)
+        logger.debug("Create a biblical reference : %s", rawReference)
 
         self.type = theke.TYPE_BIBLE
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
         self.documentName = self.bookName
         self.documentShortname = self.bookName
+        self.testament = None
 
         self.tags = tags
 
         self.update_data_from_index()
-        self.update_default_source()
-
-        if wantedSources is not None:
-            self.sources = self.availableSources & wantedSources
-            if len(self.sources) == 0:
-                self.sources = {self.defaultSource}
-
-        else:
-            self.sources = {self.defaultSource}
-
-    def add_source(self, source) -> bool:
-        """Append a source to the reference
-        Return True if the source was added
-        """
-
-        if source not in self.availableSources:
-            logger.debug("ThekeReference − This document is not available in this source: %s", source)
-            return False
-
-        if source not in self.sources:
-            logger.debug("ThekeReference − Add source %s", source)
-            self.sources.add(source)
-            return True
-
-        return False
-
-    def remove_source(self, source) -> bool:
-        """Remove a source
-        As self.sources can not be empty, a default source shoud be given
-        """
-        if source not in self.sources:
-            return False
-
-        logger.debug("ThekeReference - Remove source %s", source)
-        self.sources.discard(source)
-
-        if len(self.sources) == 0:
-            logger.debug("ThekeReference - Set source to default %s", self.defaultSource)
-            self.sources.add(self.defaultSource)
-
-        return True
 
     def get_repr(self):
         """Return a long representation of the biblical reference
@@ -255,12 +203,10 @@ class BiblicalReference(DocumentReference):
     def get_uri(self):
         if self.verse == 0:
             return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
-                "{} {}".format(self.bookName, self.chapter)],
-                sources = self.sources)
+                "{} {}".format(self.bookName, self.chapter)])
         
         return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
-            "{} {}:{}".format(self.bookName, self.chapter, self.verse)],
-            sources = self.sources)
+            "{} {}:{}".format(self.bookName, self.chapter, self.verse)])
 
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this biblical reference metadata
@@ -270,6 +216,8 @@ class BiblicalReference(DocumentReference):
         documentNames = index.get_biblical_book_names(self.bookName)
         self.documentName = documentNames['names'][0]
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+        
+        self.testament = index.get_biblical_book_testament(self.bookName)
 
     def __and__(self, other) -> int:
         genericComparaison = super().__and__(other)
@@ -285,7 +233,7 @@ class BiblicalReference(DocumentReference):
             return genericComparaison
 
 class BookReference(DocumentReference):
-    def __init__(self, rawReference, rawSources = None, section = None):
+    def __init__(self, rawReference, section = None):
         super().__init__(rawReference)
 
         self.type = theke.TYPE_BOOK
@@ -293,8 +241,6 @@ class BookReference(DocumentReference):
         self.section = section or ''
 
         self.update_data_from_index()
-        self.update_default_source()
-        self.sources = rawSources.split(';') if rawSources is not None else [self.defaultSource]
 
     def get_repr(self) -> str:
         if self.section is None or self.section == DEFAULT_SWORD_BOOK_SECTION:
@@ -336,7 +282,7 @@ class InAppReference(Reference):
     def __init__(self, rawReference, section = None):
         super().__init__(rawReference)
 
-        logger.debug("Reference − Create a inApp reference : %s", rawReference)
+        logger.debug("Create a inApp reference : %s", rawReference)
 
         self.type = theke.TYPE_INAPP
         self.section = section or ''
@@ -352,7 +298,7 @@ class WebpageReference(Reference):
     def __init__(self, title = "???", section = None, uri = None):
         super().__init__(rawReference = title)
 
-        logger.debug("Reference − Create an external reference : %s", title)
+        logger.debug("Create an external reference : %s", title)
 
         self.type = theke.TYPE_WEBPAGE
         self.set_title(title)

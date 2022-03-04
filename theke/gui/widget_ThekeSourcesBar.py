@@ -5,6 +5,13 @@ from gi.repository import GObject
 import logging
 logger = logging.getLogger(__name__)
 
+LANG_FLAGS = {
+    'fr': '🇫🇷️',
+    'grc': '🇬🇷️',
+    'hbo' : '🇮🇱️',
+    'lat' : '🇻🇦️',
+}
+
 @Gtk.Template.from_file('./theke/gui/templates/ThekeSourcesBar.glade')
 class ThekeSourcesBar(Gtk.Revealer):
     __gtype_name__ = "ThekeSourcesBar"
@@ -36,32 +43,35 @@ class ThekeSourcesBar(Gtk.Revealer):
         self._addSource_button.connect("clicked", callback)
 
     def updateAvailableSources(self, availableSources):
-        if availableSources is None:
-            self.set_reveal_child(False)
-
-        else:
+        if availableSources:
             self.addSourceMenu = Gtk.Menu()
 
-            for source in availableSources:
-                menuItem_source = Gtk.MenuItem("{}".format(source))
+            for sourceName in sorted(availableSources):
+                source = availableSources[sourceName]
+
+                menuItem_source = Gtk.MenuItem("{} {}".format(LANG_FLAGS.get(source.lang, ''), source.name))
+                menuItem_source.sourceName = sourceName
                 menuItem_source.connect('activate', self.handle_sourceItem_request)
 
                 self.addSourceMenu.append(menuItem_source)
                 menuItem_source.show()
 
-    def updateSources(self, sources):
-        if sources is None:
+        else:
             self.set_reveal_child(False)
 
-        else:
+    def updateSources(self, sources):
+        if sources:
             self._listOfButtons.foreach(lambda y: self._listOfButtons.remove(y))
 
             for source in sources:
-                button = Gtk.Button(label=source, use_underline=False)
+                button = Gtk.Button(label=source.name, use_underline=False)
                 button.connect("clicked", self.handle_sourceButton_clicked)
                 button.show_all()
 
                 self._listOfButtons.add(button)
+
+        else:
+            self.set_reveal_child(False)
 
     def handle_sourceButton_clicked(self, button):
         self.sourceMenu.popup_at_widget(button, Gdk.Gravity.SOUTH_WEST, Gdk.Gravity.NORTH_WEST, None)
@@ -71,7 +81,7 @@ class ThekeSourcesBar(Gtk.Revealer):
         self.emit("delete-source", menu_item.sourceName)
 
     def handle_sourceItem_request(self, menu_item):
-        self.emit("source-requested", menu_item.get_label())
+        self.emit("source-requested", menu_item.sourceName)
     
     @Gtk.Template.Callback()
     def _addSource_button_clicked_cb(self, button):

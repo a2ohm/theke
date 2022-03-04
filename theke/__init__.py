@@ -20,6 +20,10 @@ TYPE_BOOK = 2
 TYPE_INAPP = 3
 TYPE_WEBPAGE = 4
 
+# Testament
+BIBLE_OT = 1
+BIBLE_NT = 2
+
 # Errors
 class NavigationErrors:
     EXTERNAL_SOURCE_INACCESSIBLE = 0
@@ -30,5 +34,7 @@ PATH_ROOT = os.path.join(GLib.get_user_data_dir(), 'theke')
 PATH_DATA = os.path.join(PATH_ROOT, 'data')
 PATH_EXTERNAL = os.path.join(PATH_ROOT, 'external')
 PATH_CACHE = os.path.join(PATH_ROOT, 'cache')
+
+PATH_SETTINGS_FILE = os.path.join(PATH_ROOT, 'theke.conf')
 
 PATH_CUSTOM_CSS = './assets/css/custom.css'
