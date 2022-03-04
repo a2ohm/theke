@@ -20,7 +20,7 @@ ExternalDocumentData = namedtuple('externalDocumentData',['name', 'uri'])
 SOURCETYPE_SWORD = 'sword'
 SOURCETYPE_EXTERN = 'extern'
 
-NEEDED_API_VERSION = "0.3"
+NEEDED_API_VERSION = "0.4"
 INDEX_PATH = os.path.join(theke.PATH_DATA, 'thekeIndex.db')
 
 class ThekeIndex:
@@ -100,6 +100,18 @@ class ThekeIndex:
             (documentName,)).fetchone()
 
         return -1 if rawNbOfChapters is None else rawNbOfChapters[0]
+    
+    def get_biblical_book_testament(self, documentName) -> int:
+        """Return the testamet id of a biblical book given its name
+        """
+
+        rawTestament = self.con.execute("""SELECT testament
+            FROM biblicalBookData
+            INNER JOIN documentNaming ON biblicalBookData.id_document = documentNaming.id_document
+            WHERE documentNaming.name=?;""",
+            (documentName,)).fetchone()
+
+        return -1 if rawTestament is None else rawTestament[0]
 
     def get_document_id(self, documentName) -> int:
         """Return the id of document given its name
@@ -339,9 +351,11 @@ class ThekeIndexBuilder:
             );""")
 
         #   - book data
+        self.index.execute("""DROP TABLE IF EXISTS biblicalBookData""")
         self.index.execute("""CREATE TABLE IF NOT EXISTS biblicalBookData (
             id_document integer NOT NULL,
             nbOfChapters integer NOT NULL,
+            testament integer NOT NULL,
             FOREIGN KEY(id_document) REFERENCES documents(id) ON DELETE CASCADE
             );""")
 
@@ -458,7 +472,7 @@ class ThekeIndexBuilder:
         # Index names used by sword for biblical books
         vk = Sword.VerseKey()
 
-        for itestament in [1, 2]:
+        for itestament in [theke.BIBLE_OT, theke.BIBLE_NT]:
             vk.setTestament(itestament)
 
             for ibook in range(1, vk.getBookMax() +1):
@@ -471,10 +485,10 @@ class ThekeIndexBuilder:
                 # Index the biblical book name
                 self.index_biblical_book_name(documentId, vk.getBookName(), "en", "sword", doCommit = False)
 
-                # Index the number of chapters
-                self.index.execute("""INSERT OR IGNORE INTO biblicalBookData (id_document, nbOfChapters)
-                    VALUES(?, ?);""",
-                    (documentId, vk.getChapterMax()))
+                # Index the number of chapters and the testament
+                self.index.execute("""INSERT OR IGNORE INTO biblicalBookData (id_document, nbOfChapters, testament)
+                    VALUES(?, ?, ?);""",
+                    (documentId, vk.getChapterMax(), itestament))
 
         self.index.execute("""INSERT INTO header (key, value) VALUES(?, ?);""",
             ("are_sword_biblical_books_indexed", "yes"))
