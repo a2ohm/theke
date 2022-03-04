@@ -66,12 +66,12 @@ class ThekeNavigator(GObject.Object):
         # Load default biblical sources names from the settings file
         dbsn = settings.get("defaultBiblicalSourcesNames", None)
         if dbsn:
-            self._defaultBiblicalSourcesName = {
+            self._defaultBiblicalSourcesNames = {
                 theke.BIBLE_OT: set(dbsn.get('ot', ['OSHB', 'FreCrampon'])),
                 theke.BIBLE_NT: set(dbsn.get('nt', ['MorphGNT', 'FreCrampon']))
             }
         else:
-            self._defaultBiblicalSourcesName = {
+            self._defaultBiblicalSourcesNames = {
                 theke.BIBLE_OT: {'OSHB', 'FreCrampon'},
                 theke.BIBLE_NT: {'MorphGNT', 'FreCrampon'}
             }
@@ -139,7 +139,7 @@ class ThekeNavigator(GObject.Object):
             self._selectedSourcesNames.add(sourceName)
 
             if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesName[self.ref.testament].add(sourceName)
+                self._defaultBiblicalSourcesNames[self.ref.testament].add(sourceName)
 
             self.emit("context-updated", SOURCES_UPDATED)
 
@@ -152,7 +152,7 @@ class ThekeNavigator(GObject.Object):
             self._selectedSourcesNames.discard(sourceName)
 
             if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesName[self.ref.testament].discard(sourceName)
+                self._defaultBiblicalSourcesNames[self.ref.testament].discard(sourceName)
 
             # A source should be selected
             # Set a default source if needed
@@ -447,7 +447,7 @@ class ThekeNavigator(GObject.Object):
         """
         logger.debug("Automaticaly add sources ...")
 
-        for sourceName in self._defaultBiblicalSourcesName[ref.testament]:
+        for sourceName in self._defaultBiblicalSourcesNames[ref.testament]:
             if sourceName in ref.availableSources:
                 self._selectedSourcesNames.add(sourceName)
         
