@@ -178,6 +178,7 @@ class BiblicalReference(DocumentReference):
         self.bookName, self.chapter, self.verse = parse_biblical_reference(self.rawReference)
         self.documentName = self.bookName
         self.documentShortname = self.bookName
+        self.testament = None
 
         self.tags = tags
 
@@ -215,6 +216,8 @@ class BiblicalReference(DocumentReference):
         documentNames = index.get_biblical_book_names(self.bookName)
         self.documentName = documentNames['names'][0]
         self.documentShortname = documentNames['shortnames'][0] if len(documentNames['shortnames']) > 0 else documentNames['names'][0]
+        
+        self.testament = index.get_biblical_book_testament(self.bookName)
 
     def __and__(self, other) -> int:
         genericComparaison = super().__and__(other)
