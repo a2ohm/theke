@@ -21,6 +21,8 @@ class ThekeLocalSearchBar(Gtk.Revealer):
     def __init__(self) -> None:
         super().__init__()
 
+        self.resetCount = False
+
         self.connect("notify::search-mode-active", self._search_mode_active_cb)
         self._search_bar.connect("next-match", lambda x: self.emit("search-next-match"))
         self._search_bar.connect("previous-match", lambda x: self.emit("search-previous-match"))

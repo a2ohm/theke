@@ -166,9 +166,14 @@ class ThekeDocumentView(Gtk.Paned):
             self._ThekeLocalSearchBar.search_entry,
             WebKit2.FindOptions.WRAP_AROUND | WebKit2.FindOptions.CASE_INSENSITIVE
             , 100)
+        self._ThekeLocalSearchBar.resetCount = True
 
     def _local_search_found_text_cb(self, find_controller, match_count) -> None:
-        self._ThekeLocalSearchBar.display_match_count(match_count)
+        # Update the count only after a new search
+        # and not when the user goes to the next or previous result
+        if self._ThekeLocalSearchBar.resetCount:
+            self._ThekeLocalSearchBar.display_match_count(match_count)
+            self._ThekeLocalSearchBar.resetCount = False
 
     def _local_search_failed_to_find_text_cb(self, find_controller) -> None:
         self._ThekeLocalSearchBar.display_match_count(0)
