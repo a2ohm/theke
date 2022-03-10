@@ -156,12 +156,12 @@ class ThekeWebView(WebKit2.WebView):
             # Inject the scrolling handler
             script = """
                 // Scrolling handler
-                window.onbeforeunload = function(){
+                window.onbeforeunload = function(){{
                     // Get scroll position
                     scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                    r = "theke:/signal/scroll_position?y_scroll=" + scrollTop;
+                    r = "theke:/signal/scroll_position?shortTitle={}&y_scroll=" + scrollTop;
                     fetch(r);
-                };"""
+                }};""".format(self._navigator.shortTitle)
             self.run_javascript(script, None, None, None)
 
     # Webview API
