@@ -189,7 +189,21 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox.hide()
 
             # Scroll to the last position
-            self._ThekeDocumentView.set_scrolled_value(self._ThekeHistoryBar.get_scrolled_value())
+            #TODO: Cela pourrait-il fait plus proprement ?
+            #       [] _navigator.get_ref_type()
+            #       [] biblicalRef.get_verse()
+            if (self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE 
+                and self._navigator.ref.verse is not None
+                and self._navigator.ref.verse > 0):
+                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.verse)
+
+            else:
+                scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)
+                
+                # Scrolling to 0 is most often counterproductive
+                # For example, it prevents to jump to an anchor given in an uri
+                if scrolled_value > 0:
+                    self._ThekeDocumentView.set_scrolled_value(scrolled_value)
 
             # Turn of the loading flag
             self.is_loading = False
@@ -199,8 +213,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Display an error message in a modal
             self.display_warning_modal("La source externe est inaccessible.",
                 "Vérifiez votre connexion internet.")
-
-            
 
     def _documentView_mouse_target_changed_cb(self, obj, web_view, hit_test_result, modifiers):
         """Links hovered over by the mouse are shown in the status bar
@@ -214,7 +226,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._statusbar.pop(context_id)
     
     def _documentView_scroll_changed_cb(self, object, uri):
-        self._ThekeHistoryBar.save_scrolled_value(int(uri.params['y_scroll']))
+        self._ThekeHistoryBar.save_scrolled_value(uri.params['shortTitle'], int(uri.params['y_scroll']))
 
     ### Callbacks (_navigator)
     def _navigator_context_updated_cb(self, object, update_type) -> None:

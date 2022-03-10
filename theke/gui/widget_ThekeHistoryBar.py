@@ -84,19 +84,29 @@ class ThekeHistoryBar(Gtk.ButtonBox):
 
             self.pack_start(button, False, False, 0)
 
-    def save_scrolled_value(self, value) -> None:
+    def save_scrolled_value(self, label, value) -> None:
         """Save the scrolled value of the current document view
         """
-        button = self.get_children()[-1]
-        button.scrolledValue = value
+        try:
+            historyIndex = list(self.history.keys()).index(label)
+            button = self.get_children()[historyIndex+1]
+            button.scrolledValue = value
 
-    def get_scrolled_value(self) -> int:
+        except ValueError:
+            # This label does not exist in the history
+            pass
+
+    def get_scrolled_value(self, label) -> int:
         """Return the scrolled value save in the entry of the history
         """
-        button = self.get_children()[-1]
-
         try:
+            historyIndex = list(self.history.keys()).index(label)
+            button = self.get_children()[historyIndex+1]
             return button.scrolledValue
+
+        except ValueError:
+            return 0
+
         except AttributeError:
             return 0
 

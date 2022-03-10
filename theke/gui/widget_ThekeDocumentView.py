@@ -141,9 +141,9 @@ class ThekeDocumentView(Gtk.Paned):
 
                 self.show_toc()
 
-            # If a verse is given, scroll to it
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
-                self._webview.scroll_to_verse(self._navigator.ref.verse)
+            # # If a verse is given, scroll to it
+            # if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
+            #     self._webview.scroll_to_verse(self._navigator.ref.verse)
 
         self.emit("document-load-changed", web_view, load_event)
 
@@ -223,8 +223,8 @@ class ThekeDocumentView(Gtk.Paned):
         logger.debug("Set scrolled value: %d", value)
         self._webview.scroll_to_value(value)
 
-    # def scroll_to_verse(self, verse) -> None:
-    #     self._webview.scroll_to_verse(verse)
+    def scroll_to_verse(self, verse) -> None:
+        self._webview.scroll_to_verse(verse)
 
     ### API of the TOC
 
