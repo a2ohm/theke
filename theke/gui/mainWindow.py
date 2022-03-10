@@ -60,8 +60,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.register_navigator(self._navigator)
         self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
         self._ThekeDocumentView.connect("navigation-error", self._documentView_navigation_error_cb)
-        self._ThekeDocumentView.connect("webview-scroll-changed", self.handle_scroll_changed)
         self._ThekeDocumentView.connect("webview-mouse-target-changed", self._documentView_mouse_target_changed_cb)
+        self._ThekeDocumentView.connect("webview-scroll-changed", self._documentView_scroll_changed_cb)
 
         #   ... search panel
         self._ThekeSearchView.connect("selection-changed", self._searchView_selection_changed)
@@ -213,7 +213,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
     
-    def handle_scroll_changed(self, object, uri):
+    def _documentView_scroll_changed_cb(self, object, uri):
         self._ThekeHistoryBar.save_scrolled_value(int(uri.params['y_scroll']))
 
     ### Callbacks (_navigator)
