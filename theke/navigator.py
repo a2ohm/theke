@@ -103,9 +103,6 @@ class ThekeNavigator(GObject.Object):
         if reload or self.ref is None or ref != self.ref:
             logger.debug("Goto ref: %s", ref)
 
-            # Reset selected sources
-            self._selectedSourcesNames = list()
-
             self.update_context_from_ref(ref)
 
     def goto_section(self, tocData) -> None:
@@ -159,11 +156,11 @@ class ThekeNavigator(GObject.Object):
             if len(self._selectedSourcesNames) == 0:
                 if self.ref.type == theke.TYPE_BIBLE:
                     logger.debug("Set source to default [bible]")
-                    self._select_default_biblical_sources(self.ref)
+                    self._get_default_biblical_sources(self.ref)
 
                 elif self.ref.type == theke.TYPE_BOOK:
                     logger.debug("Set source to default [book]")
-                    self._select_book_sources(self.ref)
+                    self._get_default_book_sources(self.ref)
 
             self.emit("context-updated", SOURCES_UPDATED)
 
@@ -190,15 +187,18 @@ class ThekeNavigator(GObject.Object):
 
         ref = theke.reference.get_reference_from_uri(uri)
 
-        # Add wanted sources from the uri
+        # Collect sources names given in the uri
+        # and available for this refernce
         wantedSources = uri.params.get('sources', '')
+        wantedSourcesNames = list()
+
         for wantedSource in wantedSources.split(";"):
-            if wantedSource and wantedSource in ref.availableSources:
-                self._selectedSourcesNames.append(wantedSource)
+             if wantedSource and wantedSource in ref.availableSources:
+                wantedSourcesNames.append(wantedSource)
 
-        self.update_context_from_ref(ref)
+        self.update_context_from_ref(ref, wantedSourcesNames)
 
-    def update_context_from_ref(self, ref) -> None:
+    def update_context_from_ref(self, ref, wantedSourcesNames = None) -> None:
         """Update local context according to the ref
 
         Returning code:
@@ -231,8 +231,7 @@ class ThekeNavigator(GObject.Object):
                     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
                 # If needed, select sources to read the document from
-                if not self._selectedSourcesNames:
-                    self._select_default_biblical_sources(ref)
+                self._selectedSourcesNames = wantedSourcesNames or self._get_default_biblical_sources(ref)
 
                 # Different reference, update all the context
                 self.set_property("ref", ref)
@@ -254,8 +253,7 @@ class ThekeNavigator(GObject.Object):
             logger.debug("Update context [book]")
 
             # If needed, select sources to read the document from
-            if not self._selectedSourcesNames:
-                self._select_book_sources(ref)
+            self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
 
             source = ref.availableSources.get(self._selectedSourcesNames[0])
 
@@ -442,25 +440,32 @@ class ThekeNavigator(GObject.Object):
         ))
 
     ### Helpers
-    def _select_default_biblical_sources(self, ref):
-        """Select default biblical sources
+    def _get_default_biblical_sources(self, ref):
+        """Return default biblical sources
         """
-        logger.debug("Automaticaly add sources ...")
+        logger.debug("Automaticaly set sources ...")
+        
+        # Start from scratch
+        sourcesNames = list()
 
         for sourceName in self._defaultBiblicalSourcesNames[ref.testament]:
             if sourceName in ref.availableSources:
-                self._selectedSourcesNames.append(sourceName)
+                sourcesNames.append(sourceName)
         
-        if not self._selectedSourcesNames:
-            # None of default biblical sources are available for this biblical book
-            # so use the first available source
-            self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
+        # If none of default biblical sources are available for this biblical book
+        # use the first available source
+        if ref.testament == self.ref.testament:
+            return self._selectedSourcesNames or sourcesNames or [list(ref.availableSources.keys())[0]]
 
-    def _select_book_sources(self, ref):
-        # No sources are selected, the navigator should decide by itself
-        logger.debug("Automaticaly add sources ...")
+        return sourcesNames or [list(ref.availableSources.keys())[0]]
+
+    def _get_default_book_sources(self, ref):
+        """Return default book sources
+        """
+        logger.debug("Automaticaly set sources ...")
+
         # TODO: Faire un choix plus intelligent ...
-        self._selectedSourcesNames.append(list(ref.availableSources.keys())[0])
+        return [list(ref.availableSources.keys())[0]]
     
     ### Properties
     
