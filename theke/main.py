@@ -42,6 +42,15 @@ class ThekeApp(Gtk.Application):
             "URI",
         )
 
+        self.add_main_option(
+            GLib.OPTION_REMAINING,
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING_ARRAY,
+            "Open this uri",
+            "URI",
+        )
+
         self._window = None
         self._navigator = None
         self._settings = None
@@ -116,9 +125,9 @@ class ThekeApp(Gtk.Application):
             theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
             theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
 
-            # Load the main screen
-            uri = theke.uri.parse(self._defaultUri)
-            self._navigator.goto_uri(uri)
+        # Load the given uri
+        uri = theke.uri.parse(self._defaultUri)
+        self._navigator.goto_uri(uri)
 
         self._window.present()
 
@@ -131,6 +140,11 @@ class ThekeApp(Gtk.Application):
             # Start Theke with this uri
             logger.debug("Uri read from the command line: %s", options["uri"])
             self._defaultUri = options["uri"]
+
+        if GLib.OPTION_REMAINING in options:
+            # Open the first uri
+            logger.debug("Uri read from the command line: %s", options[GLib.OPTION_REMAINING][0])
+            self._defaultUri = options[GLib.OPTION_REMAINING][0]
 
         self.activate()
         return 0
