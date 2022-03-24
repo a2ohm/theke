@@ -91,5 +91,3 @@ class ThekeDicoView(Gtk.Box):
         with self.freeze_notify():
             self.set_property("strongsNb", strongsNb)
             self.set_property("lemma", '')
-
-    
