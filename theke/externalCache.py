@@ -100,7 +100,7 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
         with open(path_rawDocument, 'w', encoding="utf-8") as fd:
             for chunk in r.iter_content(chunk_size=128):
-                fd.write(chunk.decode(r.encoding))
+                fd.write(chunk.decode(r.encoding, 'replace'))
 
         return True
     
