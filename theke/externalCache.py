@@ -134,7 +134,7 @@ def layout_p_cb(soup, tag, params):
 def layout_numbering(soup, tag, params):
     """Add anchor to identify paragraph or section numbering
     """
-    text = tag.get_text(strip = True)
+    text = tag.get_text().strip()
     pattern_numbering = re.compile(params['pattern'])
 
     match_numbering = pattern_numbering.match(text)
