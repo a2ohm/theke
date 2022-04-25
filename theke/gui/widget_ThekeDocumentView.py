@@ -219,6 +219,22 @@ class ThekeDocumentView(Gtk.Paned):
 
             dialog.destroy()
 
+    def update_scroll(self, scrolled_value) -> None:
+        """Update scroll
+
+        If this is a biblical document, scroll to the given verse
+        Else, scroll to the given value
+        """
+        if (self._navigator.type == theke.TYPE_BIBLE 
+            and self._navigator.ref.get_verse() > 0):
+            self.scroll_to_verse(self._navigator.ref.get_verse())
+
+        else:            
+            # Scrolling to 0 is most often counterproductive
+            # For example, it prevents to jump to an anchor given in an uri
+            if scrolled_value > 0:
+                self.set_scrolled_value(scrolled_value)
+    
     def set_scrolled_value(self, value) -> None:
         logger.debug("Set scrolled value: %d", value)
         self._webview.scroll_to_value(value)

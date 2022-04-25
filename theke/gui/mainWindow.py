@@ -189,17 +189,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox.hide()
 
             # Scroll to the last position
-            if (self._navigator.type == theke.TYPE_BIBLE 
-                and self._navigator.ref.get_verse() > 0):
-                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.get_verse())
-
-            else:
-                scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)
-                
-                # Scrolling to 0 is most often counterproductive
-                # For example, it prevents to jump to an anchor given in an uri
-                if scrolled_value > 0:
-                    self._ThekeDocumentView.set_scrolled_value(scrolled_value)
+            scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)
+            self._ThekeDocumentView.update_scroll(scrolled_value)
 
             # Turn of the loading flag
             self.is_loading = False
