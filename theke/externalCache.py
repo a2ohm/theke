@@ -100,7 +100,7 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
         with open(path_rawDocument, 'w', encoding="utf-8") as fd:
             for chunk in r.iter_content(chunk_size=128):
-                fd.write(chunk.decode(r.encoding))
+                fd.write(chunk.decode(r.encoding, 'replace'))
 
         return True
     
@@ -127,13 +127,14 @@ def layout_h3_cb(soup, tag, params):
     return new_tag
 
 def layout_p_cb(soup, tag, params):
+    tag.name = 'p'
     tag.insert_after('\n')
     return tag
 
 def layout_numbering(soup, tag, params):
     """Add anchor to identify paragraph or section numbering
     """
-    text = tag.get_text(strip = True)
+    text = tag.get_text().strip()
     pattern_numbering = re.compile(params['pattern'])
 
     match_numbering = pattern_numbering.match(text)

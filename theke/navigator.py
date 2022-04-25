@@ -454,7 +454,7 @@ class ThekeNavigator(GObject.Object):
         
         # If none of default biblical sources are available for this biblical book
         # use the first available source
-        if ref.testament == self.ref.testament:
+        if self.ref is None or (self.ref.type == theke.TYPE_BIBLE and ref.testament == self.ref.testament):
             return self._selectedSourcesNames or sourcesNames or [list(ref.availableSources.keys())[0]]
 
         return sourcesNames or [list(ref.availableSources.keys())[0]]
