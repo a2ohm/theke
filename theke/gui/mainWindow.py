@@ -189,13 +189,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox.hide()
 
             # Scroll to the last position
-            #TODO: Cela pourrait-il fait plus proprement ?
-            #       [x] _navigator.get_ref_type()
-            #       [] biblicalRef.get_verse()
             if (self._navigator.type == theke.TYPE_BIBLE 
-                and self._navigator.ref.verse is not None
-                and self._navigator.ref.verse > 0):
-                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.verse)
+                and self._navigator.ref.get_verse() > 0):
+                self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.get_verse())
 
             else:
                 scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)

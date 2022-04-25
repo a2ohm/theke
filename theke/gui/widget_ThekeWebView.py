@@ -64,7 +64,7 @@ class ThekeWebView(WebKit2.WebView):
             self.grab_focus()
 
         elif update_type == theke.navigator.NEW_VERSE:
-            self.scroll_to_verse(self._navigator.ref.verse)
+            self.scroll_to_verse(self._navigator.ref.get_verse())
             self.grab_focus()
         
         elif update_type == theke.navigator.NEW_SECTION:

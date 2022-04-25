@@ -208,6 +208,10 @@ class BiblicalReference(DocumentReference):
         return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)])
 
+    def get_verse(self):
+        """Return the verse number"""
+        return self.verse
+    
     def update_data_from_index(self) -> None:
         """Use the ThekeIndex to update this biblical reference metadata
         """
