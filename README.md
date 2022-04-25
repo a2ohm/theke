@@ -137,3 +137,16 @@ Chaque document accessible dans Theke est désigné par une [uri](https://fr.wik
 * `theke:/doc/book/Lumen Gentium` : uri vers la constitution *Lumen Gentium*.
 
 **Astuce.** Depuis la barre d'historique, obtenez rapidement l'uri d'un document par un clique droit sur l'onglet du document qui vous intéresse.
+
+**Astuce.** Créer un fichier `theke.desktop` dans `~/.local/share/applications` avec le contenu suivant vous permet à votre système d'exploitation de reconnaître les URI theke (redémarrage de la session probablement nécessaire). Penser à l'adapter selon votre installation : remplacer `$THEKE_PATH$` par le chemin idoine.
+
+    [Desktop Entry]
+    Name=Theke
+    Exec=env PATH=$THEKE_PATH$/.venv/bin:$PATH VIRTUAL_ENV=$THEKE_PATH$/.venv python3 $THEKE_PATH$/theke.py %u
+    Path=$THEKE_PATH$/
+    Icon=$THEKE_PATH$/assets/img/theke-logo.svg
+    Type=Application
+    Terminal=false
+    Categories=Education;
+    MimeType=x-scheme-handler/theke
+    StartupNotify=true
