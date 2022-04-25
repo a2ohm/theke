@@ -150,7 +150,7 @@ class ThekeWebView(WebKit2.WebView):
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # The title of external webpage can only be set when the page is loaded
-            if self._navigator.ref.type == theke.TYPE_WEBPAGE:
+            if self._navigator.type == theke.TYPE_WEBPAGE:
                 self._navigator.ref.set_title(web_view.get_title())
 
             # Inject the scrolling handler

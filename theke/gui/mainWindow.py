@@ -166,7 +166,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Show the sourcesBar, if necessary
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
+            if self._navigator.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.set_reveal_child(True)
                 self._statusbar_revealer.set_reveal_child(False)
             else:
@@ -190,9 +190,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # Scroll to the last position
             #TODO: Cela pourrait-il fait plus proprement ?
-            #       [] _navigator.get_ref_type()
+            #       [x] _navigator.get_ref_type()
             #       [] biblicalRef.get_verse()
-            if (self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE 
+            if (self._navigator.type == theke.TYPE_BIBLE 
                 and self._navigator.ref.verse is not None
                 and self._navigator.ref.verse > 0):
                 self._ThekeDocumentView.scroll_to_verse(self._navigator.ref.verse)
@@ -300,9 +300,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def fill_gotobar_with_current_reference(self) -> None:
         """Fill the gotobar with the current reference
         """
-        if self._navigator.ref.type == theke.TYPE_BIBLE:
+        if self._navigator.type == theke.TYPE_BIBLE:
             self._ThekeGotoBar.set_text(self._navigator.ref.get_short_repr())
-        elif self._navigator.ref.type == theke.TYPE_BOOK:
+        elif self._navigator.type == theke.TYPE_BOOK:
             self._ThekeGotoBar.set_text(self._navigator.ref.get_repr())
         else:
             self._ThekeGotoBar.set_text('')

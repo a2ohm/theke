@@ -486,6 +486,12 @@ class ThekeNavigator(GObject.Object):
         """Short title of the current documment
         """
         return self.ref.get_short_repr()
+    
+    @GObject.Property(type=str)
+    def type(self):
+        """Type of the current documment
+        """
+        return self.ref.type if self.ref else None
 
     @GObject.Property(type=object)
     def selectedSourcesNames(self):
