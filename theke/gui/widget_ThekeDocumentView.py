@@ -196,6 +196,7 @@ class ThekeDocumentView(Gtk.Paned):
         sources = self._navigator.selectedSources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            self._navigator.is_loading = True
             theke.externalCache._build_clean_document(sources[0].name)
             self._navigator.reload()
 

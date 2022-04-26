@@ -141,7 +141,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
                     return True
 
             if keyval == Gdk.KEY_F5:
-                self.is_loading = True
                 self._ThekeDocumentView.refresh_document()
                 return True
 
