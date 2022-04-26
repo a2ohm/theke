@@ -6,6 +6,8 @@ from gi.repository import GObject
 from gi.repository import WebKit2
 
 import theke
+import theke.index
+import theke.externalCache
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +185,19 @@ class ThekeDocumentView(Gtk.Paned):
 
     def _local_search_failed_to_find_text_cb(self, find_controller) -> None:
         self._ThekeLocalSearchBar.display_match_count(0)
+
+    ### API
+    def refresh_document(self) -> None:
+        """Refresh the current document.
+
+        - If this is a document loaded from the cache, reclean it
+        """
+        logger.debug("Refresh the document")
+        sources = self._navigator.selectedSources
+        
+        if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            theke.externalCache._build_clean_document(sources[0].name)
+            self._navigator.reload()
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:

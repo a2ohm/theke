@@ -121,6 +121,9 @@ class ThekeNavigator(GObject.Object):
         else:
             logging.error("This type of TOC (%s) is not supported yet.", self.toc.type)
 
+    def reload(self) -> None:
+        self.emit("context-updated", NEW_DOCUMENT)
+
     ### Edit the context
 
     def add_source(self, sourceName) -> None:
