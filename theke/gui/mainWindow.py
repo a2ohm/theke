@@ -143,10 +143,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
                     self.props.local_search_mode_active = False
                     return True
 
-            if keyval == Gdk.KEY_F5:
-                self._ThekeDocumentView.refresh_document()
-                return True
-
     @Gtk.Template.Callback()
     def _pane_max_position_notify_cb(self, object, param) -> None:
         """Set a pane to its maximal position
