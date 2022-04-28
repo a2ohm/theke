@@ -136,8 +136,8 @@ Author: a2ohm
                       <object class="GtkMenuItem" id="_document_softRefresh_menuItem">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
-                        <property name="tooltip-text" translatable="yes">Reprend la mise en forme du document à partir de sa fiche.</property>
-                        <property name="label" translatable="yes">Actualiser la mise en forme</property>
+                        <property name="tooltip-text" translatable="yes">Actualise la mise en page du document à partir de sa fiche.</property>
+                        <property name="label" translatable="yes">Actualiser la mise en page</property>
                         <property name="use-underline">True</property>
                         <signal name="activate" handler="_document_softRefresh_menuItem_activate_cb" swapped="no"/>
                         <accelerator key="F5" signal="activate"/>
