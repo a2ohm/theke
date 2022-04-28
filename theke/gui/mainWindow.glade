@@ -179,6 +179,7 @@ Author: a2ohm
                         <property name="label" translatable="yes">Aide</property>
                         <property name="use-underline">True</property>
                         <signal name="activate" handler="_help_help_menuItem_activate_cb" swapped="no"/>
+                        <accelerator key="F1" signal="activate"/>
                       </object>
                     </child>
                   </object>
