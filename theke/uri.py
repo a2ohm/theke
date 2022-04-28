@@ -10,6 +10,7 @@ inAppURI = {
     'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
     'external_documents' : inAppUriData('Liste des documents externes', 'Documents externes', 'external_documents.html'),
     'help' : inAppUriData('Aide', 'Aide', 'help.html'),
+    'logbook' : inAppUriData('Carnet de bord', 'Carnet de bord', 'logbook.html'),
     'modules' : inAppUriData('Liste des modules installés', 'Modules', 'modules.html'),
     'test' : inAppUriData('⚠️ Zone de test ⚠️', 'Test', 'test.html'),
     'welcome': inAppUriData('Bienvenue !', 'Accueil', 'welcome.html'),
