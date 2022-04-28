@@ -145,18 +145,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 return True
 
     @Gtk.Template.Callback()
-    def _help_help_menuItem_activate_cb(self, menu_item) -> None:
-        """Help > Help
-        """
-        self._navigator.goto_uri(theke.URI_HELP)
-
-    @Gtk.Template.Callback()
-    def _help_logbook_menuItem_activate_cb(self, menu_item) -> None:
-        """Help > Logbook
-        """
-        self._navigator.goto_uri(theke.URI_LOGBOOK)
-
-    @Gtk.Template.Callback()
     def _pane_max_position_notify_cb(self, object, param) -> None:
         """Set a pane to its maximal position
         """
@@ -172,6 +160,26 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._navigator.goto_ref(ref)
         else:
             self.display_warning_modal("Référence inconnue.")
+    
+    ### Callbacks (from glade / menu bar)
+
+    @Gtk.Template.Callback()
+    def _file_export_menuItem_activate_cb(self, menu_item) -> None:
+        """File > Export
+        """
+        self._ThekeDocumentView.export_document(self)
+
+    @Gtk.Template.Callback()
+    def _help_help_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Help
+        """
+        self._navigator.goto_uri(theke.URI_HELP)
+
+    @Gtk.Template.Callback()
+    def _help_logbook_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Logbook
+        """
+        self._navigator.goto_uri(theke.URI_LOGBOOK)
 
     ### Callbacks (_documentView)
     def _documentView_load_changed_cb(self, obj, web_view, load_event):
