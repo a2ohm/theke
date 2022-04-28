@@ -145,6 +145,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 return True
 
     @Gtk.Template.Callback()
+    def _help_help_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Help
+        """
+        self._navigator.goto_uri(theke.URI_HELP)
+
+    @Gtk.Template.Callback()
+    def _help_logbook_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Logbook
+        """
+        self._navigator.goto_uri(theke.URI_LOGBOOK)
+
+    @Gtk.Template.Callback()
     def _pane_max_position_notify_cb(self, object, param) -> None:
         """Set a pane to its maximal position
         """
