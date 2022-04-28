@@ -216,6 +216,9 @@ class ThekeDocumentView(Gtk.Paned):
                 # Success to cache the document from the external source
                 theke.externalCache._build_clean_document(sources[0].name)
                 self._navigator.reload()
+            else:
+                self._navigator.is_loading = False
+                self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:
