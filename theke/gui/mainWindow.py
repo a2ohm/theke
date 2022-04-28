@@ -37,6 +37,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _loading_spinner : Gtk.Spinner = Gtk.Template.Child()
 
+    _document_refresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
+
     def __init__(self, navigator):
         super().__init__()
 
@@ -170,6 +172,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.export_document(self)
 
     @Gtk.Template.Callback()
+    def _document_refresh_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Refresh
+        """
+        self._ThekeDocumentView.refresh_document()
+
+    @Gtk.Template.Callback()
     def _help_help_menuItem_activate_cb(self, menu_item) -> None:
         """Help > Help
         """
@@ -215,6 +223,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Scroll to the last position
             scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)
             self._ThekeDocumentView.update_scroll(scrolled_value)
+
+            # Activate or not some menu items
+            sources = self._navigator.selectedSources
+            if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+                self._document_refresh_menuItem.set_sensitive(True)
+            else:
+                self._document_refresh_menuItem.set_sensitive(False)
 
             # Turn of the loading flag
             self.is_loading = False
