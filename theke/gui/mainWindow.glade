@@ -122,13 +122,24 @@ Author: a2ohm
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
-                      <object class="GtkMenuItem" id="_document_refresh_menuItem">
+                      <object class="GtkMenuItem" id="_document_hardRefresh_menuItem">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Re-télécharge le document depuis sa source externe et met à jour sa mise en forme.</property>
+                        <property name="label" translatable="yes">Actualiser depuis la source externe</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="_document_hardRefresh_menuItem_activate_cb" swapped="no"/>
+                        <accelerator key="F5" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="_document_softRefresh_menuItem">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>
                         <property name="tooltip-text" translatable="yes">Reprend la mise en forme du document à partir de sa fiche.</property>
                         <property name="label" translatable="yes">Actualiser la mise en forme</property>
                         <property name="use-underline">True</property>
-                        <signal name="activate" handler="_document_refresh_menuItem_activate_cb" swapped="no"/>
+                        <signal name="activate" handler="_document_softRefresh_menuItem_activate_cb" swapped="no"/>
                         <accelerator key="F5" signal="activate"/>
                       </object>
                     </child>

@@ -187,18 +187,35 @@ class ThekeDocumentView(Gtk.Paned):
         self._ThekeLocalSearchBar.display_match_count(0)
 
     ### API
-    def refresh_document(self) -> None:
-        """Refresh the current document.
+    def soft_refresh_document(self) -> None:
+        """Soft refresh the current document.
 
         - If this is a document loaded from the cache, reclean it
         """
-        logger.debug("Refresh the document")
+        logger.debug("Soft refresh the document")
         sources = self._navigator.selectedSources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
             self._navigator.is_loading = True
             theke.externalCache._build_clean_document(sources[0].name)
             self._navigator.reload()
+
+    def hard_refresh_document(self) -> None:
+        """Hard refresh the current document.
+
+        - If this is a document loaded from the cache, redownload it and reclean it
+        """
+        logger.debug("Hard refresh the document")
+        sources = self._navigator.selectedSources
+        
+        if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            self._navigator.is_loading = True
+            contentUri = self._navigator.index.get_source_uri(sources[0].name)
+
+            if theke.externalCache.cache_document_from_external_source(sources[0].name, contentUri):
+                # Success to cache the document from the external source
+                theke.externalCache._build_clean_document(sources[0].name)
+                self._navigator.reload()
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:

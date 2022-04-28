@@ -37,7 +37,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _loading_spinner : Gtk.Spinner = Gtk.Template.Child()
 
-    _document_refresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
+    _document_softRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
+    _document_hardRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
 
     def __init__(self, navigator):
         super().__init__()
@@ -170,12 +171,18 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """File > Export
         """
         self._ThekeDocumentView.export_document(self)
+    
+    @Gtk.Template.Callback()
+    def _document_hardRefresh_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Refresh cache
+        """
+        self._ThekeDocumentView.hard_refresh_document()
 
     @Gtk.Template.Callback()
-    def _document_refresh_menuItem_activate_cb(self, menu_item) -> None:
-        """Document > Refresh
+    def _document_softRefresh_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Refresh layout
         """
-        self._ThekeDocumentView.refresh_document()
+        self._ThekeDocumentView.soft_refresh_document()
 
     @Gtk.Template.Callback()
     def _help_help_menuItem_activate_cb(self, menu_item) -> None:
@@ -227,9 +234,11 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Activate or not some menu items
             sources = self._navigator.selectedSources
             if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
-                self._document_refresh_menuItem.set_sensitive(True)
+                self._document_softRefresh_menuItem.set_sensitive(True)
+                self._document_hardRefresh_menuItem.set_sensitive(True)
             else:
-                self._document_refresh_menuItem.set_sensitive(False)
+                self._document_softRefresh_menuItem.set_sensitive(False)
+                self._document_hardRefresh_menuItem.set_sensitive(False)
 
             # Turn of the loading flag
             self.is_loading = False
