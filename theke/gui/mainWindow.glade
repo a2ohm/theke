@@ -122,6 +122,23 @@ Author: a2ohm
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
                     <child>
+                      <object class="GtkMenuItem" id="_document_search_menuItem">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="tooltip-text" translatable="yes">Rechercher dans le document ouvert</property>
+                        <property name="label" translatable="yes">Rechercher...</property>
+                        <property name="use-underline">True</property>
+                        <signal name="activate" handler="_document_search_menuItem_activate_cb" swapped="no"/>
+                        <accelerator key="f" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkMenuItem" id="_document_hardRefresh_menuItem">
                         <property name="visible">True</property>
                         <property name="can-focus">False</property>

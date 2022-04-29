@@ -109,17 +109,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # Ctrl+<KEY>
         if control_mask == modifiers:
-            # ... Ctrl+f: open search bar
-            if keyval == Gdk.KEY_f:
-                searchMode = self.props.local_search_mode_active
-                if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
-                    self._ThekeDocumentView.local_search_bar_grab_focus()
-                else:
-                    self.props.local_search_mode_active = not searchMode
-                return True
-
             # ... Ctrl+l: give focus to the gotobar
-            elif keyval == Gdk.KEY_l:
+            if keyval == Gdk.KEY_l:
                 self._ThekeGotoBar.grab_focus()
                 return True
 
@@ -167,6 +158,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """File > Export
         """
         self._ThekeDocumentView.export_document(self)
+
+    @Gtk.Template.Callback()
+    def _document_search_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Search
+        """
+        searchMode = self.props.local_search_mode_active
+        if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
+            self._ThekeDocumentView.local_search_bar_grab_focus()
+        else:
+            self.props.local_search_mode_active = not searchMode
     
     @Gtk.Template.Callback()
     def _document_hardRefresh_menuItem_activate_cb(self, menu_item) -> None:
