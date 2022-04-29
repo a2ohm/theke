@@ -126,6 +126,12 @@ def layout_h3_cb(soup, tag, params):
     tag.replace_with(new_tag)
     return new_tag
 
+def layout_h4_cb(soup, tag, params):
+    new_tag = soup.new_tag('h4')
+    new_tag.string = tag.get_text(strip = True)
+    tag.replace_with(new_tag)
+    return new_tag
+
 def layout_p_cb(soup, tag, params):
     tag.name = 'p'
     tag.insert_after('\n')
@@ -156,6 +162,7 @@ def layout_numbering(soup, tag, params):
 layout_rules_callbacks = [
     ('h2', layout_h2_cb),
     ('h3', layout_h3_cb),
+    ('h4', layout_h4_cb),
     ('p', layout_p_cb)
 ]
 
