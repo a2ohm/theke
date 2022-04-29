@@ -7,7 +7,6 @@ validSchemes = ['theke', 'http', 'https']
 inAppUriData = namedtuple('inAppUriData',['title','shortTitle','fileName'])
 
 inAppURI = {
-    'about' : inAppUriData('À propos de Theke', 'À propos', 'about.html'),
     'external_documents' : inAppUriData('Liste des documents externes', 'Documents externes', 'external_documents.html'),
     'help' : inAppUriData('Aide', 'Aide', 'help.html'),
     'logbook' : inAppUriData('Carnet de bord', 'Carnet de bord', 'logbook.html'),

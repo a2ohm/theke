@@ -9,6 +9,7 @@ import theke
 import theke.reference
 
 # Import needed to load the gui
+from theke.gui.aboutDialog import AboutDialog
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
@@ -192,6 +193,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """Help > Logbook
         """
         self._navigator.goto_uri(theke.URI_LOGBOOK)
+
+    @Gtk.Template.Callback()
+    def _help_about_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > About...
+        """
+        aboutDialog = AboutDialog()
+        aboutDialog.props.transient_for = self
+        aboutDialog.run()
+        aboutDialog.destroy()
 
     ### Callbacks (_documentView)
     def _documentView_load_changed_cb(self, obj, web_view, load_event):
