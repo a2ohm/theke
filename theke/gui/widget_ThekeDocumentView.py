@@ -6,6 +6,8 @@ from gi.repository import GObject
 from gi.repository import WebKit2
 
 import theke
+import theke.index
+import theke.externalCache
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,9 @@ class ThekeDocumentView(Gtk.Paned):
                       (object, object)),
         'webview-mouse-target-changed': (GObject.SIGNAL_RUN_LAST, None,
                       (object, object, int)),
-        'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
+        'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,)),
+        'webview-scroll-changed': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,)),
         }
 
     isReduce = GObject.Property(type=bool, default=True)
@@ -59,6 +63,7 @@ class ThekeDocumentView(Gtk.Paned):
         # ... document view > webview > find controller
         self._webview_findController.connect("found-text", self._local_search_found_text_cb)
         self._webview_findController.connect("failed-to-find-text", self._local_search_failed_to_find_text_cb)
+        self._webview.connect("scroll-changed", self._webview_scroll_changed_cb)
 
     def _setup_view(self) -> None:
         self.bind_property(
@@ -138,11 +143,14 @@ class ThekeDocumentView(Gtk.Paned):
 
                 self.show_toc()
 
-            # If a verse is given, scroll to it
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
-                self._webview.scroll_to_verse(self._navigator.ref.verse)
+            # # If a verse is given, scroll to it
+            # if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE and self._navigator.ref.verse is not None:
+            #     self._webview.scroll_to_verse(self._navigator.ref.verse)
 
         self.emit("document-load-changed", web_view, load_event)
+
+    def _webview_scroll_changed_cb(self, object, uri):
+        self.emit("webview-scroll-changed", uri)
 
     def _webview_mouse_target_changed_cb(self, web_view, hit_test_result, modifiers):
         self.emit("webview-mouse-target-changed", web_view, hit_test_result, modifiers)
@@ -177,6 +185,40 @@ class ThekeDocumentView(Gtk.Paned):
 
     def _local_search_failed_to_find_text_cb(self, find_controller) -> None:
         self._ThekeLocalSearchBar.display_match_count(0)
+
+    ### API
+    def soft_refresh_document(self) -> None:
+        """Soft refresh the current document.
+
+        - If this is a document loaded from the cache, reclean it
+        """
+        logger.debug("Soft refresh the document")
+        sources = self._navigator.selectedSources
+        
+        if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            self._navigator.is_loading = True
+            theke.externalCache._build_clean_document(sources[0].name)
+            self._navigator.reload()
+
+    def hard_refresh_document(self) -> None:
+        """Hard refresh the current document.
+
+        - If this is a document loaded from the cache, redownload it and reclean it
+        """
+        logger.debug("Hard refresh the document")
+        sources = self._navigator.selectedSources
+        
+        if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            self._navigator.is_loading = True
+            contentUri = self._navigator.index.get_source_uri(sources[0].name)
+
+            if theke.externalCache.cache_document_from_external_source(sources[0].name, contentUri):
+                # Success to cache the document from the external source
+                theke.externalCache._build_clean_document(sources[0].name)
+                self._navigator.reload()
+            else:
+                self._navigator.is_loading = False
+                self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:
@@ -213,8 +255,28 @@ class ThekeDocumentView(Gtk.Paned):
 
             dialog.destroy()
 
-    # def scroll_to_verse(self, verse) -> None:
-    #     self._webview.scroll_to_verse(verse)
+    def update_scroll(self, scrolled_value) -> None:
+        """Update scroll
+
+        If this is a biblical document, scroll to the given verse
+        Else, scroll to the given value
+        """
+        if (self._navigator.type == theke.TYPE_BIBLE 
+            and self._navigator.ref.get_verse() > 0):
+            self.scroll_to_verse(self._navigator.ref.get_verse())
+
+        else:            
+            # Scrolling to 0 is most often counterproductive
+            # For example, it prevents to jump to an anchor given in an uri
+            if scrolled_value > 0:
+                self.set_scrolled_value(scrolled_value)
+    
+    def set_scrolled_value(self, value) -> None:
+        logger.debug("Set scrolled value: %d", value)
+        self._webview.scroll_to_value(value)
+
+    def scroll_to_verse(self, verse) -> None:
+        self._webview.scroll_to_verse(verse)
 
     ### API of the TOC
 

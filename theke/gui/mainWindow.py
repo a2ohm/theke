@@ -9,6 +9,7 @@ import theke
 import theke.reference
 
 # Import needed to load the gui
+from theke.gui.aboutDialog import AboutDialog
 from theke.gui.widget_ThekeHistoryBar import ThekeHistoryBar
 from theke.gui.widget_ThekeGotoBar import ThekeGotoBar
 from theke.gui.widget_ThekeSourcesBar import ThekeSourcesBar
@@ -37,6 +38,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     _loading_spinner : Gtk.Spinner = Gtk.Template.Child()
 
+    _document_softRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
+    _document_hardRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
+
     def __init__(self, navigator):
         super().__init__()
 
@@ -61,6 +65,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
         self._ThekeDocumentView.connect("navigation-error", self._documentView_navigation_error_cb)
         self._ThekeDocumentView.connect("webview-mouse-target-changed", self._documentView_mouse_target_changed_cb)
+        self._ThekeDocumentView.connect("webview-scroll-changed", self._documentView_scroll_changed_cb)
 
         #   ... search panel
         self._ThekeSearchView.connect("selection-changed", self._searchView_selection_changed)
@@ -105,17 +110,8 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         # Ctrl+<KEY>
         if control_mask == modifiers:
-            # ... Ctrl+f: open search bar
-            if keyval == Gdk.KEY_f:
-                searchMode = self.props.local_search_mode_active
-                if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
-                    self._ThekeDocumentView.local_search_bar_grab_focus()
-                else:
-                    self.props.local_search_mode_active = not searchMode
-                return True
-
             # ... Ctrl+l: give focus to the gotobar
-            elif keyval == Gdk.KEY_l:
+            if keyval == Gdk.KEY_l:
                 self._ThekeGotoBar.grab_focus()
                 return True
 
@@ -155,6 +151,57 @@ class ThekeWindow(Gtk.ApplicationWindow):
             self._navigator.goto_ref(ref)
         else:
             self.display_warning_modal("Référence inconnue.")
+    
+    ### Callbacks (from glade / menu bar)
+
+    @Gtk.Template.Callback()
+    def _file_export_menuItem_activate_cb(self, menu_item) -> None:
+        """File > Export
+        """
+        self._ThekeDocumentView.export_document(self)
+
+    @Gtk.Template.Callback()
+    def _document_search_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Search
+        """
+        searchMode = self.props.local_search_mode_active
+        if searchMode and not self._ThekeDocumentView.local_search_bar_has_focus():
+            self._ThekeDocumentView.local_search_bar_grab_focus()
+        else:
+            self.props.local_search_mode_active = not searchMode
+    
+    @Gtk.Template.Callback()
+    def _document_hardRefresh_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Refresh cache
+        """
+        self._ThekeDocumentView.hard_refresh_document()
+
+    @Gtk.Template.Callback()
+    def _document_softRefresh_menuItem_activate_cb(self, menu_item) -> None:
+        """Document > Refresh layout
+        """
+        self._ThekeDocumentView.soft_refresh_document()
+
+    @Gtk.Template.Callback()
+    def _help_help_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Help
+        """
+        self._navigator.goto_uri(theke.URI_HELP)
+
+    @Gtk.Template.Callback()
+    def _help_logbook_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > Logbook
+        """
+        self._navigator.goto_uri(theke.URI_LOGBOOK)
+
+    @Gtk.Template.Callback()
+    def _help_about_menuItem_activate_cb(self, menu_item) -> None:
+        """Help > About...
+        """
+        aboutDialog = AboutDialog()
+        aboutDialog.props.transient_for = self
+        aboutDialog.run()
+        aboutDialog.destroy()
 
     ### Callbacks (_documentView)
     def _documentView_load_changed_cb(self, obj, web_view, load_event):
@@ -165,7 +212,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Show the sourcesBar, if necessary
-            if self._navigator.ref and self._navigator.ref.type == theke.TYPE_BIBLE:
+            if self._navigator.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.set_reveal_child(True)
                 self._statusbar_revealer.set_reveal_child(False)
             else:
@@ -187,6 +234,19 @@ class ThekeWindow(Gtk.ApplicationWindow):
             if not self._navigator.isMorphAvailable:
                 self._ThekeToolsBox.hide()
 
+            # Scroll to the last position
+            scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)
+            self._ThekeDocumentView.update_scroll(scrolled_value)
+
+            # Activate or not some menu items
+            sources = self._navigator.selectedSources
+            if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+                self._document_softRefresh_menuItem.set_sensitive(True)
+                self._document_hardRefresh_menuItem.set_sensitive(True)
+            else:
+                self._document_softRefresh_menuItem.set_sensitive(False)
+                self._document_hardRefresh_menuItem.set_sensitive(False)
+
             # Turn of the loading flag
             self.is_loading = False
     
@@ -206,6 +266,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
         else:
             context_id = self._statusbar.get_context_id("navigation-next")
             self._statusbar.pop(context_id)
+    
+    def _documentView_scroll_changed_cb(self, object, uri):
+        self._ThekeHistoryBar.save_scrolled_value(uri.params['shortTitle'], int(uri.params['y_scroll']))
 
     ### Callbacks (_navigator)
     def _navigator_context_updated_cb(self, object, update_type) -> None:
@@ -279,9 +342,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def fill_gotobar_with_current_reference(self) -> None:
         """Fill the gotobar with the current reference
         """
-        if self._navigator.ref.type == theke.TYPE_BIBLE:
+        if self._navigator.type == theke.TYPE_BIBLE:
             self._ThekeGotoBar.set_text(self._navigator.ref.get_short_repr())
-        elif self._navigator.ref.type == theke.TYPE_BOOK:
+        elif self._navigator.type == theke.TYPE_BOOK:
             self._ThekeGotoBar.set_text(self._navigator.ref.get_repr())
         else:
             self._ThekeGotoBar.set_text('')

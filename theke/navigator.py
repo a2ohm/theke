@@ -121,6 +121,9 @@ class ThekeNavigator(GObject.Object):
         else:
             logging.error("This type of TOC (%s) is not supported yet.", self.toc.type)
 
+    def reload(self) -> None:
+        self.emit("context-updated", NEW_DOCUMENT)
+
     ### Edit the context
 
     def add_source(self, sourceName) -> None:
@@ -454,7 +457,7 @@ class ThekeNavigator(GObject.Object):
         
         # If none of default biblical sources are available for this biblical book
         # use the first available source
-        if self.ref.type == theke.TYPE_BIBLE and ref.testament == self.ref.testament:
+        if self.ref is None or (self.ref.type == theke.TYPE_BIBLE and ref.testament == self.ref.testament):
             return self._selectedSourcesNames or sourcesNames or [list(ref.availableSources.keys())[0]]
 
         return sourcesNames or [list(ref.availableSources.keys())[0]]
@@ -486,6 +489,12 @@ class ThekeNavigator(GObject.Object):
         """Short title of the current documment
         """
         return self.ref.get_short_repr()
+    
+    @GObject.Property(type=str)
+    def type(self):
+        """Type of the current documment
+        """
+        return self.ref.type if self.ref else None
 
     @GObject.Property(type=object)
     def selectedSourcesNames(self):

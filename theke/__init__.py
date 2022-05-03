@@ -12,6 +12,8 @@ from gi.repository import GLib
 
 # URI
 URI_WELCOME = "theke:/app/welcome"
+URI_HELP = "theke:/app/help"
+URI_LOGBOOK = "theke:/app/logbook"
 
 # Valid types of documents
 TYPE_UNKNOWN = 0

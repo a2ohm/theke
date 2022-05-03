@@ -42,6 +42,15 @@ class ThekeApp(Gtk.Application):
             "URI",
         )
 
+        self.add_main_option(
+            GLib.OPTION_REMAINING,
+            0,
+            GLib.OptionFlags.NONE,
+            GLib.OptionArg.STRING_ARRAY,
+            "Open this uri",
+            "URI",
+        )
+
         self._window = None
         self._navigator = None
         self._settings = None
@@ -77,49 +86,50 @@ class ThekeApp(Gtk.Application):
         """
         logger.debug("ThekeApp - Do activate")
 
-        # Load settings
-        self._settings = yaml.safe_load(open(theke.PATH_SETTINGS_FILE, 'r'))
-
-        # Set the navigator
-        self._navigator = theke.navigator.ThekeNavigator(self._settings or {})
-
         if not self._window:
             logger.debug("ThekeApp - Create a new window")
+
+            # Load settings
+            self._settings = yaml.safe_load(open(theke.PATH_SETTINGS_FILE, 'r'))
+            # Set the navigator
+            self._navigator = theke.navigator.ThekeNavigator(self._settings or {})
+
             self._window = theke.gui.mainWindow.ThekeWindow(navigator = self._navigator)
             self._window.set_application(self)
-            self._window.present()
 
-        # From the index ...
-        thekeIndex = theke.index.ThekeIndex()
+            # From the index ...
+            thekeIndex = theke.index.ThekeIndex()
 
-        # ... load the list of modules
-        # TODO: pour l'usage qui en est fait, il serait préférable de créer la fonction
-        #       thekeIndex.list_sword_modules()
-        bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
-        book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
+            # ... load the list of modules
+            # TODO: pour l'usage qui en est fait, il serait préférable de créer la fonction
+            #       thekeIndex.list_sword_modules()
+            bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
+            book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
 
-        # ... load the list of external documents
-        external_docs = thekeIndex.list_external_documents()
+            # ... load the list of external documents
+            external_docs = thekeIndex.list_external_documents()
 
-        # ... populate the gotobar autocompletion list
-        for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
-            self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
+            # ... populate the gotobar autocompletion list
+            for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
+                self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
 
-        for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BOOK):
-            self._window._ThekeGotoBar.append((documentData.name, 'white smoke'))
+            for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BOOK):
+                self._window._ThekeGotoBar.append((documentData.name, 'white smoke'))
 
-        # Register application screens in the GotoBar
-        # for inAppUriKey in theke.uri.inAppURI.keys():
-        #     self.window.gotobar.append((inAppUriKey, 'sandy brown'))
+            # Register application screens in the GotoBar
+            # for inAppUriKey in theke.uri.inAppURI.keys():
+            #     self.window.gotobar.append((inAppUriKey, 'sandy brown'))
 
-        # Build templates
-        theke.templates.build_template('welcome', {'BibleMods': bible_mods})
-        theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
-        theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
+            # Build templates
+            theke.templates.build_template('welcome', {'BibleMods': bible_mods})
+            theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
+            theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
 
-        # Load the main screen
+        # Load the given uri
         uri = theke.uri.parse(self._defaultUri)
         self._navigator.goto_uri(uri)
+
+        self._window.present()
 
     def do_command_line(self, command_line):
         options = command_line.get_options_dict()
@@ -130,6 +140,11 @@ class ThekeApp(Gtk.Application):
             # Start Theke with this uri
             logger.debug("Uri read from the command line: %s", options["uri"])
             self._defaultUri = options["uri"]
+
+        if GLib.OPTION_REMAINING in options:
+            # Open the first uri
+            logger.debug("Uri read from the command line: %s", options[GLib.OPTION_REMAINING][0])
+            self._defaultUri = options[GLib.OPTION_REMAINING][0]
 
         self.activate()
         return 0

@@ -15,7 +15,7 @@
             </h1>
         </header>
 
-        <p><a href="theke:/app/help">Aide</a> − <a href="theke:/app/about">À propos de Theke</a> − <a href="theke:/app/test">Test</a></p>
+        <p><a href="theke:/app/logbook">Carnet de bord</a> − <a href="theke:/app/help">Aide</a> − <a href="theke:/app/test">Test</a></p>
 
          {% if not BibleMods %}
          <p class="warning">Vous n'avez aucun module biblique. Vous trouverez dans l'<a href="theke:/app/help#modules">aide</a> des indications pour en installer.</p>
@@ -37,12 +37,5 @@
         </ul>
 
         {% endif %}
-
-        <hr/>
-
-        <div id="logbook">
-        <h2>Dernières fonctionnalités.</h2>
-        {% include 'logbook.html' %}
-        </div>
     </body>
 </html>

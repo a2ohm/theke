@@ -14,6 +14,8 @@ class ThekeWebView(WebKit2.WebView):
 
     __gsignals__ = {
         'click_on_word': (GObject.SIGNAL_RUN_FIRST, None,
+                      (object,)),
+        'scroll-changed': (GObject.SIGNAL_RUN_FIRST, None,
                       (object,))
         }
 
@@ -62,7 +64,7 @@ class ThekeWebView(WebKit2.WebView):
             self.grab_focus()
 
         elif update_type == theke.navigator.NEW_VERSE:
-            self.scroll_to_verse(self._navigator.ref.verse)
+            self.scroll_to_verse(self._navigator.ref.get_verse())
             self.grab_focus()
         
         elif update_type == theke.navigator.NEW_SECTION:
@@ -132,6 +134,9 @@ class ThekeWebView(WebKit2.WebView):
 
             if uri.path[2] == 'click_on_word':
                 self.emit("click_on_word", uri)
+
+            if uri.path[2] == 'scroll_position':
+                self.emit("scroll-changed", uri)
                 
             html_bytes = GLib.Bytes.new("".encode('utf-8'))
             tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
@@ -145,8 +150,19 @@ class ThekeWebView(WebKit2.WebView):
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
             # The title of external webpage can only be set when the page is loaded
-            if self._navigator.ref.type == theke.TYPE_WEBPAGE:
+            if self._navigator.type == theke.TYPE_WEBPAGE:
                 self._navigator.ref.set_title(web_view.get_title())
+
+            # Inject the scrolling handler
+            script = """
+                // Scrolling handler
+                window.onbeforeunload = function(){{
+                    // Get scroll position
+                    scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    r = "theke:/signal/scroll_position?shortTitle={}&y_scroll=" + scrollTop;
+                    fetch(r);
+                }};""".format(self._navigator.shortTitle)
+            self.run_javascript(script, None, None, None)
 
     # Webview API
     def jump_to_anchor(self, anchor):
@@ -161,6 +177,14 @@ class ThekeWebView(WebKit2.WebView):
         e = document.getElementsByName('{anchor}');
         e[0].scrollIntoView({{behavior: "smooth", block: "start", inline: "nearest"}});
         """.format(anchor = anchor)
+        self.run_javascript(script, None, None, None)
+    
+    def scroll_to_value(self, value, smooth = False):
+        if smooth: 
+            script = 'window.scroll({{left: 0, top: {}, behavior: "smooth"}});'.format(value)
+        else:
+            script = 'window.scroll(0, {});'.format(value)
+
         self.run_javascript(script, None, None, None)
 
     def scroll_to_verse(self, verse):

@@ -1,6 +1,3 @@
-var currentWord;
-var currentVerse;
-
 function upTo(el, id) {
     // Find first ancestor of el with class
 
@@ -13,6 +10,9 @@ function upTo(el, id) {
 
     return null;
   }
+
+var currentWord;
+var currentVerse;
 
 function jump_to_verse(verseTag) {
     var verse_to_scroll_to = document.getElementById(verseTag);

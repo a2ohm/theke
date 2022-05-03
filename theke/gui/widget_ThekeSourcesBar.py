@@ -9,7 +9,7 @@ LANG_FLAGS = {
     'fr': '🇫🇷️',
     'grc': '🇬🇷️',
     'hbo' : '🇮🇱️',
-    'lat' : '🇻🇦️',
+    'la' : '🇻🇦️',
 }
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeSourcesBar.glade')
