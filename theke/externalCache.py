@@ -4,6 +4,7 @@ import os
 import re
 import yaml
 import requests
+import soupsieve
 from bs4 import BeautifulSoup, SoupStrainer
 from bs4.element import NavigableString
 
@@ -114,28 +115,35 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
 ### Layout formatter callbacks
 
-def layout_h2_cb(soup, tag, params):
-    new_tag = soup.new_tag('h2')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
+def layout_hn_cb(tagName, tag, cleanSoup):
+    """Layout for titles
+    @param tagName: (str) 'h1', 'h2', ...
+    """
+    new_tag = cleanSoup.new_tag(tagName)
+    new_tag.append(tag.get_text(strip = True))
+
+    cleanSoup.main.append(new_tag)
+    new_tag.insert_after('\n')
+
     return new_tag
 
-def layout_h3_cb(soup, tag, params):
-    new_tag = soup.new_tag('h3')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
-    return new_tag
+def layout_h2_cb(tag, cleanSoup):
+    return layout_hn_cb('h2', tag, cleanSoup)
 
-def layout_h4_cb(soup, tag, params):
-    new_tag = soup.new_tag('h4')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
-    return new_tag
+def layout_h3_cb(tag, cleanSoup):
+    return layout_hn_cb('h3', tag, cleanSoup)
 
-def layout_p_cb(soup, tag, params):
-    tag.name = 'p'
-    tag.insert_after('\n')
-    return tag
+def layout_h4_cb(tag, cleanSoup):
+    return layout_hn_cb('h4', tag, cleanSoup)
+
+def layout_p_cb(tag, cleanSoup) -> None:
+    new_tag = cleanSoup.new_tag('p')
+    new_tag.extend(tag.contents)
+
+    cleanSoup.main.append(new_tag)
+    new_tag.insert_after('\n')
+
+    return new_tag
 
 def layout_numbering(soup, tag, params):
     """Add anchor to identify paragraph or section numbering
@@ -158,13 +166,12 @@ def layout_numbering(soup, tag, params):
         
 ###
 
-# Layout rules will be applied in this order
-layout_rules_callbacks = [
-    ('h2', layout_h2_cb),
-    ('h3', layout_h3_cb),
-    ('h4', layout_h4_cb),
-    ('p', layout_p_cb)
-]
+layout_rules_callbacks = {
+    'h2': layout_h2_cb,
+    'h3': layout_h3_cb,
+    'h4': layout_h4_cb,
+    'p': layout_p_cb
+}
 
 def _build_clean_document(sourceName, path_rawDocument = None):
     """Build a clean document from a raw one
@@ -176,7 +183,10 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
     # Parse the document from the raw source
     with open(path_rawDocument, 'r') as rawFile:
-        soup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
+        rawSoup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
+
+    # Init the clean document
+    cleanSoup = BeautifulSoup('<main></main>', 'html.parser')
 
     def remove_empty_tags(tag):
         """Recursively remove empty tags"""
@@ -190,6 +200,40 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         for childTag in tag.children:
             remove_empty_tags(childTag)
 
+    def build_clean_tags(tag) -> None:
+        """Recursively apply cleaning rules
+        """
+        if isinstance(tag, NavigableString):
+            return
+
+        if tag.get_text(strip=True) == '':
+            # Skip empty tags
+            return
+
+        # Test if this tag should be removed
+        for selector in cleaning_rules.get('remove', []):
+            if soupsieve.match(selector, tag):
+                return
+
+        # Test if this tag matches a cleaning rule
+        for layout, options in cleaning_rules.get('layouts', {}).items():
+            selectors = options.get('selectors', None) or [options.get('selector', '')]
+
+            for selector in selectors:
+                if soupsieve.match(selector, tag) and layout in layout_rules_callbacks:
+                    # The tag match a cleaning rule
+                    # Applies the rule
+                    clean_tag = layout_rules_callbacks[layout](tag, cleanSoup)
+
+                    # If specified, add an anchor to the numbering
+                    if 'numbering' in options:
+                        layout_numbering(cleanSoup, clean_tag, options['numbering'])
+                    
+                    return
+        
+        for childTag in tag.children:
+            build_clean_tags(childTag)
+
     # Load cleaning rules from the source definition
     path_sourceDefinition = _get_source_definition_path(sourceName)
     externalData = yaml.safe_load(open(path_sourceDefinition, 'r'))
@@ -199,59 +243,22 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         logger.debug("No cleaning rules in %s", path_sourceDefinition)
 
         # Get the default main content
-        content = soup.body
-        content.name = "main"
+        content = rawSoup.body
         remove_empty_tags(content)
+
+        cleanSoup.append(content)
 
     else:
         logger.debug("Use cleaning rules from %s", path_sourceDefinition)
 
         # Get the main content
-        content_tag = soup.new_tag('main')
-        content = soup.select_one(cleaning_rules['content']['selector']).wrap(content_tag)
-
-        remove_empty_tags(content)
-
-        # Apply cleaning rules (version 1)...
-        # ... remove some tags
-        for rule in cleaning_rules.get('remove', []):
-            logger.debug("... remove tag: %s", rule)
-            for tag in content.select(rule):
-                tag.decompose()
-
-        # ... unwrap some tags
-        for rule in cleaning_rules.get('unwrap', []):
-            logger.debug("... unwrap tag: %s", rule)
-            for tag in content.select(rule):
-                tag.unwrap()
-
-        # ... apply layout rules
-        for layout, callback in layout_rules_callbacks:
-            rules = cleaning_rules['layouts'].get(layout, None)
-
-            if rules:
-                logger.debug("... apply layout: %s", layout)
-
-                # In the layout rules, it is valid to give one selector ...
-                #   selector: p[align=left]
-                # ... or a list of them
-                #   selectors:
-                #       - p[align=left]
-                #       - p[align=right]
-                selectors = rules.get('selectors', None) or [rules.get('selector', None)]
-
-                for selector in selectors:
-                    for tag in content.select(selector):
-                        new_tag = callback(soup, tag, rules)
-
-                        # If specified, add an anchor to the numbering
-                        if 'numbering' in rules.keys():
-                            layout_numbering(soup, new_tag, rules['numbering'])
+        content = rawSoup.select_one(cleaning_rules['content']['selector'])
+        build_clean_tags(content)
 
     # Save the clean document
     path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
     with open(path_cleanDocument, 'w') as cleanFile:
-        cleanFile.write(str(content))
+        cleanFile.write(str(cleanSoup))
 
 if __name__ == "__main__":
     class theke:
@@ -260,6 +267,6 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
 
-    sourceName = "2016_amoris laetitia"
-    path_rawDocument = "/home/antoine/.local/share/theke/cache/2016_amoris laetitia/2016_amoris laetitia_raw.html"
+    sourceName = "François_amoris laetitia_2016"
+    path_rawDocument = "/home/antoine/.local/share/theke/cache/François_amoris laetitia_2016/François_amoris laetitia_2016_raw.html"
     _build_clean_document(sourceName, path_rawDocument)
