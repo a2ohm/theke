@@ -36,18 +36,36 @@ tences = {
     'z': "hitpoel (?)",
 }
 
-def parse_oshm_verb(subMorph):
-    return "verbe ({})".format(tences.get(subMorph[1], '?'))
+mode = {
+    'p': "accompli",
+    'i': "inaccompli",
+    'w': "consécutif",
+    'r': "participe actif",
+    's': "participe passif",
+}
+
+person = {
+    '1': "1e personne",
+    '2': "2e personne",
+    '3': "3e personne",
+}
+
+number = {
+    's': "singulier",
+    'p': "pluriel",
+}
+
+gender = {
+    'm': "masculin",
+    'f': "féminin",
+    'b': "masc. et fém.",
+    'c': "commune",
+}
+
 
 noun_type = {
     'c': "nom commun",
     'g': "gentilé"
-}
-
-noun_genre = {
-    'm': "masc.",
-    'f': "fém.", 
-    'b': "masc. et fém."
 }
 
 noun_form = {
@@ -56,10 +74,19 @@ noun_form = {
     'd': "duel"
 }
 
-noun_state = {
+state = {
     'c': "const.",
     'a': "abs."
 }
+
+def parse_oshm_verb(subMorph):
+    return "verbe ({} {} {} {} {})".format(
+        tences.get(subMorph[1], '?'),
+        mode.get(subMorph[2], '?'),
+        person.get(subMorph[3], '?'),
+        gender.get(subMorph[4], '?'),
+        number.get(subMorph[5], '?'),
+        )
 
 def parse_oshm_noun(subMorph):
     pattern_noun = re.compile(r'N(p)|N((?P<type>g|c)(?P<genre>m|f|b)(?P<form>s|p|d)(?P<state>c|a))')
@@ -71,20 +98,34 @@ def parse_oshm_noun(subMorph):
         else:
             return "{} {} {} (état {})".format(
                 noun_type[match_noun.group("type")],
-                noun_genre[match_noun.group("genre")],
+                gender[match_noun.group("genre")],
                 noun_form[match_noun.group("form")],
-                noun_state[match_noun.group("state")])
+                state[match_noun.group("state")])
 
     return "nom"
 
+def parse_oshm_suffix(subMorph):
+    return "suffixe ({} {} {})".format(
+        person.get(subMorph[2], '?'),
+        gender.get(subMorph[3], '?'),
+        number.get(subMorph[4], '?'),
+        )
+
+def parse_oshm_adjective(subMorph):
+    return "adjectif ({} {} {})".format(
+        gender.get(subMorph[2], '?'),
+        number.get(subMorph[3], '?'),
+        state.get(subMorph[4], '?'),
+        )
+
 wordClasses = {
-    'A': lambda x: "adjectif",
+    'A': parse_oshm_adjective,
     'C': lambda x: "conjonction",
     'D': lambda x: "adverbe",
     'N': parse_oshm_noun,
     'P': lambda x: "pronom démonstratif",
     'R': lambda x: "préposition",
-    'S': lambda x: "suffixe",
+    'S': parse_oshm_suffix,
     'T': lambda x: "particule",
     'V': parse_oshm_verb,
 }
