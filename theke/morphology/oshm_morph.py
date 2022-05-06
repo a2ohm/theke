@@ -39,9 +39,15 @@ tences = {
 mode = {
     'p': "accompli",
     'i': "inaccompli",
-    'w': "consécutif",
+    'w': "inaccompli consécutif",
     'r': "participe actif",
     's': "participe passif",
+    'q': "accompli consécutif",
+    'h': "cohortatif",
+    'j': "jussif",
+    'v': "impératif",
+    'a': "infinitif absolu",
+    'c': "infinitif construit",
 }
 
 person = {
@@ -53,6 +59,7 @@ person = {
 number = {
     's': "singulier",
     'p': "pluriel",
+    'd': "duel",
 }
 
 gender = {
@@ -65,28 +72,60 @@ gender = {
 
 noun_type = {
     'c': "nom commun",
-    'g': "gentilé"
-}
-
-noun_form = {
-    's': "sing.",
-    'p': "pl.",
-    'd': "duel"
+    'g': "gentilé",
+    'p': "nom propre",
 }
 
 state = {
     'c': "const.",
-    'a': "abs."
+    'a': "abs.",
+    'd': "déterminé"
+}
+
+particle = {
+    'a': "affirmative",
+    'd': "article défini",
+    'e': "exhortative",
+    'i': "interrogative",
+    'j': "interjection",
+    'm': "démonstrative",
+    'n': "négation",
+    'o': "complément d'objet direct",
+    'r': "relative",
+}
+
+adjective = {
+    'a': "simple",
+    'c': "nombre cardinal",
+    'g': "gentilé",
+    'o': "nombre ordinal",
+}
+
+pronoun = {
+    'd': "démonstratif",
+    'f': "indéfini",
+    'i': "interrogatif",
+    'p': "personnel",
+    'r': "relatif",
 }
 
 def parse_oshm_verb(subMorph):
-    return "verbe ({} {} {} {} {})".format(
-        tences.get(subMorph[1], '?'),
-        mode.get(subMorph[2], '?'),
-        person.get(subMorph[3], '?'),
-        gender.get(subMorph[4], '?'),
-        number.get(subMorph[5], '?'),
-        )
+    if subMorph[2] in ('r', 's'):   #participles don't have a person but they have a state
+        return "verbe ({} {} {} {} {})".format(
+            tences.get(subMorph[1], '?'),
+            mode.get(subMorph[2], '?'),
+            gender.get(subMorph[3], '?'),
+            number.get(subMorph[4], '?'),
+            state.get(subMorph[5], '?')
+            )
+    else:
+        return "verbe ({} {} {} {} {})".format(
+            tences.get(subMorph[1], '?'),
+            mode.get(subMorph[2], '?'),
+            person.get(subMorph[3], '?'),
+            gender.get(subMorph[4], '?'),
+            number.get(subMorph[5], '?'),
+            )
 
 def parse_oshm_noun(subMorph):
     pattern_noun = re.compile(r'N(p)|N((?P<type>g|c)(?P<genre>m|f|b)(?P<form>s|p|d)(?P<state>c|a))')
@@ -99,7 +138,7 @@ def parse_oshm_noun(subMorph):
             return "{} {} {} (état {})".format(
                 noun_type[match_noun.group("type")],
                 gender[match_noun.group("genre")],
-                noun_form[match_noun.group("form")],
+                number[match_noun.group("form")],
                 state[match_noun.group("state")])
 
     return "nom"
@@ -112,10 +151,21 @@ def parse_oshm_suffix(subMorph):
         )
 
 def parse_oshm_adjective(subMorph):
-    return "adjectif ({} {} {})".format(
+    return "adjectif ({} {} {} {})".format(
+        adjective.get(subMorph[1], '?'),
         gender.get(subMorph[2], '?'),
         number.get(subMorph[3], '?'),
         state.get(subMorph[4], '?'),
+        )
+
+def parse_oshm_particle(subMorph):
+    return "particule ({})".format(
+        particle.get(subMorph[1], '?'),
+        )
+
+def parse_oshm_pronoun(subMorph):
+    return "pronom ({})".format(
+        pronoun.get(subMorph[1], '?'),
         )
 
 wordClasses = {
@@ -123,9 +173,9 @@ wordClasses = {
     'C': lambda x: "conjonction",
     'D': lambda x: "adverbe",
     'N': parse_oshm_noun,
-    'P': lambda x: "pronom démonstratif",
-    'R': lambda x: "préposition",
+    'P': parse_oshm_pronoun,
+    'R': lambda x: "préposition (article défini)",
     'S': parse_oshm_suffix,
-    'T': lambda x: "particule",
+    'T': parse_oshm_particle,
     'V': parse_oshm_verb,
 }
