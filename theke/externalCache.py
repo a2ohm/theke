@@ -120,12 +120,10 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 def layout_header_cb(tag, cleanSoup):
     """Layout the header
     """
-    new_tag = cleanSoup.new_tag('header')
-    content_tag = cleanSoup.new_tag('p')
-    content_tag.append(tag.get_text(" ", strip = True))
-    new_tag.append(content_tag)
+    new_tag = cleanSoup.new_tag('p')
+    new_tag.append(tag.get_text(" ", strip = True))
 
-    cleanSoup.main.append(new_tag)
+    cleanSoup.header.append(new_tag)
     new_tag.insert_after('\n')
 
     return new_tag
@@ -205,7 +203,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         rawSoup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
 
     # Init the clean document
-    cleanSoup = BeautifulSoup('<main></main>', 'html.parser')
+    cleanSoup = BeautifulSoup('<main>\n<header>\n</header>\n</main>', 'html.parser')
 
     def remove_empty_tags(tag):
         """Recursively remove empty tags"""

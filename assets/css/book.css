@@ -38,6 +38,10 @@ header {
     font-style: italic;
 }
 
+header p {
+    text-align: center;
+}
+
 .paragraph_number {
     color: red;
 }
