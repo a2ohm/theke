@@ -117,7 +117,7 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
 ### Layout formatter callbacks
 
-def layout_header_cb(tag, cleanSoup):
+def layout_header_cb(tag, cleanSoup, params):
     """Layout the header
     """
     new_tag = cleanSoup.new_tag('p')
@@ -128,19 +128,20 @@ def layout_header_cb(tag, cleanSoup):
 
     return new_tag
 
-def layout_hn_cb(tagName, tag, cleanSoup):
+def layout_hn_cb(tagName, tag, cleanSoup, strict = False):
     """Layout for titles
     @param tagName: (str) 'h1', 'h2', ...
     """
 
     # Some checks to skip false positive
-    for sibling in tag.next_siblings:
-        if sibling.get_text(strip = True) != '':
-            return None
+    if strict:
+        for sibling in tag.next_siblings:
+            if sibling.get_text(strip = True) != '':
+                return None
 
-    for sibling in tag.previous_siblings:
-        if sibling.get_text(strip = True) != '':
-            return None
+        for sibling in tag.previous_siblings:
+            if sibling.get_text(strip = True) != '':
+                return None
 
     new_tag = cleanSoup.new_tag(tagName)
     new_tag.append(tag.get_text(" ", strip = True))
@@ -150,16 +151,16 @@ def layout_hn_cb(tagName, tag, cleanSoup):
 
     return new_tag
 
-def layout_h2_cb(tag, cleanSoup):
-    return layout_hn_cb('h2', tag, cleanSoup)
+def layout_h2_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h2', tag, cleanSoup, params.get('strict', False))
 
-def layout_h3_cb(tag, cleanSoup):
-    return layout_hn_cb('h3', tag, cleanSoup)
+def layout_h3_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h3', tag, cleanSoup, params.get('strict', False))
 
-def layout_h4_cb(tag, cleanSoup):
-    return layout_hn_cb('h4', tag, cleanSoup)
+def layout_h4_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h4', tag, cleanSoup, params.get('strict', False))
 
-def layout_p_cb(tag, cleanSoup) -> None:
+def layout_p_cb(tag, cleanSoup, params) -> None:
     new_tag = cleanSoup.new_tag('p')
     new_tag.extend(tag)
 
@@ -272,7 +273,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                 if soupsieve.match(selector, tag) and layout in layout_rules_callbacks:
                     # The tag match a cleaning rule
                     # Applies the rule
-                    clean_tag = layout_rules_callbacks[layout](tag, cleanSoup)
+                    clean_tag = layout_rules_callbacks[layout](tag, cleanSoup, options)
 
                     # If specified, add an anchor to the numbering
                     if 'numbering' in options:
