@@ -206,17 +206,29 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         if isinstance(tag, NavigableString):
             return
 
+        # Skip empty tags
         if tag.get_text(strip=True) == '':
-            # Skip empty tags
+            return
+        
+        # Go deeper in the tree
+        for childTag in tag.children:
+            build_clean_tags(childTag)
+
+        # Check if the tag still have content
+        if tag.get_text(strip=True) == '':
             return
 
-        # Test if this tag should be removed
+        # Check if this tag should be removed
         for selector in cleaning_rules.get('remove', []):
             if soupsieve.match(selector, tag):
+                tag.decompose()
                 return
 
-        # Test if this tag matches a cleaning rule
-        for layout, options in cleaning_rules.get('layouts', {}).items():
+        # Check if this tag matches a cleaning rule
+        for rule in cleaning_rules.get('layouts', {}):
+            layout = rule.get('name', None)
+            options = rule.get('options', {})
+
             selectors = options.get('selectors', None) or [options.get('selector', '')]
 
             for selector in selectors:
@@ -229,10 +241,10 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                     if 'numbering' in options:
                         layout_numbering(cleanSoup, clean_tag, options['numbering'])
                     
+                    # Destroy the tag so it will not be parsed another time
+                    tag.decompose()
+
                     return
-        
-        for childTag in tag.children:
-            build_clean_tags(childTag)
 
     # Load cleaning rules from the source definition
     path_sourceDefinition = _get_source_definition_path(sourceName)
