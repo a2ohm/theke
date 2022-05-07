@@ -223,7 +223,9 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         # Check if this tag should be removed
         for selector in cleaning_rules.get('remove', []):
             if soupsieve.match(selector, tag):
-                tag.decompose()
+                # Note: the tag is not decomposed in order not to disturb
+                #       css selectors used in cleaning rules
+                tag.clear()
                 return
 
         # Check if this tag matches a cleaning rule
@@ -244,7 +246,7 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                         layout_numbering(cleanSoup, clean_tag, options['numbering'])
                     
                     # Destroy the tag so it will not be parsed another time
-                    tag.decompose()
+                    tag.clear()
 
                     return
 
