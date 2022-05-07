@@ -132,6 +132,16 @@ def layout_hn_cb(tagName, tag, cleanSoup):
     """Layout for titles
     @param tagName: (str) 'h1', 'h2', ...
     """
+
+    # Some checks to skip false positive
+    for sibling in tag.next_siblings:
+        if sibling.get_text(strip = True) != '':
+            return None
+
+    for sibling in tag.previous_siblings:
+        if sibling.get_text(strip = True) != '':
+            return None
+
     new_tag = cleanSoup.new_tag(tagName)
     new_tag.append(tag.get_text(" ", strip = True))
 
@@ -269,7 +279,8 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                         layout_numbering(cleanSoup, clean_tag, options['numbering'])
                     
                     # Destroy the tag so it will not be parsed another time
-                    tag.clear()
+                    if clean_tag:
+                        tag.clear()
 
                     return
 
