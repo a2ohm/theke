@@ -16,6 +16,8 @@ PATH_SUFFIX_RAW = '_raw'
 PATH_SUFFIX_AUTOMATICALLY_CLEANED = '_auto'
 PATH_SUFFIX_MANUALLY_CLEANED = ''
 
+CLEANING_RULES_API_VERSION = 2
+
 def _get_source_definition_path(sourceName) -> str:
     return os.path.join(theke.PATH_EXTERNAL, "{}.yaml".format(sourceName))
 
@@ -253,6 +255,16 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
     if cleaning_rules is None:
         logger.debug("No cleaning rules in %s", path_sourceDefinition)
+
+        # Get the default main content
+        content = rawSoup.body
+        remove_empty_tags(content)
+
+        cleanSoup.append(content)
+    
+    elif cleaning_rules.get('api_version', 0) != CLEANING_RULES_API_VERSION:
+        logger.debug("Cleaning rules set with a different api version (rules: %s / needed: %s)",
+            cleaning_rules.get('api_version', 0), CLEANING_RULES_API_VERSION)
 
         # Get the default main content
         content = rawSoup.body
