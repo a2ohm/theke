@@ -122,7 +122,7 @@ def layout_hn_cb(tagName, tag, cleanSoup):
     @param tagName: (str) 'h1', 'h2', ...
     """
     new_tag = cleanSoup.new_tag(tagName)
-    new_tag.append(tag.get_text(strip = True))
+    new_tag.append(tag.get_text(" ", strip = True))
 
     cleanSoup.main.append(new_tag)
     new_tag.insert_after('\n')
