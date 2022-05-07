@@ -163,21 +163,24 @@ def layout_p_cb(tag, cleanSoup) -> None:
 def layout_numbering(soup, tag, params):
     """Add anchor to identify paragraph or section numbering
     """
-    text = tag.get_text().strip()
     pattern_numbering = re.compile(params['pattern'])
 
-    match_numbering = pattern_numbering.match(text)
+    for part in tag.descendants:
+        text = part.get_text(" ", strip = True)
+        
+        match_numbering = pattern_numbering.match(text)
 
-    if match_numbering:
-        # If the tag content match the numbering pattern,
-        # then add an anchor
-        anchorTag = soup.new_tag('span')
-        anchorTag.string = "{}.".format(match_numbering.group('number'))
-        anchorTag['id'] = match_numbering.group('number')
-        anchorTag['class'] = params['class']
+        if match_numbering:
+            # If the tag content match the numbering pattern,
+            # then add an anchor
+            anchorTag = soup.new_tag('span')
+            anchorTag.string = "{}.".format(match_numbering.group('number'))
+            anchorTag['id'] = match_numbering.group('number')
+            anchorTag['class'] = params['class']
 
-        tag.string = pattern_numbering.sub(' \g<text>', text)
-        tag.string.insert_before(anchorTag)
+            part.replace_with(anchorTag)
+            anchorTag.insert_after(pattern_numbering.sub(' \g<text>', text))
+            break
         
 ###
 
