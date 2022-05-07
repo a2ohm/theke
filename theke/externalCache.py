@@ -245,6 +245,14 @@ def _build_clean_document(sourceName, path_rawDocument = None):
                 tag.clear()
                 return
 
+        # Check if this tag should be unwrap
+        for selector in cleaning_rules.get('unwrap', []):
+            if soupsieve.match(selector, tag):
+                # Note: the tag is not decomposed in order not to disturb
+                #       css selectors used in cleaning rules
+                tag.unwrap()
+                return
+
         # Check if this tag matches a cleaning rule
         for rule in cleaning_rules.get('layouts', {}):
             layout = rule.get('name', None)
