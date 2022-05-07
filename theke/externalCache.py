@@ -117,6 +117,19 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
 ### Layout formatter callbacks
 
+def layout_header_cb(tag, cleanSoup):
+    """Layout the header
+    """
+    new_tag = cleanSoup.new_tag('header')
+    content_tag = cleanSoup.new_tag('p')
+    content_tag.append(tag.get_text(" ", strip = True))
+    new_tag.append(content_tag)
+
+    cleanSoup.main.append(new_tag)
+    new_tag.insert_after('\n')
+
+    return new_tag
+
 def layout_hn_cb(tagName, tag, cleanSoup):
     """Layout for titles
     @param tagName: (str) 'h1', 'h2', ...
@@ -172,7 +185,8 @@ layout_rules_callbacks = {
     'h2': layout_h2_cb,
     'h3': layout_h3_cb,
     'h4': layout_h4_cb,
-    'p': layout_p_cb
+    'p': layout_p_cb,
+    'header': layout_header_cb,
 }
 
 def _build_clean_document(sourceName, path_rawDocument = None):
