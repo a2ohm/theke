@@ -140,7 +140,7 @@ def layout_h4_cb(tag, cleanSoup):
 
 def layout_p_cb(tag, cleanSoup) -> None:
     new_tag = cleanSoup.new_tag('p')
-    new_tag.extend(tag.contents)
+    new_tag.extend(tag)
 
     cleanSoup.main.append(new_tag)
     new_tag.insert_after('\n')
