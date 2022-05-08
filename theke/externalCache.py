@@ -5,11 +5,13 @@ import re
 import yaml
 import requests
 import soupsieve
+from charset_normalizer import from_bytes
 from bs4 import BeautifulSoup, SoupStrainer
 from bs4.element import NavigableString
 
 import theke
 
+logging.getLogger("charset_normalizer").setLevel(logging.ERROR)
 logger = logging.getLogger(__name__)
 
 PATH_SUFFIX_RAW = '_raw'
@@ -102,8 +104,8 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
         r = requests.get(contentUri, stream=True, timeout=1)
 
         with open(path_rawDocument, 'w', encoding="utf-8") as fd:
-            for chunk in r.iter_content(chunk_size=128):
-                fd.write(chunk.decode(r.encoding, 'replace'))
+            for chunk in r.iter_content(chunk_size=1024):
+                fd.write(str(from_bytes(chunk).best()))
 
         return True
     
