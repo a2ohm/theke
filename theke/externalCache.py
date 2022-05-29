@@ -189,7 +189,7 @@ def layout_numbering(soup, tag, params):
             anchorTag['class'] = params['class']
 
             part.replace_with(anchorTag)
-            anchorTag.insert_after(pattern_numbering.sub(' \g<text>', text))
+            anchorTag.insert_after(pattern_numbering.sub(' \g<text> ', text))
             break
         
 ###
