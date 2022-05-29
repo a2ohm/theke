@@ -1,5 +1,6 @@
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import Pango
 
 import theke
 import theke.searchResults
@@ -10,7 +11,7 @@ from collections import namedtuple
 import logging
 logger = logging.getLogger(__name__)
 
-ResultData = namedtuple('resultData', ['reference', 'referenceType'])
+ResultData = namedtuple('resultData', ['reference', 'referenceType', 'nbOfResults'])
 
 @Gtk.Template.from_file('./theke/gui/templates/ThekeSearchView.glade')
 class ThekeSearchView(Gtk.Bin):
@@ -45,7 +46,20 @@ class ThekeSearchView(Gtk.Bin):
         self._setup_view()
 
     def _setup_view(self) -> None:
-        column = Gtk.TreeViewColumn("Référence", Gtk.CellRendererText(), text=0)
+        # Setup the reference column
+        cellrenderertext = Gtk.CellRendererText()
+        cellrenderertext.set_property("ellipsize", Pango.EllipsizeMode.END)
+
+        column = Gtk.TreeViewColumn("Référence", cellrenderertext, text=0)
+        column.set_expand(True)
+
+        self._results_treeView.append_column(column)
+
+        # Setup the number of results column
+        cellrenderertext = Gtk.CellRendererText()
+        cellrenderertext.set_property("foreground", "grey")
+
+        column = Gtk.TreeViewColumn("", cellrenderertext, text=2)
         self._results_treeView.append_column(column)
 
         # Setup the expand/reduce button
