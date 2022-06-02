@@ -144,13 +144,28 @@ def layout_hn_cb(tagName, tag, cleanSoup, strict = False):
             if sibling.get_text(strip = True) != '':
                 return None
 
-    new_tag = cleanSoup.new_tag(tagName)
-    new_tag.append(tag.get_text(" ", strip = True))
+    hn_content = tag.get_text(" ", strip = True)
+    hn_id = re.sub(r"[^\w0-9 ]", "", hn_content.lower())
+    hn_id = re.sub(r"\s+", "_", hn_id)
 
-    cleanSoup.main.append(new_tag)
-    new_tag.insert_after('\n')
+    # Create a header tag
+    hn_tag = cleanSoup.new_tag(tagName)
+    hn_tag['id'] = hn_id
+    hn_tag.append(hn_content)
 
-    return new_tag
+    cleanSoup.main.append(hn_tag)
+    hn_tag.insert_after('\n')
+
+    # Add the header in the table of contents
+    toc_tag = cleanSoup.new_tag('a')
+    toc_tag['href'] = "#{}".format(hn_id)
+    toc_tag.append("{}{}".format("-- "*(int(tagName[1])-2), hn_content))
+    cleanSoup.main.nav.ul.append(toc_tag)
+    toc_tag.insert_after('\n')
+    toc_tag.wrap(cleanSoup.new_tag('li'))
+
+    return hn_tag
+    
 
 def layout_h2_cb(tag, cleanSoup, params):
     return layout_hn_cb('h2', tag, cleanSoup, params.get('strict', False))
@@ -215,7 +230,18 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         rawSoup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
 
     # Init the clean document
-    cleanSoup = BeautifulSoup('<main>\n<header>\n</header>\n</main>', 'html.parser')
+    html = """<main>
+<nav>
+    <details>
+    <summary>Table des matières</summary>
+    <ul>
+    </ul>
+    </details>
+</nav>
+<header>
+</header>
+</main>"""
+    cleanSoup = BeautifulSoup(html, 'html.parser')
 
     def remove_empty_tags(tag):
         """Recursively remove empty tags"""

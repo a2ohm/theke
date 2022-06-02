@@ -42,6 +42,18 @@ header p {
     text-align: center;
 }
 
+nav summary {
+    color: rgb(84, 84, 84);
+}
+
+nav ul {
+    list-style-type: none;
+}
+
+nav a {
+    text-decoration: none;
+}
+
 .paragraph_number {
     color: red;
 }
