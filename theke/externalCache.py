@@ -4,6 +4,7 @@ import os
 import re
 import yaml
 import requests
+import soupsieve
 from bs4 import BeautifulSoup, SoupStrainer
 from bs4.element import NavigableString
 
@@ -14,6 +15,8 @@ logger = logging.getLogger(__name__)
 PATH_SUFFIX_RAW = '_raw'
 PATH_SUFFIX_AUTOMATICALLY_CLEANED = '_auto'
 PATH_SUFFIX_MANUALLY_CLEANED = ''
+
+CLEANING_RULES_API_VERSION = 2
 
 def _get_source_definition_path(sourceName) -> str:
     return os.path.join(theke.PATH_EXTERNAL, "{}.yaml".format(sourceName))
@@ -97,10 +100,11 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
     try:
         r = requests.get(contentUri, stream=True, timeout=1)
+        encoding = r.apparent_encoding
 
         with open(path_rawDocument, 'w', encoding="utf-8") as fd:
-            for chunk in r.iter_content(chunk_size=128):
-                fd.write(chunk.decode(r.encoding, 'replace'))
+            for chunk in r.iter_content(chunk_size=512):
+                fd.write(chunk.decode(encoding, 'ignore'))
 
         return True
     
@@ -114,57 +118,104 @@ def cache_document_from_external_source(sourceName, contentUri) -> bool:
 
 ### Layout formatter callbacks
 
-def layout_h2_cb(soup, tag, params):
-    new_tag = soup.new_tag('h2')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
+def layout_header_cb(tag, cleanSoup, params):
+    """Layout the header
+    """
+    new_tag = cleanSoup.new_tag('p')
+    new_tag.append(tag.get_text(" ", strip = True))
+
+    cleanSoup.header.append(new_tag)
+    new_tag.insert_after('\n')
+
     return new_tag
 
-def layout_h3_cb(soup, tag, params):
-    new_tag = soup.new_tag('h3')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
-    return new_tag
+def layout_hn_cb(tagName, tag, cleanSoup, strict = False):
+    """Layout for titles
+    @param tagName: (str) 'h1', 'h2', ...
+    """
 
-def layout_h4_cb(soup, tag, params):
-    new_tag = soup.new_tag('h4')
-    new_tag.string = tag.get_text(strip = True)
-    tag.replace_with(new_tag)
-    return new_tag
+    # Some checks to skip false positive
+    if strict:
+        for sibling in tag.next_siblings:
+            if sibling.get_text(strip = True) != '':
+                return None
 
-def layout_p_cb(soup, tag, params):
-    tag.name = 'p'
-    tag.insert_after('\n')
-    return tag
+        for sibling in tag.previous_siblings:
+            if sibling.get_text(strip = True) != '':
+                return None
+
+    hn_content = tag.get_text(" ", strip = True)
+    hn_id = re.sub(r"[^\w0-9 ]", "", hn_content.lower())
+    hn_id = re.sub(r"\s+", "_", hn_id)
+
+    # Create a header tag
+    hn_tag = cleanSoup.new_tag(tagName)
+    hn_tag['id'] = hn_id
+    hn_tag.append(hn_content)
+
+    cleanSoup.main.append(hn_tag)
+    hn_tag.insert_after('\n')
+
+    # Add the header in the table of contents
+    toc_tag = cleanSoup.new_tag('a')
+    toc_tag['href'] = "#{}".format(hn_id)
+    toc_tag.append("{}{}".format("-- "*(int(tagName[1])-2), hn_content))
+    cleanSoup.main.nav.ul.append(toc_tag)
+    toc_tag.insert_after('\n')
+    toc_tag.wrap(cleanSoup.new_tag('li'))
+
+    return hn_tag
+    
+
+def layout_h2_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h2', tag, cleanSoup, params.get('strict', False))
+
+def layout_h3_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h3', tag, cleanSoup, params.get('strict', False))
+
+def layout_h4_cb(tag, cleanSoup, params):
+    return layout_hn_cb('h4', tag, cleanSoup, params.get('strict', False))
+
+def layout_p_cb(tag, cleanSoup, params) -> None:
+    new_tag = cleanSoup.new_tag('p')
+    new_tag.extend(tag)
+
+    cleanSoup.main.append(new_tag)
+    new_tag.insert_after('\n')
+
+    return new_tag
 
 def layout_numbering(soup, tag, params):
     """Add anchor to identify paragraph or section numbering
     """
-    text = tag.get_text().strip()
     pattern_numbering = re.compile(params['pattern'])
 
-    match_numbering = pattern_numbering.match(text)
+    for part in tag.descendants:
+        text = part.get_text(" ", strip = True)
+        
+        match_numbering = pattern_numbering.match(text)
 
-    if match_numbering:
-        # If the tag content match the numbering pattern,
-        # then add an anchor
-        anchorTag = soup.new_tag('span')
-        anchorTag.string = "{}.".format(match_numbering.group('number'))
-        anchorTag['id'] = match_numbering.group('number')
-        anchorTag['class'] = params['class']
+        if match_numbering:
+            # If the tag content match the numbering pattern,
+            # then add an anchor
+            anchorTag = soup.new_tag('span')
+            anchorTag.string = "{}.".format(match_numbering.group('number'))
+            anchorTag['id'] = match_numbering.group('number')
+            anchorTag['class'] = params['class']
 
-        tag.string = pattern_numbering.sub(' \g<text>', text)
-        tag.string.insert_before(anchorTag)
+            part.replace_with(anchorTag)
+            anchorTag.insert_after(pattern_numbering.sub(' \g<text> ', text))
+            break
         
 ###
 
-# Layout rules will be applied in this order
-layout_rules_callbacks = [
-    ('h2', layout_h2_cb),
-    ('h3', layout_h3_cb),
-    ('h4', layout_h4_cb),
-    ('p', layout_p_cb)
-]
+layout_rules_callbacks = {
+    'h2': layout_h2_cb,
+    'h3': layout_h3_cb,
+    'h4': layout_h4_cb,
+    'p': layout_p_cb,
+    'header': layout_header_cb,
+}
 
 def _build_clean_document(sourceName, path_rawDocument = None):
     """Build a clean document from a raw one
@@ -176,7 +227,21 @@ def _build_clean_document(sourceName, path_rawDocument = None):
 
     # Parse the document from the raw source
     with open(path_rawDocument, 'r') as rawFile:
-        soup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
+        rawSoup = BeautifulSoup(rawFile, 'html.parser', parse_only = SoupStrainer("body"))
+
+    # Init the clean document
+    html = """<main>
+<nav>
+    <details>
+    <summary>Table des matières</summary>
+    <ul>
+    </ul>
+    </details>
+</nav>
+<header>
+</header>
+</main>"""
+    cleanSoup = BeautifulSoup(html, 'html.parser')
 
     def remove_empty_tags(tag):
         """Recursively remove empty tags"""
@@ -190,6 +255,63 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         for childTag in tag.children:
             remove_empty_tags(childTag)
 
+    def build_clean_tags(tag) -> None:
+        """Recursively apply cleaning rules
+        """
+        if isinstance(tag, NavigableString):
+            return
+
+        # Skip empty tags
+        if tag.get_text(strip=True) == '':
+            return
+        
+        # Go deeper in the tree
+        for childTag in tag.children:
+            build_clean_tags(childTag)
+
+        # Check if the tag still have content
+        if tag.get_text(strip=True) == '':
+            return
+
+        # Check if this tag should be removed
+        for selector in cleaning_rules.get('remove', []):
+            if soupsieve.match(selector, tag):
+                # Note: the tag is not decomposed in order not to disturb
+                #       css selectors used in cleaning rules
+                tag.clear()
+                return
+
+        # Check if this tag should be unwrap
+        for selector in cleaning_rules.get('unwrap', []):
+            if soupsieve.match(selector, tag):
+                # Note: the tag is not decomposed in order not to disturb
+                #       css selectors used in cleaning rules
+                tag.unwrap()
+                return
+
+        # Check if this tag matches a cleaning rule
+        for rule in cleaning_rules.get('layouts', {}):
+            layout = rule.get('name', None)
+            options = rule.get('options', {})
+
+            selectors = options.get('selectors', None) or [options.get('selector', '')]
+
+            for selector in selectors:
+                if soupsieve.match(selector, tag) and layout in layout_rules_callbacks:
+                    # The tag match a cleaning rule
+                    # Applies the rule
+                    clean_tag = layout_rules_callbacks[layout](tag, cleanSoup, options)
+
+                    # If specified, add an anchor to the numbering
+                    if 'numbering' in options:
+                        layout_numbering(cleanSoup, clean_tag, options['numbering'])
+                    
+                    # Destroy the tag so it will not be parsed another time
+                    if clean_tag:
+                        tag.clear()
+
+                    return
+
     # Load cleaning rules from the source definition
     path_sourceDefinition = _get_source_definition_path(sourceName)
     externalData = yaml.safe_load(open(path_sourceDefinition, 'r'))
@@ -199,59 +321,32 @@ def _build_clean_document(sourceName, path_rawDocument = None):
         logger.debug("No cleaning rules in %s", path_sourceDefinition)
 
         # Get the default main content
-        content = soup.body
-        content.name = "main"
+        content = rawSoup.body
         remove_empty_tags(content)
+
+        cleanSoup.append(content)
+    
+    elif cleaning_rules.get('api_version', 0) != CLEANING_RULES_API_VERSION:
+        logger.debug("Cleaning rules set with a different api version (rules: %s / needed: %s)",
+            cleaning_rules.get('api_version', 0), CLEANING_RULES_API_VERSION)
+
+        # Get the default main content
+        content = rawSoup.body
+        remove_empty_tags(content)
+
+        cleanSoup.append(content)
 
     else:
         logger.debug("Use cleaning rules from %s", path_sourceDefinition)
 
         # Get the main content
-        content_tag = soup.new_tag('main')
-        content = soup.select_one(cleaning_rules['content']['selector']).wrap(content_tag)
-
-        remove_empty_tags(content)
-
-        # Apply cleaning rules (version 1)...
-        # ... remove some tags
-        for rule in cleaning_rules.get('remove', []):
-            logger.debug("... remove tag: %s", rule)
-            for tag in content.select(rule):
-                tag.decompose()
-
-        # ... unwrap some tags
-        for rule in cleaning_rules.get('unwrap', []):
-            logger.debug("... unwrap tag: %s", rule)
-            for tag in content.select(rule):
-                tag.unwrap()
-
-        # ... apply layout rules
-        for layout, callback in layout_rules_callbacks:
-            rules = cleaning_rules['layouts'].get(layout, None)
-
-            if rules:
-                logger.debug("... apply layout: %s", layout)
-
-                # In the layout rules, it is valid to give one selector ...
-                #   selector: p[align=left]
-                # ... or a list of them
-                #   selectors:
-                #       - p[align=left]
-                #       - p[align=right]
-                selectors = rules.get('selectors', None) or [rules.get('selector', None)]
-
-                for selector in selectors:
-                    for tag in content.select(selector):
-                        new_tag = callback(soup, tag, rules)
-
-                        # If specified, add an anchor to the numbering
-                        if 'numbering' in rules.keys():
-                            layout_numbering(soup, new_tag, rules['numbering'])
+        content = rawSoup.select_one(cleaning_rules['content']['selector'])
+        build_clean_tags(content)
 
     # Save the clean document
     path_cleanDocument = _get_source_file_path(sourceName, PATH_SUFFIX_AUTOMATICALLY_CLEANED)
     with open(path_cleanDocument, 'w') as cleanFile:
-        cleanFile.write(str(content))
+        cleanFile.write(str(cleanSoup))
 
 if __name__ == "__main__":
     class theke:
@@ -260,6 +355,6 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
 
-    sourceName = "2016_amoris laetitia"
-    path_rawDocument = "/home/antoine/.local/share/theke/cache/2016_amoris laetitia/2016_amoris laetitia_raw.html"
+    sourceName = "François_amoris laetitia_2016"
+    path_rawDocument = "/home/antoine/.local/share/theke/cache/François_amoris laetitia_2016/François_amoris laetitia_2016_raw.html"
     _build_clean_document(sourceName, path_rawDocument)
