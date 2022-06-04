@@ -5,6 +5,7 @@ from gi.repository import GLib
 import os
 import yaml
 import theke
+import theke.archivist
 import theke.gui.mainWindow
 import theke.index
 import theke.navigator
@@ -52,13 +53,15 @@ class ThekeApp(Gtk.Application):
         )
 
         self._window = None
+        self._archivist = None
+
         self._navigator = None
         self._settings = None
 
         self._defaultUri = theke.URI_WELCOME
 
     def do_startup(self):
-        """Sets up the application when it first starts
+        """Sets up the application when it first started
         """
         logger.debug("ThekeApp - Do startup")
 
@@ -76,9 +79,11 @@ class ThekeApp(Gtk.Application):
                 with open(path, 'w') as f:
                     pass
 
-        # Index sword modules
-        indexBuilder = theke.index.ThekeIndexBuilder()
-        indexBuilder.build(force = False)
+        # Init the archivist
+        self._archivist = theke.archivist.ThekeArchivist()
+        
+        # Update the index
+        self._archivist.updateIndex()
 
     def do_activate(self):
         """Shows the default first window of the application (like a new document).
