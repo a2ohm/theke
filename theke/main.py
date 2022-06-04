@@ -81,9 +81,9 @@ class ThekeApp(Gtk.Application):
 
         # Init the archivist
         self._archivist = theke.archivist.ThekeArchivist()
-        
+
         # Update the index
-        self._archivist.updateIndex()
+        self._archivist.update_index()
 
     def do_activate(self):
         """Shows the default first window of the application (like a new document).
