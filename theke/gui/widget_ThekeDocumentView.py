@@ -220,6 +220,20 @@ class ThekeDocumentView(Gtk.Paned):
                 self._navigator.is_loading = False
                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
+    def goto_next_chapter(self):
+        if self._navigator.type == theke.TYPE_BIBLE:
+            if self._navigator.props.ref.chapter < self._navigator.props.ref.nbOfChapters:
+                logger.debug("Goto to next biblical chapter")
+                self._navigator.props.ref.chapter += 1
+                self._navigator.reload()
+
+    def goto_previous_chapter(self):
+        if self._navigator.type == theke.TYPE_BIBLE:
+            if self._navigator.props.ref.chapter > 1:
+                logger.debug("Goto to previous biblical chapter")
+                self._navigator.props.ref.chapter -= 1
+                self._navigator.reload()
+
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:
         return self._ThekeLocalSearchBar._search_bar.has_focus()

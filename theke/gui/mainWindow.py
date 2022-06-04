@@ -121,6 +121,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox._toolsBox_dicoView.save()
                 return True
 
+            # ... Ctrl+<Right>: goto to the next chapter (biblical books)
+            elif keyval == Gdk.KEY_Right:
+                self._ThekeDocumentView.goto_next_chapter()
+                return True
+            
+            # ... Ctrl+<Left>: goto to the previous chapter (biblical books)
+            elif keyval == Gdk.KEY_Left:
+                self._ThekeDocumentView.goto_previous_chapter()
+                return True
+
         else:
             if keyval == Gdk.KEY_Escape:
                 # If the gotobar has the focus, cancel,
