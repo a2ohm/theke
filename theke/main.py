@@ -7,6 +7,7 @@ import os
 import yaml
 import theke
 import theke.archivist
+import theke.librarian
 import theke.gui.mainWindow
 import theke.navigator
 import theke.sword
@@ -54,6 +55,7 @@ class ThekeApp(Gtk.Application):
 
         self._window = None
         self._archivist = None
+        self._librarian = None
 
         self._navigator = None
         self._settings = {}
@@ -66,6 +68,13 @@ class ThekeApp(Gtk.Application):
         """Get application-wide archivist.
         """
         return self._archivist
+    
+    @GObject.Property(
+        type=object, flags=GObject.ParamFlags.READABLE)
+    def librarian(self):
+        """Get application-wide librarian.
+        """
+        return self._librarian
 
     @GObject.Property(
         type=object, flags=GObject.ParamFlags.READABLE)
@@ -96,8 +105,9 @@ class ThekeApp(Gtk.Application):
                 with open(path, 'w') as f:
                     pass
 
-        # Init the archivist
+        # Init the archivist and the librarian
         self._archivist = theke.archivist.ThekeArchivist()
+        self._librarian = theke.librarian.ThekeLibrarian(self._archivist)
 
         # Update the index
         self._archivist.update_index()

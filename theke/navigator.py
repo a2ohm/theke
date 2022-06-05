@@ -60,6 +60,7 @@ class ThekeNavigator(GObject.Object):
         super().__init__(*args, **kwargs)
 
         self._app = application
+        self._librarian = self._app.props.librarian
 
         self.index = theke.index.ThekeIndex()
 
@@ -327,9 +328,12 @@ class ThekeNavigator(GObject.Object):
                 request.finish(f.read(), -1, None)
 
             else:
-                # Case 2. InApp uri
-                f = Gio.File.new_for_path('./assets/{}'.format(self.ref.inAppUriData.fileName))
-                request.finish(f.read(), -1, 'text/html; charset=utf-8')
+                # # Case 2. InApp uri
+                doc = self._librarian.get_document(self.ref, self.selectedSources)
+                request.finish(doc.inputStream.read(), -1, 'text/html; charset=utf-8')
+                
+                # f = Gio.File.new_for_path('./assets/{}'.format(self.ref.inAppUriData.fileName))
+                #request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
         else:
             if uri.path[1] == theke.uri.SEGM_DOC:
