@@ -1,6 +1,7 @@
 from gi.repository import Gio
 from gi.repository import Gtk
 from gi.repository import GLib
+from gi.repository import GObject
 
 import os
 import yaml
@@ -59,8 +60,15 @@ class ThekeApp(Gtk.Application):
 
         self._defaultUri = theke.URI_WELCOME
 
+    @GObject.Property(
+        type=object, default=None, flags=GObject.ParamFlags.READABLE)
+    def archivist(self):
+        """Get application-wide archivist.
+        """
+        return self._archivist
+
     def do_startup(self):
-        """Sets up the application when it first started
+        """Sets the application up when it is started for the first time
         """
         logger.debug("ThekeApp - Do startup")
 
@@ -107,15 +115,8 @@ class ThekeApp(Gtk.Application):
             # Set the navigator
             self._navigator = theke.navigator.ThekeNavigator(self._settings or {})
 
-            self._window = theke.gui.mainWindow.ThekeWindow(navigator = self._navigator)
+            self._window = theke.gui.mainWindow.ThekeWindow(self)
             self._window.set_application(self)
-
-            # ... populate the gotobar autocompletion list
-            for documentData in self._archivist.list_documents_by_type(theke.TYPE_BIBLE):
-                self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
-
-            for documentData in self._archivist.list_documents_by_type(theke.TYPE_BOOK):
-                self._window._ThekeGotoBar.append((documentData.name, 'white smoke'))
 
             # Register application screens in the GotoBar
             # for inAppUriKey in theke.uri.inAppURI.keys():

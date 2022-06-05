@@ -41,10 +41,12 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _document_softRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
     _document_hardRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
 
-    def __init__(self, navigator):
+    def __init__(self, application):
         super().__init__()
 
-        self._navigator = navigator
+        self._app = application
+        self._archivist = self._app.props.archivist
+        self._navigator = self._app._navigator
         self._setup_view()
 
         # TODO: Normalement, l'appel de self.show_all() n'est pas nécessaire
@@ -58,6 +60,14 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   = navigation bar
         #   ... historybar: shortcuts to last viewed documents
         self._ThekeHistoryBar.set_button_clicked_callback(self.on_history_button_clicked)
+
+        #   ... gotoBar
+        # Populate the gotobar autocompletion list
+        for documentData in self._archivist.list_documents_by_type(theke.TYPE_BIBLE):
+            self._ThekeGotoBar.append((documentData.name, 'powder blue'))
+
+        for documentData in self._archivist.list_documents_by_type(theke.TYPE_BOOK):
+            self._ThekeGotoBar.append((documentData.name, 'white smoke'))
 
         #   ... document view
         # ... document view > webview: where the document is displayed
