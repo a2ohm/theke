@@ -54,17 +54,19 @@ class ThekeNavigator(GObject.Object):
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
-    def __init__(self, settings, *args, **kwargs) -> None:
+    def __init__(self, application, *args, **kwargs) -> None:
         logger.debug("Create a new instance")
 
         super().__init__(*args, **kwargs)
+
+        self._app = application
 
         self.index = theke.index.ThekeIndex()
 
         self._selectedSourcesNames = list()
 
         # Load default biblical sources names from the settings file
-        dbsn = settings.get("defaultBiblicalSourcesNames", None)
+        dbsn = self._app.props.settings.get("defaultBiblicalSourcesNames", None)
         if dbsn:
             self._defaultBiblicalSourcesNames = {
                 theke.BIBLE_OT: dbsn.get('ot', ['OSHB', 'FreCrampon']),

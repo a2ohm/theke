@@ -56,16 +56,23 @@ class ThekeApp(Gtk.Application):
         self._archivist = None
 
         self._navigator = None
-        self._settings = None
+        self._settings = {}
 
         self._defaultUri = theke.URI_WELCOME
 
     @GObject.Property(
-        type=object, default=None, flags=GObject.ParamFlags.READABLE)
+        type=object, flags=GObject.ParamFlags.READABLE)
     def archivist(self):
         """Get application-wide archivist.
         """
         return self._archivist
+
+    @GObject.Property(
+        type=object, flags=GObject.ParamFlags.READABLE)
+    def settings(self):
+        """Get application-wide settings.
+        """
+        return self._settings
 
     def do_startup(self):
         """Sets the application up when it is started for the first time
@@ -73,6 +80,9 @@ class ThekeApp(Gtk.Application):
         logger.debug("ThekeApp - Do startup")
 
         Gtk.Application.do_startup(self)
+
+        # Load settings
+        self._settings = yaml.safe_load(open(theke.PATH_SETTINGS_FILE, 'r'))
 
         # Create some directories
         for path in [theke.PATH_ROOT, theke.PATH_DATA, theke.PATH_EXTERNAL, theke.PATH_CACHE]:
@@ -110,10 +120,8 @@ class ThekeApp(Gtk.Application):
         if not self._window:
             logger.debug("ThekeApp - Create a new window")
 
-            # Load settings
-            self._settings = yaml.safe_load(open(theke.PATH_SETTINGS_FILE, 'r'))
             # Set the navigator
-            self._navigator = theke.navigator.ThekeNavigator(self._settings or {})
+            self._navigator = theke.navigator.ThekeNavigator(self)
 
             self._window = theke.gui.mainWindow.ThekeWindow(self)
             self._window.set_application(self)
