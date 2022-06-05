@@ -85,6 +85,15 @@ class ThekeApp(Gtk.Application):
         # Update the index
         self._archivist.update_index()
 
+        # Build/Update templates
+        bible_mods = self._archivist.list_sword_sources(contentType = theke.sword.MODTYPE_BIBLES)
+        book_mods = self._archivist.list_sword_sources(contentType = theke.sword.MODTYPE_GENBOOKS)
+        external_docs = self._archivist.list_external_documents()
+
+        theke.templates.build_template('welcome', {'BibleMods': bible_mods})
+        theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
+        theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
+
     def do_activate(self):
         """Shows the default first window of the application (like a new document).
         This corresponds to the application being launched by the desktop environment
@@ -105,15 +114,6 @@ class ThekeApp(Gtk.Application):
             # From the index ...
             thekeIndex = theke.index.ThekeIndex()
 
-            # ... load the list of modules
-            # TODO: pour l'usage qui en est fait, il serait préférable de créer la fonction
-            #       thekeIndex.list_sword_modules()
-            bible_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_BIBLES)
-            book_mods = thekeIndex.list_sources(sourceType = theke.index.SOURCETYPE_SWORD, contentType = theke.sword.MODTYPE_GENBOOKS)
-
-            # ... load the list of external documents
-            external_docs = thekeIndex.list_external_documents()
-
             # ... populate the gotobar autocompletion list
             for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
                 self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
@@ -124,11 +124,6 @@ class ThekeApp(Gtk.Application):
             # Register application screens in the GotoBar
             # for inAppUriKey in theke.uri.inAppURI.keys():
             #     self.window.gotobar.append((inAppUriKey, 'sandy brown'))
-
-            # Build templates
-            theke.templates.build_template('welcome', {'BibleMods': bible_mods})
-            theke.templates.build_template('modules', {'BibleMods': bible_mods, 'BookMods' : book_mods})
-            theke.templates.build_template('external_documents', {'ExternalDocs': external_docs})
 
         # Load the given uri
         uri = theke.uri.parse(self._defaultUri)

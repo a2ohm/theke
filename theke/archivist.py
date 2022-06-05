@@ -7,8 +7,24 @@ class ThekeArchivist():
     """The archivist indexes and stores documents
     """
 
+    def __init__(self) -> None:
+        self._index = theke.index.ThekeIndex()
+
     def update_index(self, force = False):
         """Update the index
         """
         indexBuilder = theke.index.ThekeIndexBuilder()
         indexBuilder.build(force)
+
+    ### API: proxy to the ThekeIndex
+    def list_external_documents(self):
+        """List external document from the index
+        """
+        return self._index.list_external_documents()
+
+    def list_sword_sources(self, contentType = None):
+        """List sources from the index
+
+        @param contentType: theke.index.MODTYPE_*
+        """
+        return self._index.list_sources(theke.index.SOURCETYPE_SWORD, contentType)
