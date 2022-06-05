@@ -7,7 +7,6 @@ import yaml
 import theke
 import theke.archivist
 import theke.gui.mainWindow
-import theke.index
 import theke.navigator
 import theke.sword
 import theke.templates
@@ -111,14 +110,11 @@ class ThekeApp(Gtk.Application):
             self._window = theke.gui.mainWindow.ThekeWindow(navigator = self._navigator)
             self._window.set_application(self)
 
-            # From the index ...
-            thekeIndex = theke.index.ThekeIndex()
-
             # ... populate the gotobar autocompletion list
-            for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BIBLE):
+            for documentData in self._archivist.list_documents_by_type(theke.TYPE_BIBLE):
                 self._window._ThekeGotoBar.append((documentData.name, 'powder blue'))
 
-            for documentData in thekeIndex.list_documents_by_type(theke.TYPE_BOOK):
+            for documentData in self._archivist.list_documents_by_type(theke.TYPE_BOOK):
                 self._window._ThekeGotoBar.append((documentData.name, 'white smoke'))
 
             # Register application screens in the GotoBar

@@ -18,9 +18,14 @@ class ThekeArchivist():
 
     ### API: proxy to the ThekeIndex
     def list_external_documents(self):
-        """List external document from the index
+        """List external documents from the index
         """
         return self._index.list_external_documents()
+
+    def list_documents_by_type(self, documentType):
+        """List documents from the index by type
+        """
+        return self._index.list_documents_by_type(documentType)
 
     def list_sword_sources(self, contentType = None):
         """List sources from the index
