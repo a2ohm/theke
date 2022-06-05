@@ -1,10 +1,12 @@
+from gi.repository import GObject
+
 import theke
 import theke.document
 
 import logging
 logger = logging.getLogger(__name__)
 
-class ThekeLibrarian():
+class ThekeLibrarian(GObject.GObject):
     """With the help of an Archivist, extract and prepare documents to be displayed.
     """
     

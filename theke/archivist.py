@@ -1,9 +1,11 @@
+from gi.repository import GObject
+
 import theke.index
 
 import logging
 logger = logging.getLogger(__name__)
 
-class ThekeArchivist():
+class ThekeArchivist(GObject.GObject):
     """The archivist indexes and stores documents
     """
 

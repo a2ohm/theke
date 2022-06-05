@@ -6,13 +6,14 @@ from gi.repository import GObject
 import os
 import yaml
 import theke
-import theke.archivist
-import theke.librarian
 import theke.gui.mainWindow
 import theke.navigator
 import theke.sword
 import theke.templates
 import theke.uri
+
+from theke.archivist import ThekeArchivist
+from theke.librarian import ThekeLibrarian
 
 import logging
 logger = logging.getLogger(__name__)
@@ -63,14 +64,14 @@ class ThekeApp(Gtk.Application):
         self._defaultUri = theke.URI_WELCOME
 
     @GObject.Property(
-        type=object, flags=GObject.ParamFlags.READABLE)
+        type=ThekeArchivist, flags=GObject.ParamFlags.READABLE)
     def archivist(self):
         """Get application-wide archivist.
         """
         return self._archivist
     
     @GObject.Property(
-        type=object, flags=GObject.ParamFlags.READABLE)
+        type=ThekeLibrarian, flags=GObject.ParamFlags.READABLE)
     def librarian(self):
         """Get application-wide librarian.
         """
@@ -106,8 +107,8 @@ class ThekeApp(Gtk.Application):
                     pass
 
         # Init the archivist and the librarian
-        self._archivist = theke.archivist.ThekeArchivist()
-        self._librarian = theke.librarian.ThekeLibrarian(self._archivist)
+        self._archivist = ThekeArchivist()
+        self._librarian = ThekeLibrarian(self._archivist)
 
         # Update the index
         self._archivist.update_index()
