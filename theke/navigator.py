@@ -300,7 +300,7 @@ class ThekeNavigator(GObject.Object):
 
     ### Get content
 
-    def get_content_from_theke_uri(self, uri, request) -> str:
+    def get_content_from_theke_uri(self, uri, request) -> None:
         """Return a stream to the content pointed by the theke uri.
         NB. The context has been updated by handle_navigation_action()
 
@@ -330,8 +330,8 @@ class ThekeNavigator(GObject.Object):
             else:
                 # # Case 2. InApp uri
                 doc = self._librarian.get_document(self.ref, self.selectedSources)
-                request.finish(doc.inputStream.read(), -1, 'text/html; charset=utf-8')
-                
+                request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
+
                 # f = Gio.File.new_for_path('./assets/{}'.format(self.ref.inAppUriData.fileName))
                 #request.finish(f.read(), -1, 'text/html; charset=utf-8')
 
@@ -350,8 +350,13 @@ class ThekeNavigator(GObject.Object):
                         html = self.get_sword_book_content(source.name)
 
                     if source.type == theke.index.SOURCETYPE_EXTERN:
-                        logger.debug("Load as an extern uri (BOOK): %s", uri)
-                        html = self.get_external_book_content(source.name)
+                        doc = self._librarian.get_document(self.ref, self.selectedSources)
+                        request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
+                        return
+
+                        # logger.debug("Load as an extern uri (BOOK): %s", uri)
+                        # html = self.get_external_book_content(source.name)
+
 
             else:
                 # Temporary solution:

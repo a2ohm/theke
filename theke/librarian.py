@@ -1,6 +1,7 @@
 from gi.repository import GObject
 
 import theke
+import theke.archivist
 import theke.document
 
 import logging
@@ -19,8 +20,9 @@ class ThekeLibrarian(GObject.GObject):
 
         logger.debug("Get a document : {}".format(ref))
 
-        if ref.type == theke.TYPE_INAPP:
-            file_path = './assets/{}'.format(ref.inAppUriData.fileName)
-            handler = theke.document.FileHandler(file_path)
+        handler = self._archivist.get_document_handler(ref, sources)
 
+        if handler:
             return theke.document.ThekeDocument(ref, handler)
+        else:
+            return None

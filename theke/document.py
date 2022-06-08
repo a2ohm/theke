@@ -15,10 +15,3 @@ class ThekeDocument():
         """Get an inputStream to read the document from.
         """
         return self._handler.get_input_stream()
-
-class FileHandler():
-    def __init__(self, filePath) -> None:
-        self._filePath = filePath
-
-    def get_input_stream(self):
-        return Gio.File.new_for_path(self._filePath)
