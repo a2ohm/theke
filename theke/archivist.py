@@ -60,9 +60,16 @@ class ThekeArchivist(GObject.GObject):
             return ContentHandler(content)
 
         if ref.type == theke.TYPE_BOOK:
-            logger.debug("Get a document handler [external book] : {}".format(ref))
+            
             # For now, can only open the first source
             source = sources[0]
+
+            if source.type == theke.index.SOURCETYPE_SWORD:
+                logger.warning("Cannot open sword books : %s", ref)
+                return ContentHandler("<p>Les livres provenant d'un module sword ne peuvent pas être ouvert par Theke.</p>")
+
+            logger.debug("Get a document handler [external book] : %s", ref)
+
             document_path = theke.externalCache.get_best_source_file_path(source.name, relative=True)
 
             content = theke.templates.render('external_book', {
