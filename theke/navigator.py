@@ -28,11 +28,6 @@ NEW_VERSE = 3
 
 SOURCES_UPDATED = 4
 
-def format_sword_syntax(text) -> str:
-    '''Format rendered text from sword into a theke comprehensible syntax
-    '''
-    return text.replace("title", "h2")
-
 class ThekeNavigator(GObject.Object):
     """Load content and provide metadata.
 
