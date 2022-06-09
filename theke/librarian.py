@@ -21,8 +21,4 @@ class ThekeLibrarian(GObject.GObject):
         logger.debug("Get a document : {}".format(ref))
 
         handler = self._archivist.get_document_handler(ref, sources)
-
-        if handler:
-            return theke.document.ThekeDocument(ref, handler)
-        else:
-            return None
+        return theke.document.ThekeDocument(ref, handler) if handler else None
