@@ -293,29 +293,6 @@ class ThekeNavigator(GObject.Object):
             logger.error("Reference type not supported: %s", ref)
             return
 
-    ### Get content
-
-    def get_content_from_theke_uri(self, uri, request) -> None:
-        """Return a stream to the content pointed by the theke uri.
-        NB. The context has been updated by handle_navigation_action()
-
-        @param uri: (ThekeUri)
-        @param request: a WebKit2.URISchemeRequest
-
-        This function is only called by a webview.
-        """
-
-        logger.debug("Get content from a theke uri: %s", uri)
-
-        if uri.path[1] == theke.uri.SEGM_APP and uri.path[2] == theke.uri.SEGM_ASSETS:
-            # Path to an asset file
-            f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
-            request.finish(f.read(), -1, None)
-
-        else:
-            doc = self._librarian.get_document(self.ref, self.selectedSources)
-            request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
-
     ### Signals handling
 
     def handle_webview_click_on_word_cb(self, object, uri) -> None:

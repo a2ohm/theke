@@ -121,10 +121,10 @@ class ThekeWebView(WebKit2.WebView):
     def handle_theke_uri(self, request, *user_data):
         """Return a stream to the content pointed by the theke uri.
 
-        Handle localy some uri. Others are handle by _navigator.
-
         Case 1. The uri is a Theke signal
             eg. uri = theke:/signal/click_on_word?word=...
+        Case 2. The uri is a path to an asset
+        Case 3. Else, the uri is a path to a document
         """
         uri = theke.uri.parse(request.get_uri())
 
@@ -143,9 +143,15 @@ class ThekeWebView(WebKit2.WebView):
 
             request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
 
+        elif uri.path[1] == theke.uri.SEGM_APP and uri.path[2] == theke.uri.SEGM_ASSETS:
+            # Case 2. Path to an asset file
+            f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
+            request.finish(f.read(), -1, None)
+
         else:
-            # Other cases. Handled by the navigator
-            self._navigator.get_content_from_theke_uri(uri, request)
+            # Case 3. Path to a document
+            doc = self._librarian.get_document(self.ref, self.selectedSources)
+            request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
 
     def handle_load_changed(self, web_view, load_event):
         if load_event == WebKit2.LoadEvent.FINISHED:
