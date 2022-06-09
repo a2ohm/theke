@@ -339,8 +339,12 @@ class ThekeNavigator(GObject.Object):
             if uri.path[1] == theke.uri.SEGM_DOC:
                 # Case 3. The uri is a path to a document
                 if uri.path[2] == theke.uri.SEGM_BIBLE:
-                    logger.debug("Load as a sword uri (BIBLE): %s", uri)
-                    html = self.get_sword_bible_content()
+                    doc = self._librarian.get_document(self.ref, self.selectedSources)
+                    request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
+                    return
+
+                    # logger.debug("Load as a sword uri (BIBLE): %s", uri)
+                    # html = self.get_sword_bible_content()
 
                 elif uri.path[2] == theke.uri.SEGM_BOOK:
                     source = self.ref.availableSources.get(self._selectedSourcesNames[0])

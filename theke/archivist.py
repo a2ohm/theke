@@ -31,6 +31,34 @@ class ThekeArchivist(GObject.GObject):
             file_path = './assets/{}'.format(ref.inAppUriData.fileName)
             return FileHandler(file_path)
 
+        if ref.type == theke.TYPE_BIBLE:
+            logger.debug("Get a document handler [bible] : {}".format(ref))
+
+            documents = []
+            verses = []
+            #isMorphAvailable = False
+
+            for source in sources:
+                markup = theke.sword.MARKUP.get(source.name, theke.sword.FMT_PLAIN)
+                mod = theke.sword.SwordLibrary(markup=markup).get_bible_module(source.name)
+                documents.append({
+                    'lang' : mod.get_lang(),
+                    'source': source.name
+                })
+                verses.append(mod.get_chapter(ref.bookName, ref.chapter))
+
+                #isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
+
+            #self.set_property("isMorphAvailable", isMorphAvailable)
+
+            content = theke.templates.render('bible', {
+                'documents': documents,
+                'verses': verses,
+                'ref': ref
+            })
+
+            return ContentHandler(content)
+
         if ref.type == theke.TYPE_BOOK:
             logger.debug("Get a document handler [external book] : {}".format(ref))
             # For now, can only open the first source
