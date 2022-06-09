@@ -304,15 +304,6 @@ class ThekeNavigator(GObject.Object):
         """Return a stream to the content pointed by the theke uri.
         NB. The context has been updated by handle_navigation_action()
 
-        # Case 1. The uri is a path to an assets file
-        #     eg. uri = theke:/app/assets/css/default.css
-
-        # Case 2. The uri is a path to an inapp alias
-        #     eg. uri = theke:/app/welcome
-
-        Case 3. The uri is a path to a document
-            eg. uri = theke:/doc/bible/John 1:1?sources=MorphGNT
-
         @param uri: (ThekeUri)
         @param request: a WebKit2.URISchemeRequest
 
@@ -321,115 +312,14 @@ class ThekeNavigator(GObject.Object):
 
         logger.debug("Get content from a theke uri: %s", uri)
 
-        if uri.path[1] == theke.uri.SEGM_APP:
-            if uri.path[2] == theke.uri.SEGM_ASSETS:
-                # Case 1. Path to an asset file
-                f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
-                request.finish(f.read(), -1, None)
-
-            else:
-                # # Case 2. InApp uri
-                doc = self._librarian.get_document(self.ref, self.selectedSources)
-                request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
-
-                # f = Gio.File.new_for_path('./assets/{}'.format(self.ref.inAppUriData.fileName))
-                #request.finish(f.read(), -1, 'text/html; charset=utf-8')
+        if uri.path[1] == theke.uri.SEGM_APP and uri.path[2] == theke.uri.SEGM_ASSETS:
+            # Path to an asset file
+            f = Gio.File.new_for_path('./assets/' + '/'.join(uri.path[3:]))
+            request.finish(f.read(), -1, None)
 
         else:
-            if uri.path[1] == theke.uri.SEGM_DOC:
-                # Case 3. The uri is a path to a document
-                if uri.path[2] == theke.uri.SEGM_BIBLE:
-                    doc = self._librarian.get_document(self.ref, self.selectedSources)
-                    request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
-                    return
-
-                    # logger.debug("Load as a sword uri (BIBLE): %s", uri)
-                    # html = self.get_sword_bible_content()
-
-                elif uri.path[2] == theke.uri.SEGM_BOOK:
-                    source = self.ref.availableSources.get(self._selectedSourcesNames[0])
-
-                    if source.type == theke.index.SOURCETYPE_SWORD:
-                        logger.debug("Load as a sword uri (BOOK): %s", uri)
-                        html = self.get_sword_book_content(source.name)
-
-                    if source.type == theke.index.SOURCETYPE_EXTERN:
-                        doc = self._librarian.get_document(self.ref, self.selectedSources)
-                        request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
-                        return
-
-                        # logger.debug("Load as an extern uri (BOOK): %s", uri)
-                        # html = self.get_external_book_content(source.name)
-
-
-            else:
-                # Temporary solution:
-                #   Permit to load document from a cached source
-                #   even if it contains images and other contents
-                #   that are not cached
-
-                #raise ValueError('Unsupported theke uri: {}.'.format(uri))
-                logger.error('Unsupported theke uri: %s.', uri)
-                html = ''
-
-            html_bytes = GLib.Bytes.new(html.encode('utf-8'))
-            tmp_stream_in = Gio.MemoryInputStream.new_from_bytes(html_bytes)
-
-            request.finish(tmp_stream_in, -1, 'text/html; charset=utf-8')
-
-    def get_sword_bible_content(self) -> str:
-        logger.debug("Load content")
-
-        documents = []
-        verses = []
-        isMorphAvailable = False
-
-        for sourceName in self._selectedSourcesNames:
-            markup = theke.sword.MARKUP.get(sourceName, theke.sword.FMT_PLAIN)
-            mod = theke.sword.SwordLibrary(markup=markup).get_bible_module(sourceName)
-            documents.append({
-                'lang' : mod.get_lang(),
-                'source': sourceName
-            })
-            verses.append(mod.get_chapter(self.ref.bookName, self.ref.chapter))
-
-            isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
-
-        self.set_property("isMorphAvailable", isMorphAvailable)
-
-        return theke.templates.render('bible', {
-            'documents': documents,
-            'verses': verses,
-            'ref': self.ref
-        })
-
-    def get_sword_book_content(self, sourceName) -> str:
-        """Load a sword book.
-        """
-
-        mod = theke.sword.SwordLibrary().get_book_module(sourceName)
-        text = mod.get_paragraph(self.ref.section)
-
-        if text is None:
-            text = """<p>Ce texte n'a pas été trouvé.</p>
-            <p>uri : {}</p>""".format(self.ref.get_uri())
-        else:
-            text = format_sword_syntax(text)
-
-        return theke.templates.render('book', {
-            'ref': self.ref,
-            'mod_description': mod.get_description(),
-            'text': text})
-
-    def get_external_book_content(self, sourceName) -> None:
-        """Load an external source
-        """
-
-        document_path = theke.externalCache.get_best_source_file_path(sourceName, relative=True)
-
-        return theke.templates.render('external_book', {
-            'ref': self.ref,
-            'document_path': document_path})
+            doc = self._librarian.get_document(self.ref, self.selectedSources)
+            request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
 
     ### Signals handling
 
