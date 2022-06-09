@@ -58,7 +58,6 @@ class ThekeApp(Gtk.Application):
         self._archivist = None
         self._librarian = None
 
-        self._navigator = None
         self._settings = {}
 
         self._defaultUri = theke.URI_WELCOME
@@ -131,9 +130,6 @@ class ThekeApp(Gtk.Application):
         if not self._window:
             logger.debug("ThekeApp - Create a new window")
 
-            # Set the navigator
-            self._navigator = theke.navigator.ThekeNavigator(self)
-
             self._window = theke.gui.mainWindow.ThekeWindow(self)
             self._window.set_application(self)
 
@@ -143,7 +139,7 @@ class ThekeApp(Gtk.Application):
 
         # Load the given uri
         uri = theke.uri.parse(self._defaultUri)
-        self._navigator.goto_uri(uri)
+        self._window.open_uri(uri)
 
         self._window.present()
 

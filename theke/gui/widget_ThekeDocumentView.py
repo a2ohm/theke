@@ -42,21 +42,23 @@ class ThekeDocumentView(Gtk.Paned):
     _toc_treeView = Gtk.Template.Child()
     _toc_treeSelection = Gtk.Template.Child()
 
-    def __init__(self, application) -> None:
+    def __init__(self, application, navigator) -> None:
         logger.debug("ThekeDocumentView - Create a new instance")
 
         super().__init__()
 
         self._app = application
-        #self._navigator = self._app.props._navigator
+        self._navigator = navigator
 
-        self._webview = ThekeWebView(self._app)
+        self._webview = ThekeWebView(self._app, self._navigator)
         self._webview_findController = self._webview.get_find_controller()
 
         self._setup_view()
         self._setup_callbacks()
 
     def _setup_callbacks(self) -> None:
+        #   ... navigtor
+        self._navigator.connect("navigation-error", self._navigator_navigation_error_cb)
         #   ... document view
         self.connect("notify::local-search-mode-active", self._local_search_mode_active_cb)
         # ... document view > webview: where the document is displayed
@@ -90,11 +92,15 @@ class ThekeDocumentView(Gtk.Paned):
         self._ThekeLocalSearchBar.connect("search-next-match", self._local_search_next_match_cb)
         self._ThekeLocalSearchBar.connect("search-previous-match", self._local_search_previous_match_cb)
 
-    def register_navigator(self, navigator):
-        self._navigator = navigator
-        self._webview.register_navigator(navigator)
-
-        self._navigator.connect("navigation-error", self._navigator_navigation_error_cb)
+    def open_uri(self, uri) -> None:
+        """Open a given uri
+        """
+        self._navigator.goto_uri(uri)
+    
+    def open_ref(self, ref) -> None:
+        """Open a given ref
+        """
+        self._navigator.goto_ref(ref)
 
     ### Callbacks (from glade)
     @Gtk.Template.Callback()
@@ -334,3 +340,41 @@ class ThekeDocumentView(Gtk.Paned):
         """Set the content of the table of content
         """
         self._toc_treeView.set_model(content)
+
+
+    # Public properties
+    @GObject.Property(type=str)
+    def title(self):
+        """Title of the current documment
+        """
+        return self._navigator.title
+
+    @GObject.Property(type=str)
+    def shortTitle(self):
+        """Short title of the current documment
+        """
+        return self._navigator.shortTitle
+    
+    @GObject.Property(type=str)
+    def type(self):
+        """Type of the current documment
+        """
+        return self._navigator.type
+    
+    @GObject.Property(type=str)
+    def availableSources(self):
+        """Available sources of the current documment
+        """
+        return self._navigator.availableSources
+    
+    @GObject.Property(type=object)
+    def selectedSources(self):
+        """List of selected sources
+        """
+        return self._navigator.selectedSources
+
+    @GObject.Property(type=object)
+    def uri(self):
+        """URI of the current documment (with sources)
+        """
+        return self._navigator.uri

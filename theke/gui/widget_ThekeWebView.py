@@ -19,7 +19,7 @@ class ThekeWebView(WebKit2.WebView):
                       (object,))
         }
 
-    def __init__(self, application):
+    def __init__(self, application, navigator):
         logger.debug("Create a new instance")
 
         WebKit2.WebView.__init__(self)
@@ -27,18 +27,21 @@ class ThekeWebView(WebKit2.WebView):
         self._app = application
         self._librarian = self._app.props.librarian
 
-        self._navigator = None
+        self._navigator = navigator
 
         self._doLoadUriFlag = False
-
-        self.connect("load-changed", self.handle_load_changed)
-        self.connect("decide-policy", self.handle_decide_policy)
 
         context = self.get_context()
         context.register_uri_scheme('theke', self.handle_theke_uri, None)
 
-    def register_navigator(self, navigator):
-        self._navigator = navigator
+        self._setup_callbacks()
+
+    def _setup_callbacks(self) -> None:
+        # ... self
+        self.connect("load-changed", self.handle_load_changed)
+        self.connect("decide-policy", self.handle_decide_policy)
+
+        # ... navigator
         self._navigator.connect("context-updated", self._navigator_context_updated_cb)
 
     # Signals callbacks
