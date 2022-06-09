@@ -32,7 +32,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _ThekeHistoryBar : Gtk.ButtonBox = Gtk.Template.Child()
     _ThekeGotoBar : Gtk.SearchEntry = Gtk.Template.Child()
     _ThekeSourcesBar: Gtk.Box = Gtk.Template.Child()
-    _ThekeDocumentView : Gtk.Paned = Gtk.Template.Child()
+    _ThekeDocumentBox : Gtk.Box = Gtk.Template.Child()
     _ThekeSearchView : Gtk.Bin = Gtk.Template.Child()
     _ThekeToolsBox : Gtk.Box = Gtk.Template.Child()
 
@@ -71,6 +71,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         #   ... document view
         # ... document view > webview: where the document is displayed
+        self._ThekeDocumentView = ThekeDocumentView(self._app)
+        self._ThekeDocumentBox.pack_end(self._ThekeDocumentView, True, True, 0)
+
         self._ThekeDocumentView.register_navigator(self._navigator)
         self._ThekeDocumentView.connect("document-load-changed", self._documentView_load_changed_cb)
         self._ThekeDocumentView.connect("navigation-error", self._documentView_navigation_error_cb)
@@ -250,9 +253,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Update the history bar
             self._ThekeHistoryBar.add_uri_to_history(self._navigator.shortTitle, self._navigator.uri)
 
-            # Hide the morphoView, if necessary
-            if not self._navigator.isMorphAvailable:
-                self._ThekeToolsBox.hide()
+            # # Hide the morphoView, if necessary
+            # if not self._navigator.isMorphAvailable:
+            #     self._ThekeToolsBox.hide()
 
             # Scroll to the last position
             scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._navigator.shortTitle)

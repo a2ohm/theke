@@ -19,10 +19,13 @@ class ThekeWebView(WebKit2.WebView):
                       (object,))
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, application):
         logger.debug("Create a new instance")
 
-        WebKit2.WebView.__init__(self, *args, **kwargs)
+        WebKit2.WebView.__init__(self)
+
+        self._app = application
+        self._librarian = self._app.props.librarian
 
         self._navigator = None
 
@@ -150,7 +153,7 @@ class ThekeWebView(WebKit2.WebView):
 
         else:
             # Case 3. Path to a document
-            doc = self._librarian.get_document(self.ref, self.selectedSources)
+            doc = self._librarian.get_document(self._navigator.ref, self._navigator.selectedSources)
             request.finish(doc.inputStream, -1, 'text/html; charset=utf-8')
 
     def handle_load_changed(self, web_view, load_event):

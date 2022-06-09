@@ -42,13 +42,15 @@ class ThekeDocumentView(Gtk.Paned):
     _toc_treeView = Gtk.Template.Child()
     _toc_treeSelection = Gtk.Template.Child()
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, application) -> None:
         logger.debug("ThekeDocumentView - Create a new instance")
 
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
-        self._navigator = None
-        self._webview = ThekeWebView()
+        self._app = application
+        #self._navigator = self._app.props._navigator
+
+        self._webview = ThekeWebView(self._app)
         self._webview_findController = self._webview.get_find_controller()
 
         self._setup_view()

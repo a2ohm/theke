@@ -244,7 +244,7 @@ Author: a2ohm
                     <property name="position-set">True</property>
                     <signal name="notify::max-position" handler="_pane_max_position_notify_cb" swapped="no"/>
                     <child>
-                      <object class="ThekeDocumentView" id="_ThekeDocumentView">
+                      <object class="GtkBox" id="_ThekeDocumentBox">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                       </object>
