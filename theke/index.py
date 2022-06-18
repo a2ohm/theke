@@ -160,6 +160,18 @@ class ThekeIndex:
 
         return -1 if rawId is None else rawId[0]
 
+    def get_source_data(self, sourceName) -> SourceData:
+        """Return all data about a source
+        """
+
+        rawSourceData = self.con.execute("""SELECT sources.name, sources.type, sources.contentType, sources.lang, sourceDescriptions.description
+            FROM sources
+            LEFT JOIN sourceDescriptions ON sources.id = sourceDescriptions.id_source
+            WHERE sources.name =?;""",
+            (sourceName,)).fetchone()
+
+        return SourceData._make(rawSourceData)
+
     def get_source_version(self, sourceName) -> str:
         """Return the version a source
         """
