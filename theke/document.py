@@ -6,8 +6,10 @@ import theke
 import logging
 logger = logging.getLogger(__name__)
 
-class ThekeDocument():
+class ThekeDocument(GObject.GObject):
     def __init__(self, ref, handler, toc = None) -> None:
+        super().__init__()
+
         self._ref = ref
         self._handler = handler
         self._toc = toc
