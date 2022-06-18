@@ -112,9 +112,11 @@ class Reference():
 
     def __init__(self, rawReference):
         self.rawReference = rawReference
+        self.type = theke.TYPE_UNKNOWN
+
         self.documentName = rawReference
         self.documentShortname = rawReference
-        self.type = theke.TYPE_UNKNOWN
+        self.section = ''
 
         self.availableSources = None
 
@@ -132,6 +134,12 @@ class Reference():
 
     def get_uri(self):
         raise NotImplementedError
+
+    def get_section(self):
+        return self.section
+
+    def set_section(self, section):
+        self.section = section
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Reference):
@@ -208,6 +216,14 @@ class BiblicalReference(DocumentReference):
         
         return theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE,
             "{} {}:{}".format(self.bookName, self.chapter, self.verse)])
+
+    def get_section(self):
+        """For a biblical book, the verse number is the section
+        """
+        return str(self.verse)
+
+    def set_section(self, section):
+        self.verse = int(section)
 
     def get_verse(self):
         """Return the verse number"""
