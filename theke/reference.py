@@ -160,6 +160,19 @@ class Reference():
     def __repr__(self) -> str:
         return self.get_repr()
 
+class EmptyReference(Reference):
+    def __init__(self):
+        """Define an empty reference
+
+        To be used instead of None where a reference is needed
+        """
+        super().__init__("")
+
+        self.type = theke.TYPE_EMPTY
+
+    def get_uri(self):
+        return theke.uri.build('theke', ['', theke.uri.SEGM_EMPTY])
+
 class DocumentReference(Reference):
 
     def update_data_from_index(self) -> None:

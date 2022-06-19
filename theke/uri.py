@@ -18,6 +18,7 @@ inAppURI = {
 # Uri segments
 SEGM_APP = 'app'
 SEGM_DOC = 'doc'
+SEGM_EMPTY = 'empty'
 
 SEGM_ASSETS = 'assets'
 

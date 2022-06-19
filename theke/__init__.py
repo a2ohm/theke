@@ -16,7 +16,8 @@ URI_HELP = "theke:/app/help"
 URI_LOGBOOK = "theke:/app/logbook"
 
 # Valid types of documents
-TYPE_UNKNOWN = 0
+TYPE_UNKNOWN = -1
+TYPE_EMPTY = 0
 TYPE_BIBLE = 1
 TYPE_BOOK = 2
 TYPE_INAPP = 3
