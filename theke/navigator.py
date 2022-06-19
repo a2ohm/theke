@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 SelectedWord = namedtuple('selectedWord',['word','lemma','rawStrong', 'strong','morph','source'])
 
 # Return codes when the context is updated
+ERROR_REFERENCE_NOT_SUPPORTED = -1
 SAME_DOCUMENT = 0
 NEW_DOCUMENT = 1
 NEW_SECTION = 2
@@ -41,9 +42,6 @@ class ThekeNavigator(GObject.Object):
         'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
-    ref = GObject.Property(type=object)
-
-    toc = GObject.Property(type=object)
 
     is_loading = GObject.Property(type=bool, default=False)
     isMorphAvailable  = GObject.Property(type=bool, default=False)
@@ -55,10 +53,12 @@ class ThekeNavigator(GObject.Object):
         super().__init__(*args, **kwargs)
 
         self._app = application
+        self._webview = None
         self._librarian = self._app.props.librarian
 
         self.index = theke.index.ThekeIndex()
 
+        self._currentDocument = self._librarian.get_empty_document()
         self._selectedSourcesNames = list()
 
         # Load default biblical sources names from the settings file
@@ -74,6 +74,11 @@ class ThekeNavigator(GObject.Object):
                 theke.BIBLE_NT: ['MorphGNT', 'FreCrampon'],
             }
 
+    def register_webview(self, webview) -> None:
+        self._webview = webview
+
+    ### GOTO functions
+
     def goto_uri(self, uri, reload = False) -> None:
         """Ask the webview to load a given uri.
 
@@ -82,22 +87,27 @@ class ThekeNavigator(GObject.Object):
 
         @parm uri: (string or ThekeUri)
         """
-        if reload or self.ref is None or uri != self.ref.get_uri():
-            logger.debug("Goto uri: %s", uri)
+        if isinstance(uri, theke.uri.ThekeURI):
+            uri = uri.get_encoded_URI()
 
-            if isinstance(uri, str):
-                uri = theke.uri.parse(uri)
+        self._webview.load_uri(uri)
 
-            # Reset selected sources
-            self._selectedSourcesNames = list()
+        # if reload or uri != self.uri:
+        #     logger.debug("Goto uri: %s", uri)
 
-            self.update_context_from_uri(uri)
+        #     if isinstance(uri, str):
+        #         uri = theke.uri.parse(uri)
 
-    ### GOTO functions
+        #     # Reset selected sources
+        #     self._selectedSourcesNames = list()
+
+        #     self.update_context_from_uri(uri)
 
     def goto_ref(self, ref, reload = False) -> None:
         """Ask the webview to load a given reference
         """
+        logger.warning("GOTO_REF(): should be deleted, use goto_uri() instead")
+
         if reload or self.ref is None or ref != self.ref:
             logger.debug("Goto ref: %s", ref)
 
@@ -107,17 +117,19 @@ class ThekeNavigator(GObject.Object):
         """Ask the webview to load a document section
         """
 
+        logger.warning("GOTO_SECTION(): should be deleted, use goto_uri() instead")
+
         logger.debug("Goto section: %s", tocData)
 
-        if self.toc.type == theke.TYPE_BIBLE:
+        if self.doc.toc.type == theke.TYPE_BIBLE:
             # tocData (int): chapter
-            if self.ref.chapter != tocData:
-                self.ref.chapter = tocData
-                self.ref.verse = 0
+            if self._currentDocument.ref.chapter != tocData:
+                self._currentDocument.ref.chapter = tocData
+                self._currentDocument.ref.verse = 0
                 self.emit("context-updated", NEW_DOCUMENT)
 
         else:
-            logging.error("This type of TOC (%s) is not supported yet.", self.toc.type)
+            logging.error("This type of TOC (%s) is not supported yet.", self.doc.toc.type)
 
     def reload(self) -> None:
         self.emit("context-updated", NEW_DOCUMENT)
@@ -168,130 +180,114 @@ class ThekeNavigator(GObject.Object):
     ### Update context (from URI)
 
     def update_context_from_uri(self, uri) -> None:
-        """Update local context according to the uri
+        """Get a document given its uri
+
+        This function should be called by any webview handling a theke uri
         """
-        if self.ref is not None:
-            uriComparison = uri & self.ref.get_uri()
+        if self._currentDocument is not None:
+            uriComparison = uri & self._currentDocument.uri
             if uriComparison == theke.uri.comparison.SAME_URI:
                 # This is exactly the current uri, the context stays the same
-                logger.debug("Update context (skip)")
-                self.is_loading = False
-                self.emit("context-updated", SAME_DOCUMENT)
-                return
+                logger.debug("Update context (same uri, skip)")
+                return SAME_DOCUMENT
 
             elif uriComparison == theke.uri.comparison.DIFFER_BY_FRAGMENT:
                 # Same uri with a different fragment
                 logger.debug("Update context (section)")
-                self.ref.section = uri.fragment
-                self.emit("context-updated", NEW_SECTION)
-                return
+                self._currentDocument.section = uri.fragment
+                return NEW_SECTION
 
         ref = theke.reference.get_reference_from_uri(uri)
 
         # Collect sources names given in the uri
-        # and available for this refernce
+        # and available for this reference
         wantedSources = uri.params.get('sources', '')
         wantedSourcesNames = list()
 
         for wantedSource in wantedSources.split(";"):
              if wantedSource and wantedSource in ref.availableSources:
                 wantedSourcesNames.append(wantedSource)
-
-        self.update_context_from_ref(ref, wantedSourcesNames)
+        
+        return self.update_context_from_ref(ref, wantedSourcesNames)
 
     def update_context_from_ref(self, ref, wantedSourcesNames = None) -> None:
         """Update local context according to the ref
-
-        Returning code:
-         - SAME_DOCUMENT: same uri as that of the open document
-            --> the context is not updated
-
-         - NEW_VERSE: (for biblical document only) same uri except the verse number
-            --> only the verse number is updated
-
-         - NEW_DOCUMENT: different uri
-            --> the context is updated
         """
-        self.is_loading = True
-        
+
+        refComparisonMask = ref & self._currentDocument.ref if self._currentDocument else theke.reference.comparison.NOTHING_IN_COMMON        
+
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Update context [bible]")
 
-            # Same biblical reference with a different verse number
-            if (ref & self.ref) == theke.reference.comparison.DIFFER_BY_VERSE:
-
-                self.ref.verse = ref.verse
-
-                self.is_loading = False
-                self.emit("context-updated", NEW_VERSE)
-                return
+            if refComparisonMask == theke.reference.comparison.DIFFER_BY_VERSE:
+                # Same biblical reference with a different verse number
+                self._currentDocument.section = ref.verse
+                return NEW_VERSE
 
             with self.freeze_notify():
-                # Update the table of content only if the document name is different
-                if not ((ref & self.ref) & theke.reference.comparison.SAME_BOOKNAME):
-                    self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
+                # # Update the table of content only if the document name is different
+                # if not ((refComparisonMask) & theke.reference.comparison.SAME_BOOKNAME):
+                #     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
 
                 # If needed, select sources to read the document from
                 self._selectedSourcesNames = wantedSourcesNames or self._get_default_biblical_sources(ref)
 
                 # Different reference, update all the context
-                self.set_property("ref", ref)
+                #self.set_property("ref", ref)
 
-            self.emit("context-updated", NEW_DOCUMENT)
-            return
+            self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
+            return NEW_DOCUMENT
 
-        elif ref.type == theke.TYPE_BOOK:
+        # elif ref.type == theke.TYPE_BOOK:
 
-            # Same book reference with a different section name
-            if (ref & self.ref) == theke.reference.comparison.DIFFER_BY_SECTION:
-                logger.debug("Update context [book] (section)")
+        #     # Same book reference with a different section name
+        #     if (refComparisonMask) == theke.reference.comparison.DIFFER_BY_SECTION:
+        #         logger.debug("Update context [book] (section)")
 
-                self.ref.section = ref.section
-                self.is_loading = False
-                self.emit("context-updated", NEW_SECTION)
-                return
+        #         self._currentDocument.section = ref.section
+        #         #self.is_loading = False
+        #         #self.emit("context-updated", NEW_SECTION)
+        #         return self._currentDocument
 
-            logger.debug("Update context [book]")
+        #     logger.debug("Update context [book]")
 
-            # If needed, select sources to read the document from
-            self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
+        #     # If needed, select sources to read the document from
+        #     self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
 
-            source = ref.availableSources.get(self._selectedSourcesNames[0])
+        #     source = ref.availableSources.get(self._selectedSourcesNames[0])
 
-            if source.type == theke.index.SOURCETYPE_EXTERN:
-                if not theke.externalCache.is_source_cached(source.name):
-                    contentUri = self.index.get_source_uri(source.name)
-                    if not theke.externalCache.cache_document_from_external_source(source.name, contentUri):
-                        # Fail to cache the document from the external source
-                        self.is_loading = False
-                        self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
-                        return
+        #     if source.type == theke.index.SOURCETYPE_EXTERN:
+        #         if not theke.externalCache.is_source_cached(source.name):
+        #             contentUri = self.index.get_source_uri(source.name)
+        #             if not theke.externalCache.cache_document_from_external_source(source.name, contentUri):
+        #                 # Fail to cache the document from the external source
+        #                 self.is_loading = False
+        #                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
+        #                 return
 
-                if not theke.externalCache.is_cache_cleaned(source.name):
-                    theke.externalCache._build_clean_document(source.name)
+        #         if not theke.externalCache.is_cache_cleaned(source.name):
+        #             theke.externalCache._build_clean_document(source.name)
 
-            with self.freeze_notify():
-                self.set_property("ref", ref)
-                self.set_property("toc", None)
-                self.set_property("isMorphAvailable", False)
+        #     with self.freeze_notify():
+        #         self.set_property("ref", ref)
+        #         self.set_property("toc", None)
+        #         self.set_property("isMorphAvailable", False)
 
-            self.emit("context-updated", NEW_DOCUMENT)
-            return
+        #     self.emit("context-updated", NEW_DOCUMENT)
+        #     return
 
         elif ref.type == theke.TYPE_INAPP:
             logger.debug("Update context [inApp]")
 
             with self.freeze_notify():
-                self.set_property("ref", ref)
-                self.set_property("toc", None)
                 self.set_property("isMorphAvailable", False)
 
-            self.emit("context-updated", NEW_DOCUMENT)
-            return
+            self._currentDocument = self._librarian.get_document(ref)
+            return NEW_DOCUMENT
 
         else:
             logger.error("Reference type not supported: %s", ref)
-            return
+            return ERROR_REFERENCE_NOT_SUPPORTED
 
     ### Signals handling
 
@@ -348,57 +344,9 @@ class ThekeNavigator(GObject.Object):
         return [list(ref.availableSources.keys())[0]]
     
     ### Properties
-    
-    @GObject.Property(type=str)
-    def availableSources(self):
-        """Available sources of the current documment
-        """
-        return self.ref.availableSources
 
     @GObject.Property(type=str)
-    def title(self):
-        """Title of the current documment
+    def doc(self):
+        """Current documment
         """
-        return self.ref.get_repr()
-
-    @GObject.Property(type=str)
-    def shortTitle(self):
-        """Short title of the current documment
-        """
-        return self.ref.get_short_repr()
-    
-    @GObject.Property(type=str)
-    def type(self):
-        """Type of the current documment
-        """
-        return self.ref.type if self.ref else None
-
-    @GObject.Property(type=object)
-    def selectedSourcesNames(self):
-        """Set of selected sources names
-        """
-        return self._selectedSourcesNames
-    
-    @GObject.Property(type=object)
-    def selectedSources(self):
-        """List of selected sources
-        """
-        return [self.ref.availableSources[sourceName] for sourceName in self._selectedSourcesNames]
-
-    @GObject.Property(type=object)
-    def uri(self):
-        """URI of the current documment (with sources)
-        """
-        uri = self.ref.get_uri()
-
-        if self._selectedSourcesNames:
-            uri.params.update({'sources': ";".join(self._selectedSourcesNames)})
-
-        return uri
-
-    @GObject.Property(type=str)
-    def contentUri(self):
-        """Return the uri of the document
-        """
-
-        return self.ref.get_uri().get_encoded_URI()
+        return self._currentDocument

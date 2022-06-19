@@ -2,8 +2,10 @@ from gi.repository import GObject
 from gi.repository import Gio
 from gi.repository import GLib
 
+import theke
 import theke.index
 import theke.externalCache
+import theke.tableofcontent
 import theke.templates
 
 import logging
@@ -21,15 +23,17 @@ class ThekeArchivist(GObject.GObject):
         """
         indexBuilder = theke.index.ThekeIndexBuilder()
         indexBuilder.build(force)
-    
-    def get_document_handler(self, ref, sources):
+
+    def get_document_handler(self, ref, sourceNames):
         """Return a handler providing an input stream to the document
         """
+
+        sources = [self._index.get_source_data(sourceName) for sourceName in sourceNames] if sourceNames else None
 
         if ref.type == theke.TYPE_INAPP:
             logger.debug("Get a document handler [inApp] : {}".format(ref))
             file_path = './assets/{}'.format(ref.inAppUriData.fileName)
-            return FileHandler(file_path)
+            return FileHandler(file_path, sources)
 
         if ref.type == theke.TYPE_BIBLE:
             logger.debug("Get a document handler [bible] : {}".format(ref))
@@ -57,7 +61,7 @@ class ThekeArchivist(GObject.GObject):
                 'ref': ref
             })
 
-            return ContentHandler(content)
+            return ContentHandler(content, sources)
 
         if ref.type == theke.TYPE_BOOK:
             
@@ -66,7 +70,7 @@ class ThekeArchivist(GObject.GObject):
 
             if source.type == theke.index.SOURCETYPE_SWORD:
                 logger.warning("Cannot open sword books : %s", ref)
-                return ContentHandler("<p>Les livres provenant d'un module sword ne peuvent pas être ouvert par Theke.</p>")
+                return ContentHandler("<p>Les livres provenant d'un module sword ne peuvent pas être ouvert par Theke.</p>", [source])
 
             logger.debug("Get a document handler [external book] : %s", ref)
 
@@ -76,7 +80,15 @@ class ThekeArchivist(GObject.GObject):
                 'ref': ref,
                 'document_path': document_path})
             
-            return ContentHandler(content)
+            return ContentHandler(content, [source])
+
+        return None
+
+    def get_document_toc(self, ref):
+        """Return the table of contents of a reference
+        """
+        if ref.type == theke.TYPE_BIBLE:
+            return theke.tableofcontent.get_toc_BIBLE(ref)
 
         return None
 
@@ -99,15 +111,23 @@ class ThekeArchivist(GObject.GObject):
         return self._index.list_sources(theke.index.SOURCETYPE_SWORD, contentType)
 
 class ContentHandler():
-    def __init__(self, content) -> None:
+    def __init__(self, content, sources = None) -> None:
         self._content = content
+        self._sources = sources
 
     def get_input_stream(self):
         return Gio.MemoryInputStream.new_from_data(self._content.encode('utf-8'))
 
+    def get_sources(self):
+        return self._sources
+
 class FileHandler():
-    def __init__(self, filePath) -> None:
+    def __init__(self, filePath, sources = None) -> None:
         self._filePath = filePath
+        self._sources = sources
 
     def get_input_stream(self):
         return Gio.File.new_for_path(self._filePath).read()
+    
+    def get_sources(self):
+        return self._sources

@@ -135,19 +135,19 @@ class ThekeDocumentView(Gtk.Paned):
         """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Update the table of content
-            if self._navigator.toc is None:
+            if self._navigator.doc.toc is None:
                 self.hide_toc()
 
         if load_event == WebKit2.LoadEvent.FINISHED:
             # Update the table of content
-            if self._navigator.toc is not None:
-                self.set_title(self._navigator.ref.documentName)
-                self.set_content(self._navigator.toc.toc)
+            if self._navigator.doc.toc is not None:
+                self.set_title(self._navigator.doc.title)
+                self.set_content(self._navigator.doc.toc.toc)
 
-                if self._navigator.toc.type == theke.TYPE_BIBLE:
+                if self._navigator.doc.toc.type == theke.TYPE_BIBLE:
                     # Trick: as a biblical toc is the list of chapters
                     #        the index of a chapter is its value -1
-                    self._toc_treeSelection.select_path(Gtk.TreePath(self._navigator.ref.chapter-1))
+                    self._toc_treeSelection.select_path(Gtk.TreePath(self._navigator._currentDocument.ref.chapter-1))
 
                 self.show_toc()
 
@@ -201,7 +201,7 @@ class ThekeDocumentView(Gtk.Paned):
         - If this is a document loaded from the cache, reclean it
         """
         logger.debug("Soft refresh the document")
-        sources = self._navigator.selectedSources
+        sources = self._navigator.doc.sources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
             self._navigator.is_loading = True
@@ -214,7 +214,7 @@ class ThekeDocumentView(Gtk.Paned):
         - If this is a document loaded from the cache, redownload it and reclean it
         """
         logger.debug("Hard refresh the document")
-        sources = self._navigator.selectedSources
+        sources = self._navigator.doc.sources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
             self._navigator.is_loading = True
@@ -229,14 +229,14 @@ class ThekeDocumentView(Gtk.Paned):
                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
     def goto_next_chapter(self):
-        if self._navigator.type == theke.TYPE_BIBLE:
+        if self._navigator.doc.type == theke.TYPE_BIBLE:
             if self._navigator.props.ref.chapter < self._navigator.props.ref.nbOfChapters:
                 logger.debug("Goto to next biblical chapter")
                 self._navigator.props.ref.chapter += 1
                 self._navigator.reload()
 
     def goto_previous_chapter(self):
-        if self._navigator.type == theke.TYPE_BIBLE:
+        if self._navigator.doc.type == theke.TYPE_BIBLE:
             if self._navigator.props.ref.chapter > 1:
                 logger.debug("Goto to previous biblical chapter")
                 self._navigator.props.ref.chapter -= 1
@@ -263,7 +263,7 @@ class ThekeDocumentView(Gtk.Paned):
                 Gtk.FileChooserAction.SAVE,
                 (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
                 Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
-            dialog.set_current_name("{}.mhtml".format(self._navigator.title))
+            dialog.set_current_name("{}.mhtml".format(self._navigator.doc.title))
 
             response = dialog.run()
 
@@ -283,9 +283,9 @@ class ThekeDocumentView(Gtk.Paned):
         If this is a biblical document, scroll to the given verse
         Else, scroll to the given value
         """
-        if (self._navigator.type == theke.TYPE_BIBLE 
-            and self._navigator.ref.get_verse() > 0):
-            self.scroll_to_verse(self._navigator.ref.get_verse())
+        if (self._navigator.doc.type == theke.TYPE_BIBLE 
+            and self._navigator.doc.ref.get_verse() > 0):
+            self.scroll_to_verse(self._navigator.doc.ref.get_verse())
 
         else:            
             # Scrolling to 0 is most often counterproductive
@@ -347,34 +347,34 @@ class ThekeDocumentView(Gtk.Paned):
     def title(self):
         """Title of the current documment
         """
-        return self._navigator.title
+        return self._navigator.doc.title
 
     @GObject.Property(type=str)
     def shortTitle(self):
         """Short title of the current documment
         """
-        return self._navigator.shortTitle
+        return self._navigator.doc.shortTitle
     
     @GObject.Property(type=str)
     def type(self):
         """Type of the current documment
         """
-        return self._navigator.type
+        return self._navigator.doc.type
     
     @GObject.Property(type=str)
     def availableSources(self):
         """Available sources of the current documment
         """
-        return self._navigator.availableSources
+        return self._navigator.doc.availableSources
     
     @GObject.Property(type=object)
     def selectedSources(self):
         """List of selected sources
         """
-        return self._navigator.selectedSources
+        return self._navigator.doc.sources
 
     @GObject.Property(type=object)
     def uri(self):
         """URI of the current documment (with sources)
         """
-        return self._navigator.uri
+        return self._navigator.doc.uri

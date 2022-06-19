@@ -77,6 +77,12 @@ class ThekeDocument(GObject.GObject):
 
     @GObject.Property(type=str)
     def uri(self):
-        """Get the uri of the document
+        """Get the uri of the document (with sources)
         """
-        return self._ref.get_uri()
+        uri = self._ref.get_uri()
+
+        sources = self._handler.get_sources()
+        if sources:
+            uri.params.update({'sources': ";".join([s.name for s in sources])})
+
+        return uri
