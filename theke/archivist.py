@@ -26,6 +26,8 @@ class ThekeArchivist(GObject.GObject):
 
     def get_document_handler(self, ref, sourceNames):
         """Return a handler providing an input stream to the document
+
+        @param sourceNames: list of source names
         """
 
         sources = [self._index.get_source_data(sourceName) for sourceName in sourceNames] if sourceNames else None
@@ -125,6 +127,9 @@ class ThekeArchivist(GObject.GObject):
 
 class ContentHandler():
     def __init__(self, content, sources = None) -> None:
+        """
+        @param sources: list of source datas
+        """
         self._content = content
         self._sources = sources
 
@@ -136,6 +141,9 @@ class ContentHandler():
 
 class FileHandler():
     def __init__(self, filePath, sources = None) -> None:
+        """
+        @param sources: list of source datas
+        """
         self._filePath = filePath
         self._sources = sources
 
