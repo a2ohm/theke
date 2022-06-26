@@ -56,7 +56,7 @@ class ThekeNavigator(GObject.Object):
         self._webview = None
         self._librarian = self._app.props.librarian
 
-        self.index = theke.index.ThekeIndex()
+        #self.index = theke.index.ThekeIndex()
 
         self._currentDocument = self._librarian.get_empty_document()
         self._selectedSourcesNames = list()
@@ -238,43 +238,19 @@ class ThekeNavigator(GObject.Object):
             self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
             return NEW_DOCUMENT
 
-        # elif ref.type == theke.TYPE_BOOK:
+        elif ref.type == theke.TYPE_BOOK:
+            logger.debug("Update context [book]")
 
-        #     # Same book reference with a different section name
-        #     if (refComparisonMask) == theke.reference.comparison.DIFFER_BY_SECTION:
-        #         logger.debug("Update context [book] (section)")
+            if refComparisonMask == theke.reference.comparison.DIFFER_BY_SECTION:
+                # Same book reference with a different section name
+                self._currentDocument.section = ref.section
+                return NEW_SECTION
 
-        #         self._currentDocument.section = ref.section
-        #         #self.is_loading = False
-        #         #self.emit("context-updated", NEW_SECTION)
-        #         return self._currentDocument
+            # If needed, select sources to read the document from
+            self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
 
-        #     logger.debug("Update context [book]")
-
-        #     # If needed, select sources to read the document from
-        #     self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
-
-        #     source = ref.availableSources.get(self._selectedSourcesNames[0])
-
-        #     if source.type == theke.index.SOURCETYPE_EXTERN:
-        #         if not theke.externalCache.is_source_cached(source.name):
-        #             contentUri = self.index.get_source_uri(source.name)
-        #             if not theke.externalCache.cache_document_from_external_source(source.name, contentUri):
-        #                 # Fail to cache the document from the external source
-        #                 self.is_loading = False
-        #                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
-        #                 return
-
-        #         if not theke.externalCache.is_cache_cleaned(source.name):
-        #             theke.externalCache._build_clean_document(source.name)
-
-        #     with self.freeze_notify():
-        #         self.set_property("ref", ref)
-        #         self.set_property("toc", None)
-        #         self.set_property("isMorphAvailable", False)
-
-        #     self.emit("context-updated", NEW_DOCUMENT)
-        #     return
+            self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
+            return NEW_DOCUMENT
 
         elif ref.type == theke.TYPE_INAPP:
             logger.debug("Update context [inApp]")
