@@ -72,15 +72,28 @@ class ThekeArchivist(GObject.GObject):
                 logger.warning("Cannot open sword books : %s", ref)
                 return ContentHandler("<p>Les livres provenant d'un module sword ne peuvent pas être ouvert par Theke.</p>", [source])
 
-            logger.debug("Get a document handler [external book] : %s", ref)
+            if source.type == theke.index.SOURCETYPE_EXTERN:
+                logger.debug("Get a document handler [external book] : %s", ref)
 
-            document_path = theke.externalCache.get_best_source_file_path(source.name, relative=True)
+                if not theke.externalCache.is_source_cached(source.name):
+                    contentUri = self._index.get_source_uri(source.name)
 
-            content = theke.templates.render('external_book', {
-                'ref': ref,
-                'document_path': document_path})
-            
-            return ContentHandler(content, [source])
+                    if not theke.externalCache.cache_document_from_external_source(source.name, contentUri):
+                        # Fail to cache the document from the external source
+                        #self.is_loading = False
+                        #self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
+                        return None
+
+                if not theke.externalCache.is_cache_cleaned(source.name):
+                    theke.externalCache._build_clean_document(source.name)
+
+                document_path = theke.externalCache.get_best_source_file_path(source.name, relative=True)
+
+                content = theke.templates.render('external_book', {
+                    'ref': ref,
+                    'document_path': document_path})
+
+                return ContentHandler(content, [source])
 
         return None
 
