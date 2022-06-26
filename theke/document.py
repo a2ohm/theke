@@ -47,9 +47,15 @@ class ThekeDocument(GObject.GObject):
     
     @GObject.Property(type=object)
     def sources(self):
-        """Get the sources of the document
+        """Get the sources of the document in a list
         """
         return self._handler.get_sources()
+    
+    @GObject.Property(type=object)
+    def sourceNames(self):
+        """Get the source names of the document in a list
+        """
+        return [s.name for s in self._handler.get_sources()]
     
     @GObject.Property(type=str)
     def title(self):
