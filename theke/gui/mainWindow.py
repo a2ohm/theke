@@ -228,7 +228,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         aboutDialog.destroy()
 
     ### Callbacks (_documentView)
-    def _documentView_load_changed_cb(self, obj, web_view, load_event):
+    def _documentView_load_changed_cb(self, documentView, web_view, load_event):
         """Handle the load changed signal of the document view
 
         This callback is run after _ThekeDocumentView._document_load_changed_cb().
@@ -236,7 +236,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         """
         if load_event == WebKit2.LoadEvent.STARTED:
             # Show the sourcesBar, if necessary
-            if self._ThekeDocumentView.type == theke.TYPE_BIBLE:
+            if documentView.type == theke.TYPE_BIBLE:
                 self._ThekeSourcesBar.set_reveal_child(True)
                 self._statusbar_revealer.set_reveal_child(False)
             else:
@@ -246,24 +246,24 @@ class ThekeWindow(Gtk.ApplicationWindow):
         elif load_event == WebKit2.LoadEvent.FINISHED:
             # Update the status bar with the title of the just loaded page
             contextId = self._statusbar.get_context_id("navigation")
-            self._statusbar.push(contextId, str(self._ThekeDocumentView.title))
+            self._statusbar.push(contextId, str(documentView.title))
 
             # Update the goto bar with the current reference
             self.fill_gotobar_with_current_reference()
 
             # Update the history bar
-            self._ThekeHistoryBar.add_uri_to_history(self._ThekeDocumentView.shortTitle, self._ThekeDocumentView.uri)
+            self._ThekeHistoryBar.add_uri_to_history(documentView.shortTitle, documentView.uri)
 
             # # Hide the morphoView, if necessary
             # if not self._navigator.isMorphAvailable:
             #     self._ThekeToolsBox.hide()
 
             # Scroll to the last position
-            scrolled_value = self._ThekeHistoryBar.get_scrolled_value(self._ThekeDocumentView.shortTitle)
-            self._ThekeDocumentView.update_scroll(scrolled_value)
+            scrolled_value = self._ThekeHistoryBar.get_scrolled_value(documentView.shortTitle)
+            documentView.update_scroll(scrolled_value)
 
             # Activate or not some menu items
-            sources = self._ThekeDocumentView.selectedSources
+            sources = documentView.selectedSources
             if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
                 self._document_softRefresh_menuItem.set_sensitive(True)
                 self._document_hardRefresh_menuItem.set_sensitive(True)
