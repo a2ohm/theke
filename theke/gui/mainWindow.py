@@ -151,7 +151,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 # fill it with the current reference
                 # and give the focus back to the document view
                 if self._ThekeGotoBar.has_focus():
-                    self.fill_gotobar_with_current_reference()
+                    self.fill_gotobar_with_reference(self._ThekeDocumentView.doc)
                     self._ThekeDocumentView.grab_focus()
                     return True
 
@@ -244,32 +244,9 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._statusbar_revealer.set_reveal_child(True)
 
         elif load_event == WebKit2.LoadEvent.FINISHED:
-            # Update the status bar with the title of the just loaded page
-            contextId = self._statusbar.get_context_id("navigation")
-            self._statusbar.push(contextId, str(documentView.title))
-
-            # Update the goto bar with the current reference
-            self.fill_gotobar_with_current_reference()
-
-            # Update the history bar
-            self._ThekeHistoryBar.add_uri_to_history(documentView.shortTitle, documentView.uri)
-
-            # # Hide the morphoView, if necessary
-            # if not self._navigator.isMorphAvailable:
-            #     self._ThekeToolsBox.hide()
-
             # Scroll to the last position
             scrolled_value = self._ThekeHistoryBar.get_scrolled_value(documentView.shortTitle)
             documentView.update_scroll(scrolled_value)
-
-            # Activate or not some menu items
-            sources = documentView.selectedSources
-            if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
-                self._document_softRefresh_menuItem.set_sensitive(True)
-                self._document_hardRefresh_menuItem.set_sensitive(True)
-            else:
-                self._document_softRefresh_menuItem.set_sensitive(False)
-                self._document_hardRefresh_menuItem.set_sensitive(False)
 
             # Turn of the loading flag
             self.is_loading = False
@@ -297,8 +274,28 @@ class ThekeWindow(Gtk.ApplicationWindow):
     ### Callbacks (_navigator)
     def _navigator_context_updated_cb(self, navigator, update_type) -> None:
         if update_type == theke.navigator.NEW_DOCUMENT:
+            # Update the status bar with the title of the document
+            contextId = self._statusbar.get_context_id("navigation")
+            self._statusbar.push(contextId, str(navigator.doc.title))
+
+            # Update the goto bar with the current reference
+            self.fill_gotobar_with_reference(navigator.doc)
+
+            # Update the history bar
+            self._ThekeHistoryBar.add_uri_to_history(navigator.doc.shortTitle, navigator.doc.uri)
+
+            # Update the source bar
             self._ThekeSourcesBar.updateAvailableSources(navigator.doc.availableSources)
             self._ThekeSourcesBar.updateSources(navigator.doc.sources)
+
+            # Activate or not some menu items
+            sources = navigator.doc.sources
+            if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
+                self._document_softRefresh_menuItem.set_sensitive(True)
+                self._document_hardRefresh_menuItem.set_sensitive(True)
+            else:
+                self._document_softRefresh_menuItem.set_sensitive(False)
+                self._document_hardRefresh_menuItem.set_sensitive(False)
 
         if update_type == theke.navigator.SOURCES_UPDATED:
             self._ThekeSourcesBar.updateSources(navigator.doc.sources)
@@ -363,13 +360,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.open_uri(button.uri)
         return True
 
-    def fill_gotobar_with_current_reference(self) -> None:
-        """Fill the gotobar with the current reference
+    def fill_gotobar_with_reference(self, doc) -> None:
+        """Fill the gotobar with the reference of the given document
         """
-        if self._ThekeDocumentView.type == theke.TYPE_BIBLE:
-            self._ThekeGotoBar.set_text(self._ThekeDocumentView.shortTitle)
-        elif self._ThekeDocumentView.type == theke.TYPE_BOOK:
-            self._ThekeGotoBar.set_text(self._ThekeDocumentView.title)
+        if doc.type == theke.TYPE_BIBLE:
+            self._ThekeGotoBar.set_text(doc.shortTitle)
+        elif doc.type == theke.TYPE_BOOK:
+            self._ThekeGotoBar.set_text(doc.title)
         else:
             self._ThekeGotoBar.set_text('')
 
