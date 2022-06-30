@@ -79,7 +79,7 @@ class ThekeNavigator(GObject.Object):
 
     ### GOTO functions
 
-    def goto_uri(self, uri, reload = False) -> None:
+    def goto_uri(self, uri) -> None:
         """Ask the webview to load a given uri.
 
         Notice: all uri requests must go through the webview,
@@ -132,50 +132,62 @@ class ThekeNavigator(GObject.Object):
             logging.error("This type of TOC (%s) is not supported yet.", self.doc.toc.type)
 
     def reload(self) -> None:
-        self.emit("context-updated", NEW_DOCUMENT)
+        #self.emit("context-updated", NEW_DOCUMENT)
+        self._webview.load_uri(self._currentDocument.uri.get_encoded_URI())
 
     ### Edit the context
 
-    def add_source(self, sourceName) -> None:
+    def add_source(self, newSourceName) -> None:
         """Add a new source to read the document from
         Emit a signal if the source was added
         """
 
-        if sourceName not in self.availableSources:
-            logger.debug("This source is not available for this document: %s", sourceName)
+        sourceNames = self._currentDocument.sourceNames
 
-        elif sourceName not in self._selectedSourcesNames:
-            logger.debug("Add source %s", sourceName)
-            self._selectedSourcesNames.append(sourceName)
+        if newSourceName not in self._currentDocument.availableSources:
+            logger.debug("This source is not available for this document: %s", newSourceName)
 
-            if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesNames[self.ref.testament].append(sourceName)
+        elif newSourceName not in sourceNames:
+            logger.debug("Add source %s", newSourceName)
+            sourceNames.append(newSourceName)
 
+            if self._currentDocument.type == theke.TYPE_BIBLE:
+                self._defaultBiblicalSourcesNames[self._currentDocument.ref.testament] = sourceNames
+
+            self._currentDocument = self._librarian.get_document(self._currentDocument.ref, sourceNames)
             self.emit("context-updated", SOURCES_UPDATED)
 
-    def remove_source(self, sourceName) -> None:
+            self.reload()
+
+    def remove_source(self, obsoleteSourceName) -> None:
         """Remove a source from the selection
+        Emit a signal if the source was removed
         """
-        if sourceName in self._selectedSourcesNames:
+        sourceNames = self._currentDocument.sourceNames
 
-            logger.debug("Remove source %s", sourceName)
-            self._selectedSourcesNames.remove(sourceName)
+        if obsoleteSourceName in sourceNames:
 
-            if self.ref.type == theke.TYPE_BIBLE:
-                self._defaultBiblicalSourcesNames[self.ref.testament].remove(sourceName)
+            logger.debug("Remove source %s", obsoleteSourceName)
+            sourceNames.remove(obsoleteSourceName)
 
             # A source should be selected
             # Set a default source if needed
-            if len(self._selectedSourcesNames) == 0:
-                if self.ref.type == theke.TYPE_BIBLE:
+            if len(sourceNames) == 0:
+                if self._currentDocument.type == theke.TYPE_BIBLE:
                     logger.debug("Set source to default [bible]")
-                    self._get_default_biblical_sources(self.ref)
+                    sourceNames = self._get_default_biblical_sources(self._currentDocument.ref)
 
-                elif self.ref.type == theke.TYPE_BOOK:
+                elif self._currentDocument.type == theke.TYPE_BOOK:
                     logger.debug("Set source to default [book]")
-                    self._get_default_book_sources(self.ref)
+                    sourceNames = self._get_default_book_sources(self._currentDocument.ref)
+            
+            if self._currentDocument.type == theke.TYPE_BIBLE:
+                self._defaultBiblicalSourcesNames[self._currentDocument.ref.testament] = sourceNames
 
+            self._currentDocument = self._librarian.get_document(self._currentDocument.ref, sourceNames)
             self.emit("context-updated", SOURCES_UPDATED)
+
+            self.reload()
 
     ### Update context (from URI)
 
@@ -184,18 +196,18 @@ class ThekeNavigator(GObject.Object):
 
         This function should be called by any webview handling a theke uri
         """
-        if self._currentDocument is not None:
-            uriComparison = uri & self._currentDocument.uri
-            if uriComparison == theke.uri.comparison.SAME_URI:
-                # This is exactly the current uri, the context stays the same
-                logger.debug("Update context (same uri, skip)")
-                return SAME_DOCUMENT
 
-            elif uriComparison == theke.uri.comparison.DIFFER_BY_FRAGMENT:
-                # Same uri with a different fragment
-                logger.debug("Update context (section)")
-                self._currentDocument.section = uri.fragment
-                return NEW_SECTION
+        uriComparison = uri & self._currentDocument.uri
+        if uriComparison == theke.uri.comparison.SAME_URI:
+            # This is exactly the current uri, the context stays the same
+            logger.debug("Update context (same uri, skip)")
+            return SAME_DOCUMENT
+
+        elif uriComparison == theke.uri.comparison.DIFFER_BY_FRAGMENT:
+            # Same uri with a different fragment
+            logger.debug("Update context (section)")
+            self._currentDocument.section = uri.fragment
+            return NEW_SECTION
 
         ref = theke.reference.get_reference_from_uri(uri)
 
@@ -236,6 +248,7 @@ class ThekeNavigator(GObject.Object):
                 #self.set_property("ref", ref)
 
             self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
+            self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
         elif ref.type == theke.TYPE_BOOK:
@@ -250,6 +263,7 @@ class ThekeNavigator(GObject.Object):
             self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
 
             self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
+            self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
         elif ref.type == theke.TYPE_INAPP:
@@ -259,6 +273,7 @@ class ThekeNavigator(GObject.Object):
                 self.set_property("isMorphAvailable", False)
 
             self._currentDocument = self._librarian.get_document(ref)
+            self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
         else:
@@ -303,11 +318,6 @@ class ThekeNavigator(GObject.Object):
         for sourceName in self._defaultBiblicalSourcesNames[ref.testament]:
             if sourceName in ref.availableSources:
                 sourcesNames.append(sourceName)
-        
-        # If none of default biblical sources are available for this biblical book
-        # use the first available source
-        if self.ref is None or (self.ref.type == theke.TYPE_BIBLE and ref.testament == self.ref.testament):
-            return self._selectedSourcesNames or sourcesNames or [list(ref.availableSources.keys())[0]]
 
         return sourcesNames or [list(ref.availableSources.keys())[0]]
 

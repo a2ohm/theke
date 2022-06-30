@@ -295,13 +295,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeHistoryBar.save_scrolled_value(uri.params['shortTitle'], int(uri.params['y_scroll']))
 
     ### Callbacks (_navigator)
-    def _navigator_context_updated_cb(self, object, update_type) -> None:
+    def _navigator_context_updated_cb(self, navigator, update_type) -> None:
         if update_type == theke.navigator.NEW_DOCUMENT:
-            self._ThekeSourcesBar.updateAvailableSources(self._ThekeDocumentView.availableSources)
-            self._ThekeSourcesBar.updateSources(self._ThekeDocumentView.selectedSources)
+            self._ThekeSourcesBar.updateAvailableSources(navigator.doc.availableSources)
+            self._ThekeSourcesBar.updateSources(navigator.doc.sources)
 
         if update_type == theke.navigator.SOURCES_UPDATED:
-            self._ThekeSourcesBar.updateSources(self._ThekeDocumentView.selectedSources)
+            self._ThekeSourcesBar.updateSources(navigator.doc.sources)
 
     def _navigator_selected_word_changed_cb(self, object, params):
         """Transmit the selected word to the tools box
