@@ -42,7 +42,6 @@ class ThekeNavigator(GObject.Object):
         'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
-
     is_loading = GObject.Property(type=bool, default=False)
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
@@ -55,8 +54,6 @@ class ThekeNavigator(GObject.Object):
         self._app = application
         self._webview = None
         self._librarian = self._app.props.librarian
-
-        #self.index = theke.index.ThekeIndex()
 
         self._currentDocument = self._librarian.get_empty_document()
 
@@ -90,17 +87,6 @@ class ThekeNavigator(GObject.Object):
             uri = uri.get_encoded_URI()
 
         self._webview.load_uri(uri)
-
-        # if reload or uri != self.uri:
-        #     logger.debug("Goto uri: %s", uri)
-
-        #     if isinstance(uri, str):
-        #         uri = theke.uri.parse(uri)
-
-        #     # Reset selected sources
-        #     self._selectedSourcesNames = list()
-
-        #     self.update_context_from_uri(uri)
 
     def goto_ref(self, ref, reload = False) -> None:
         """Ask the webview to load a given reference
@@ -252,7 +238,7 @@ class ThekeNavigator(GObject.Object):
             # If needed, select sources to read the document from
             sourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
             self._currentDocument = self._librarian.get_document(ref, sourcesNames)
-            
+
             self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
