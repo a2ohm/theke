@@ -59,7 +59,6 @@ class ThekeNavigator(GObject.Object):
         #self.index = theke.index.ThekeIndex()
 
         self._currentDocument = self._librarian.get_empty_document()
-        self._selectedSourcesNames = list()
 
         # Load default biblical sources names from the settings file
         dbsn = self._app.props.settings.get("defaultBiblicalSourcesNames", None)
@@ -236,18 +235,9 @@ class ThekeNavigator(GObject.Object):
                 self._currentDocument.section = ref.verse
                 return NEW_VERSE
 
-            with self.freeze_notify():
-                # # Update the table of content only if the document name is different
-                # if not ((refComparisonMask) & theke.reference.comparison.SAME_BOOKNAME):
-                #     self.set_property("toc", theke.tableofcontent.get_toc_BIBLE(ref))
+            sourcesNames = wantedSourcesNames or self._get_default_biblical_sources(ref)
+            self._currentDocument = self._librarian.get_document(ref, sourcesNames)
 
-                # If needed, select sources to read the document from
-                self._selectedSourcesNames = wantedSourcesNames or self._get_default_biblical_sources(ref)
-
-                # Different reference, update all the context
-                #self.set_property("ref", ref)
-
-            self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
             self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
@@ -260,9 +250,9 @@ class ThekeNavigator(GObject.Object):
                 return NEW_SECTION
 
             # If needed, select sources to read the document from
-            self._selectedSourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
-
-            self._currentDocument = self._librarian.get_document(ref, self._selectedSourcesNames)
+            sourcesNames = wantedSourcesNames or self._get_default_book_sources(ref)
+            self._currentDocument = self._librarian.get_document(ref, sourcesNames)
+            
             self.emit("context-updated", NEW_DOCUMENT)
             return NEW_DOCUMENT
 
