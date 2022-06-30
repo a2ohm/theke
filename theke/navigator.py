@@ -91,12 +91,10 @@ class ThekeNavigator(GObject.Object):
     def goto_ref(self, ref, reload = False) -> None:
         """Ask the webview to load a given reference
         """
-        logger.warning("GOTO_REF(): should be deleted, use goto_uri() instead")
-
-        if reload or self.ref is None or ref != self.ref:
+        if reload or ref != self._currentDocument.ref:
             logger.debug("Goto ref: %s", ref)
-
             self.update_context_from_ref(ref)
+            self.reload()
 
     def goto_section(self, tocData) -> None:
         """Ask the webview to load a document section
