@@ -76,11 +76,6 @@ class ThekeWebView(WebKit2.WebView):
                 decision.ignore()
                 return True
 
-            elif updateType == theke.navigator.SAME_DOCUMENT:
-                # It is not necessary to reload the document
-                decision.ignore()
-                return True
-
             else:
                 decision.use()
                 return True
@@ -121,9 +116,7 @@ class ThekeWebView(WebKit2.WebView):
             request.finish(f.read(), -1, None)
 
         else:
-            # Case 3. Path to a document
-            self._navigator.update_context_from_uri(uri)
-            
+            # Case 3. Path to a document           
             request.finish(self._navigator.doc.inputStream, -1, 'text/html; charset=utf-8')
 
     def handle_load_changed(self, web_view, load_event):
