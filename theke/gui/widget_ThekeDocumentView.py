@@ -343,6 +343,12 @@ class ThekeDocumentView(Gtk.Paned):
 
 
     # Public properties
+    @GObject.Property(type=object)
+    def doc(self):
+        """The current documment
+        """
+        return self._navigator.doc
+
     @GObject.Property(type=str)
     def title(self):
         """Title of the current documment
