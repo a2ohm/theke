@@ -216,14 +216,14 @@ class ThekeDocumentView(Gtk.Paned):
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
             self._navigator.set_loading(True, "Actualisation de la mise en page")
 
-            def _do_cleaning():
+            def _do_soft_refresh():
                 theke.externalCache._build_clean_document(sources[0].name)
                 GLib.idle_add(self._navigator.reload)
 
-            thread = threading.Thread(target=_do_cleaning, daemon=True)
+            thread = threading.Thread(target=_do_soft_refresh, daemon=True)
             thread.start()
 
-    def hard_refresh_document(self) -> None:
+    def hard_refresh_document_async(self) -> None:
         """Hard refresh the current document.
 
         - If this is a document loaded from the cache, redownload it and reclean it
@@ -232,17 +232,22 @@ class ThekeDocumentView(Gtk.Paned):
         sources = self._navigator.doc.sources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
-            self._navigator.set_loading(True)
-            contentUri = self._navigator.index.get_source_uri(sources[0].name)
+            self._navigator.set_loading(True, "Téléchargement du document")
+            contentUri = self._navigator._archivist.get_source_uri(sources[0].name)
 
-            if theke.externalCache.cache_document_from_external_source(sources[0].name, contentUri):
-                # Success to cache the document from the external source
-                theke.externalCache._build_clean_document(sources[0].name)
-                self._navigator.reload()
+            def _do_hard_refresh():
+                if theke.externalCache.cache_document_from_external_source(sources[0].name, contentUri):
+                    # Success to cache the document from the external source
+                    GLib.idle_add(self._navigator.set_loading, True, "Actualisation de la mise en page")
+                    theke.externalCache._build_clean_document(sources[0].name)
+                    GLib.idle_add(self._navigator.reload)
 
-            else:
-                self._navigator.set_loading(False)
-                self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
+                else:
+                    GLib.idle_add(self._navigator.set_loading, False)
+                    self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
+            
+            thread = threading.Thread(target=_do_hard_refresh, daemon=True)
+            thread.start()
 
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:

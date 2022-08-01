@@ -46,6 +46,7 @@ class ThekeNavigator(GObject.Object):
         self._parentWindow = parentWindow
         self._webview = None
         self._librarian = self._app.props.librarian
+        self._archivist = self._app.props.archivist
 
         self._currentDocument = self._librarian.get_empty_document()
 
