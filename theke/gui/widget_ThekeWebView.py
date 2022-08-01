@@ -63,7 +63,7 @@ class ThekeWebView(WebKit2.WebView):
             if updateType == theke.navigator.NEW_VERSE:
                 # It is not necessary to reload the document
                 # Just jump to the verse
-                self.scroll_to_verse(self._navigator.doc.section)
+                self.scroll_to_verse(int(self._navigator.doc.section))
                 self.grab_focus()
 
                 self._navigator.set_loading(False)
