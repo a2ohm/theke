@@ -216,13 +216,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _help_help_menuItem_activate_cb(self, menu_item) -> None:
         """Help > Help
         """
-        self._ThekeDocumentView.open_uri(theke.URI_HELP)
+        self.open_uri(theke.URI_HELP)
 
     @Gtk.Template.Callback()
     def _help_logbook_menuItem_activate_cb(self, menu_item) -> None:
         """Help > Logbook
         """
-        self._ThekeDocumentView.open_uri(theke.URI_LOGBOOK)
+        self.open_uri(theke.URI_LOGBOOK)
 
     @Gtk.Template.Callback()
     def _help_about_menuItem_activate_cb(self, menu_item) -> None:
@@ -341,7 +341,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
     ### Callbacks (other)
     def on_history_button_clicked(self, button):
-        self._ThekeDocumentView.open_uri(button.uri)
+        self.open_uri(button.uri)
         return True
 
     def fill_gotobar_with_reference(self, doc) -> None:
