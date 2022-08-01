@@ -106,6 +106,11 @@ class ThekeArchivist(GObject.GObject):
         return None
 
     ### API: proxy to the ThekeIndex
+    def get_source_uri(self, sourceName):
+        """Get the uri of a source from the index
+        """
+        return self._index.get_source_uri(sourceName)
+
     def list_external_documents(self):
         """List external documents from the index
         """
