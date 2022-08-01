@@ -97,24 +97,6 @@ class ThekeNavigator(GObject.Object):
             self.update_context_from_ref(ref)
             self.reload()
 
-    def goto_section(self, tocData) -> None:
-        """Ask the webview to load a document section
-        """
-
-        logger.warning("GOTO_SECTION(): should be deleted, use goto_uri() instead")
-
-        logger.debug("Goto section: %s", tocData)
-
-        if self.doc.toc.type == theke.TYPE_BIBLE:
-            # tocData (int): chapter
-            if self._currentDocument.ref.chapter != tocData:
-                self._currentDocument.ref.chapter = tocData
-                self._currentDocument.ref.verse = 0
-                self.emit("context-updated", NEW_DOCUMENT)
-
-        else:
-            logging.error("This type of TOC (%s) is not supported yet.", self.doc.toc.type)
-
     def reload(self) -> None:
         #self.emit("context-updated", NEW_DOCUMENT)
         self._webview.load_uri(self._currentDocument.uri.get_encoded_URI())
