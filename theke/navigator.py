@@ -284,8 +284,8 @@ class ThekeNavigator(GObject.Object):
         ))
 
     ### GUI
-    def set_loading(self, isLoading) -> None:
-        self._parentWindow.set_loading(isLoading)
+    def set_loading(self, isLoading, loadingMsg = "Chargement ...") -> None:
+        self._parentWindow.set_loading(isLoading, loadingMsg)
 
     ### Helpers
     def _get_default_biblical_sources(self, ref):

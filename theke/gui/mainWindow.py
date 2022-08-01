@@ -197,7 +197,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _document_softRefresh_menuItem_activate_cb(self, menu_item) -> None:
         """Document > Refresh layout
         """
-        self._ThekeDocumentView.soft_refresh_document()
+        self._ThekeDocumentView.soft_refresh_document_async()
 
     @Gtk.Template.Callback()
     def _help_help_menuItem_activate_cb(self, menu_item) -> None:
@@ -360,7 +360,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
         dialog.run()
         dialog.destroy()
     
-    def set_loading(self, isLoading, loadingMsg = "Chargement ...") -> None:
+    def set_loading(self, isLoading, loadingMsg = "") -> None:
         """Show or hide the loading spinner and a loading message
         """
         logger.debug("Set loading: %s", isLoading)
