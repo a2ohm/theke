@@ -6,12 +6,7 @@ import re
 
 import theke
 import theke.uri
-import theke.index
-import theke.sword
-import theke.templates
 import theke.reference
-import theke.externalCache
-import theke.tableofcontent
 
 import logging
 logger = logging.getLogger(__name__)
