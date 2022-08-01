@@ -2,8 +2,11 @@ import logging
 
 from gi.repository import Gtk
 from gi.repository import Gio
+from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import WebKit2
+
+import threading
 
 import theke
 import theke.index
@@ -195,7 +198,7 @@ class ThekeDocumentView(Gtk.Paned):
         self._ThekeLocalSearchBar.display_match_count(0)
 
     ### API
-    def soft_refresh_document(self) -> None:
+    def soft_refresh_document_async(self) -> None:
         """Soft refresh the current document.
 
         - If this is a document loaded from the cache, reclean it
@@ -204,9 +207,14 @@ class ThekeDocumentView(Gtk.Paned):
         sources = self._navigator.doc.sources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
-            self._navigator.is_loading = True
-            theke.externalCache._build_clean_document(sources[0].name)
-            self._navigator.reload()
+            self._navigator.set_loading(True, "Actualisation de la mise en page")
+
+            def _do_cleaning():
+                theke.externalCache._build_clean_document(sources[0].name)
+                GLib.idle_add(self._navigator.reload)
+
+            thread = threading.Thread(target=_do_cleaning, daemon=True)
+            thread.start()
 
     def hard_refresh_document(self) -> None:
         """Hard refresh the current document.
@@ -217,15 +225,16 @@ class ThekeDocumentView(Gtk.Paned):
         sources = self._navigator.doc.sources
         
         if sources and sources[0].type == theke.index.SOURCETYPE_EXTERN:
-            self._navigator.is_loading = True
+            self._navigator.set_loading(True)
             contentUri = self._navigator.index.get_source_uri(sources[0].name)
 
             if theke.externalCache.cache_document_from_external_source(sources[0].name, contentUri):
                 # Success to cache the document from the external source
                 theke.externalCache._build_clean_document(sources[0].name)
                 self._navigator.reload()
+                
             else:
-                self._navigator.is_loading = False
+                self._navigator.set_loading(False)
                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
     def goto_next_chapter(self):
