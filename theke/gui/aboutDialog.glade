@@ -9,7 +9,7 @@
     <property name="icon">assets/img/theke-logo.svg</property>
     <property name="type-hint">normal</property>
     <property name="program-name">Theke</property>
-    <property name="version">v0.7</property>
+    <property name="version">v0.8</property>
     <property name="copyright" translatable="yes">Copyright © 2022 Theke Developers</property>
     <property name="comments" translatable="yes">Lire et étudier la Bible et l'enseignement de l'Église.</property>
     <property name="website">https://theke.2ohm.fr</property>
