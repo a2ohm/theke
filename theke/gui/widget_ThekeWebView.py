@@ -66,6 +66,7 @@ class ThekeWebView(WebKit2.WebView):
                 self.scroll_to_verse(self._navigator.doc.section)
                 self.grab_focus()
 
+                self._navigator.set_loading(False)
                 decision.ignore()
                 return True
         
@@ -75,6 +76,7 @@ class ThekeWebView(WebKit2.WebView):
                 self.jump_to_anchor(self._navigator.doc.section)
                 self.grab_focus()
 
+                self._navigator.set_loading(False)
                 decision.ignore()
                 return True
 
