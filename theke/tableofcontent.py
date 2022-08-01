@@ -13,16 +13,15 @@ def get_toc_BIBLE(ref):
     toc = ThekeTOC(type_of_toc = theke.TYPE_BIBLE)
 
     for i in range(1, ref.nbOfChapters + 1):
-        #uri = theke.uri.build('sword', ['', theke.uri.SWORD_BIBLE, '{} {}'.format(ref.documentName, i+1)], sources = ref.sources)
-        #toc.append(str(i+1), uri.get_encoded_URI())
-        toc.append(str(i), i)
+        uri = theke.uri.build('theke', ['', theke.uri.SEGM_DOC, theke.uri.SEGM_BIBLE, '{} {}'.format(ref.documentName, i)])
+        toc.append(str(i), uri)
 
     return toc
 
 class ThekeTOC():
     def __init__(self, type_of_toc = 0) -> None:
         if type_of_toc == theke.TYPE_BIBLE:
-            self.toc = Gtk.ListStore(str, int)
+            self.toc = Gtk.ListStore(str, object)
         else:
             raise("Unknown type of TOC")
 

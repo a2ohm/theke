@@ -9,6 +9,7 @@ from gi.repository import WebKit2
 import threading
 
 import theke
+import theke.uri
 import theke.index
 import theke.externalCache
 
@@ -124,7 +125,10 @@ class ThekeDocumentView(Gtk.Paned):
         model, treeIter = tree_selection.get_selected()
 
         if treeIter is not None:
-            self._navigator.goto_section(model[treeIter][1])
+            uri = model[treeIter][1]
+
+            if (uri & self.uri) & theke.uri.comparison.SAME_BASE_URI != theke.uri.comparison.SAME_BASE_URI:
+                self._navigator.goto_uri(model[treeIter][1])
 
     ### Callbacks (from the navigator)
     def _navigator_navigation_error_cb(self, object, error) -> None:
@@ -232,7 +236,7 @@ class ThekeDocumentView(Gtk.Paned):
                 # Success to cache the document from the external source
                 theke.externalCache._build_clean_document(sources[0].name)
                 self._navigator.reload()
-                
+
             else:
                 self._navigator.set_loading(False)
                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
