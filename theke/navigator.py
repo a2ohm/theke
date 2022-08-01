@@ -6,6 +6,7 @@ import re
 
 import theke
 import theke.uri
+import theke.index
 import theke.reference
 
 import logging
@@ -149,6 +150,30 @@ class ThekeNavigator(GObject.Object):
             self.emit("context-updated", SOURCES_UPDATED)
 
             self.reload()
+    
+    def soft_refresh_document_async(self) -> None:
+        """Refresh the layout of the current document.
+
+        - If this is an external document, reclean it
+        """
+        if self.doc.sources and self.doc.sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            self._archivist.clean_external_document_async(self.doc.sources[0], self.set_loading, self.reload)
+
+    def hard_refresh_document_async(self) -> None:
+        """Refresh the cache version of the current document.
+
+        - If this is an external document, redownload and reclean it
+        """
+        if self.doc.sources and self.doc.sources[0].type == theke.index.SOURCETYPE_EXTERN:
+            def callback(success):
+                """@param success: True if the task was successful"""
+
+                if success:
+                    self.reload()
+                else:
+                    self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
+
+            self._archivist.download_and_clean_external_document_async(self.doc.sources[0], self.set_loading, callback)
 
     ### Update context (from URI)
 

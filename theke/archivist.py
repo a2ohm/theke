@@ -8,6 +8,8 @@ import theke.externalCache
 import theke.tableofcontent
 import theke.templates
 
+import threading
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -104,6 +106,52 @@ class ThekeArchivist(GObject.GObject):
             return theke.tableofcontent.get_toc_BIBLE(ref)
 
         return None
+    
+    ### External documents
+    def clean_external_document_async(self, source, feedback, callback) -> None:
+        """Asynchronously clean an external document
+
+        @param feedback: function taking two arguments
+            isWIP (bool): True if the work is in progress
+            label (string): textual feedback for the user
+        @param callback: function called at the end
+        """
+        logger.debug("Asynchronously clean an external document")
+        feedback(True, "Actualisation de la mise en page")
+
+        def _do_cleaning():
+            theke.externalCache._build_clean_document(source.name)
+            GLib.idle_add(callback)
+
+        thread = threading.Thread(target=_do_cleaning, daemon=True)
+        thread.start()
+    
+    def download_and_clean_external_document_async(self, source, feedback, callback) -> None:
+        """Asynchronously download and clean an external document
+
+        @param feedback: function taking two arguments
+            isWIP (bool): True if the work is in progress
+            label (string): textual feedback for the user
+        @param callback: function called at the end taking one argument
+            final state (bool): True if the task was successful
+        """
+        logger.debug("Asynchronously download and clean an external document")
+        feedback(True, "Téléchargement du document")
+        contentUri = self.get_source_uri(source.name)
+
+        def _do_downloading_and_cleaning():
+            if theke.externalCache.cache_document_from_external_source(source.name, contentUri):
+                # Success to cache the document from the external source
+                GLib.idle_add(feedback, True, "Actualisation de la mise en page")
+                theke.externalCache._build_clean_document(source.name)
+                GLib.idle_add(callback, True)
+
+            else:
+                GLib.idle_add(feedback, False)
+                GLib.idle_add(callback, False)
+        
+        thread = threading.Thread(target=_do_downloading_and_cleaning, daemon=True)
+        thread.start()
 
     ### API: proxy to the ThekeIndex
     def get_source_uri(self, sourceName):

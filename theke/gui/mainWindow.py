@@ -204,13 +204,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _document_hardRefresh_menuItem_activate_cb(self, menu_item) -> None:
         """Document > Refresh cache
         """
-        self._ThekeDocumentView.hard_refresh_document_async()
+        self._ThekeDocumentView._navigator.hard_refresh_document_async()
 
     @Gtk.Template.Callback()
     def _document_softRefresh_menuItem_activate_cb(self, menu_item) -> None:
         """Document > Refresh layout
         """
-        self._ThekeDocumentView.soft_refresh_document_async()
+        self._ThekeDocumentView._navigator.soft_refresh_document_async()
 
     @Gtk.Template.Callback()
     def _help_help_menuItem_activate_cb(self, menu_item) -> None:
