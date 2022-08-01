@@ -189,8 +189,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     def _file_quit_menuItem_activate_cb(self, menu_item) -> None:
         """File > Quit
         """
-        #PLACEHOLDER: should be replaced by self._app.close()
-        self.close()
+        self._app.quit()
 
     @Gtk.Template.Callback()
     def _document_search_menuItem_activate_cb(self, menu_item) -> None:
