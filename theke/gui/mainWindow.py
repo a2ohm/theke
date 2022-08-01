@@ -171,6 +171,19 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeDocumentView.export_document(self)
 
     @Gtk.Template.Callback()
+    def _file_closeWindow_menuItem_activate_cb(self, menu_item) -> None:
+        """File > Close window
+        """
+        self.close()
+
+    @Gtk.Template.Callback()
+    def _file_quit_menuItem_activate_cb(self, menu_item) -> None:
+        """File > Quit
+        """
+        #PLACEHOLDER: should be replaced by self._app.close()
+        self.close()
+
+    @Gtk.Template.Callback()
     def _document_search_menuItem_activate_cb(self, menu_item) -> None:
         """Document > Search
         """
