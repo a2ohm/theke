@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 class ThekeWindow(Gtk.ApplicationWindow):
     __gtype_name__ = "mainWindow"
 
-    is_loading = GObject.Property(type=bool, default=False)
     local_search_mode_active = GObject.Property(type=bool, default=False)
 
     _statusbar : Gtk.Statusbar = Gtk.Template.Child()
@@ -254,9 +253,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
             # Scroll to the last position
             scrolled_value = self._ThekeHistoryBar.get_scrolled_value(documentView.shortTitle)
             documentView.update_scroll(scrolled_value)
-
-            # Turn of the loading flag
-            self.is_loading = False
     
     def _documentView_navigation_error_cb(self, object, error):
         if error == theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE:
