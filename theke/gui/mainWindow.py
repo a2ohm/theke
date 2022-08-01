@@ -38,6 +38,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
     _ThekeToolsBox : Gtk.Box = Gtk.Template.Child()
 
     _loading_spinner : Gtk.Spinner = Gtk.Template.Child()
+    _loading_label : Gtk.Label = Gtk.Template.Child()
 
     _document_softRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
     _document_hardRefresh_menuItem: Gtk.MenuItem = Gtk.Template.Child()
@@ -71,7 +72,7 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         #   ... document view
         # ... document view > webview: where the document is displayed
-        navigator = theke.navigator.ThekeNavigator(self._app)
+        navigator = theke.navigator.ThekeNavigator(self._app, self)
         navigator.connect("context-updated", self._navigator_context_updated_cb)
         navigator.connect("notify::selectedWord", self._navigator_selected_word_changed_cb)
 
@@ -95,14 +96,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         #   ... sources bar
         self._ThekeSourcesBar.connect("source-requested", self._sourceBar_source_requested_cb)
         self._ThekeSourcesBar.connect("delete-source", self._sourceBar_delete_source_cb)
-
-        self.connect("notify::is-loading", self._is_loading_cb)
-
-        # SET BINDINGS
-        self.bind_property(
-            "is-loading", self._ThekeDocumentView._navigator, "is-loading",
-            GObject.BindingFlags.BIDIRECTIONAL
-            | GObject.BindingFlags.SYNC_CREATE)
 
         self.bind_property(
             "local-search-mode-active", self._ThekeDocumentView, "local-search-mode-active",
@@ -337,25 +330,6 @@ class ThekeWindow(Gtk.ApplicationWindow):
         self._ThekeSearchView.search_start(self._ThekeDocumentView._navigator.selectedWord.source, self._ThekeDocumentView._navigator.selectedWord.rawStrong)
 
     ### Callbacks (other)
-    def _is_loading_cb(self, object, value) -> None:
-        """Show or hide the loading spinner and a loading message
-        """
-        if self.is_loading:
-            if not self._loading_spinner.props.active:
-                # Start the spinner
-                self._loading_spinner.start()
-
-                # Update the status bar with a loading message
-                contextId = self._statusbar.get_context_id("loading")
-                self._statusbar.push(contextId, "Chargement ...")
-
-        else:
-            self._loading_spinner.stop()
-
-            # Remove the loading message from the status bar
-            contextId = self._statusbar.get_context_id("loading")
-            self._statusbar.pop(contextId)
-
     def on_history_button_clicked(self, button):
         self._ThekeDocumentView.open_uri(button.uri)
         return True
@@ -385,3 +359,16 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
         dialog.run()
         dialog.destroy()
+    
+    def set_loading(self, isLoading, loadingMsg = "Chargement ...") -> None:
+        """Show or hide the loading spinner and a loading message
+        """
+        logger.debug("Set loading: %s", isLoading)
+
+        if isLoading:
+            self._loading_spinner.start()
+            self._loading_label.set_label(loadingMsg)
+
+        else:
+            self._loading_spinner.stop()
+            self._loading_label.set_label("")

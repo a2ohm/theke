@@ -42,16 +42,16 @@ class ThekeNavigator(GObject.Object):
         'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
-    is_loading = GObject.Property(type=bool, default=False)
     isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
-    def __init__(self, application, *args, **kwargs) -> None:
+    def __init__(self, application, parentWindow, *args, **kwargs) -> None:
         logger.debug("Create a new instance")
 
         super().__init__(*args, **kwargs)
 
         self._app = application
+        self._parentWindow = parentWindow
         self._webview = None
         self._librarian = self._app.props.librarian
 
@@ -83,6 +83,8 @@ class ThekeNavigator(GObject.Object):
 
         @parm uri: (string or ThekeUri)
         """
+        self.set_loading(True)
+
         if isinstance(uri, theke.uri.ThekeURI):
             uri = uri.get_encoded_URI()
 
@@ -93,6 +95,7 @@ class ThekeNavigator(GObject.Object):
         """
         if reload or ref != self._currentDocument.ref:
             logger.debug("Goto ref: %s", ref)
+            self.set_loading(True)
             self.update_context_from_ref(ref)
             self.reload()
 
@@ -279,6 +282,10 @@ class ThekeNavigator(GObject.Object):
             uri.params.get('morph', '-'),
             uri.params.get('source')
         ))
+
+    ### GUI
+    def set_loading(self, isLoading) -> None:
+        self._parentWindow.set_loading(isLoading)
 
     ### Helpers
     def _get_default_biblical_sources(self, ref):

@@ -55,6 +55,8 @@ class ThekeWebView(WebKit2.WebView):
         """
 
         if decision_type == WebKit2.PolicyDecisionType.NAVIGATION_ACTION:
+            self._navigator.set_loading(True)
+
             uri = theke.uri.parse(decision.get_request().get_uri())
             updateType = self._navigator.update_context_from_uri(uri)
 
@@ -135,6 +137,8 @@ class ThekeWebView(WebKit2.WebView):
                     fetch(r);
                 }};""".format(self._navigator.doc.shortTitle)
             self.run_javascript(script, None, None, None)
+
+            self._navigator.set_loading(False)
 
     # Webview API
     def jump_to_anchor(self, anchor):
