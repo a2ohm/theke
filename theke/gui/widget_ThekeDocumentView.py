@@ -32,6 +32,9 @@ class ThekeDocumentView(Gtk.Paned):
         'webview-scroll-changed': (GObject.SIGNAL_RUN_FIRST, None,
                       (object,)),
         }
+    
+    TOC_NEXT = 0
+    TOC_PREVIOUS = 1
 
     isReduce = GObject.Property(type=bool, default=True)
     local_search_mode_active = GObject.Property(type=bool, default=False)
@@ -241,20 +244,6 @@ class ThekeDocumentView(Gtk.Paned):
                 self._navigator.set_loading(False)
                 self.emit("navigation-error", theke.NavigationErrors.EXTERNAL_SOURCE_INACCESSIBLE)
 
-    def goto_next_chapter(self):
-        if self._navigator.doc.type == theke.TYPE_BIBLE:
-            if self._navigator.props.ref.chapter < self._navigator.props.ref.nbOfChapters:
-                logger.debug("Goto to next biblical chapter")
-                self._navigator.props.ref.chapter += 1
-                self._navigator.reload()
-
-    def goto_previous_chapter(self):
-        if self._navigator.doc.type == theke.TYPE_BIBLE:
-            if self._navigator.props.ref.chapter > 1:
-                logger.debug("Goto to previous biblical chapter")
-                self._navigator.props.ref.chapter -= 1
-                self._navigator.reload()
-
     ### API of the local search bar
     def local_search_bar_has_focus(self) -> bool:
         return self._ThekeLocalSearchBar._search_bar.has_focus()
@@ -354,6 +343,19 @@ class ThekeDocumentView(Gtk.Paned):
         """
         self._toc_treeView.set_model(content)
 
+    def toc_select_neighbor(self, direction):
+        """Select a neighbor toc entry
+        @param direction: NEXT, PREVIOUS, UP, DOWN
+        """
+        model, iter = self._toc_treeSelection.get_selected()
+        path = model.get_path(iter)
+
+        if direction == self.TOC_NEXT:
+            path.next()
+        elif direction == self.TOC_PREVIOUS:
+            path.prev()
+
+        self._toc_treeSelection.select_path(path)
 
     # Public properties
     @GObject.Property(type=object)

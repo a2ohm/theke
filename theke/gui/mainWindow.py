@@ -130,13 +130,15 @@ class ThekeWindow(Gtk.ApplicationWindow):
 
             # ... Ctrl+<Right>: goto to the next chapter (biblical books)
             elif keyval == Gdk.KEY_Right:
-                self._ThekeDocumentView.goto_next_chapter()
-                return True
+                if not self._ThekeDocumentView.isReduce:
+                    self._ThekeDocumentView.toc_select_neighbor(self._ThekeDocumentView.TOC_NEXT)
+                    return True
             
             # ... Ctrl+<Left>: goto to the previous chapter (biblical books)
             elif keyval == Gdk.KEY_Left:
-                self._ThekeDocumentView.goto_previous_chapter()
-                return True
+                if not self._ThekeDocumentView.isReduce:
+                    self._ThekeDocumentView.toc_select_neighbor(self._ThekeDocumentView.TOC_PREVIOUS)
+                    return True
 
         else:
             if keyval == Gdk.KEY_Escape:
