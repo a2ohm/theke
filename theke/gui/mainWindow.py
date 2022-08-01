@@ -127,13 +127,13 @@ class ThekeWindow(Gtk.ApplicationWindow):
                 self._ThekeToolsBox._toolsBox_dicoView.save()
                 return True
 
-            # ... Ctrl+<Right>: goto to the next chapter (biblical books)
+            # ... Ctrl+<Right>: goto to the toc entry
             elif keyval == Gdk.KEY_Right:
                 if not self._ThekeDocumentView.isReduce:
                     self._ThekeDocumentView.toc_select_neighbor(self._ThekeDocumentView.TOC_NEXT)
                     return True
             
-            # ... Ctrl+<Left>: goto to the previous chapter (biblical books)
+            # ... Ctrl+<Left>: goto to the previous toc entry
             elif keyval == Gdk.KEY_Left:
                 if not self._ThekeDocumentView.isReduce:
                     self._ThekeDocumentView.toc_select_neighbor(self._ThekeDocumentView.TOC_PREVIOUS)
