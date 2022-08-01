@@ -1,7 +1,5 @@
 from collections import namedtuple
 
-from gi.repository import Gio
-from gi.repository import GLib
 from gi.repository import GObject
 
 import re
