@@ -55,8 +55,6 @@ class ThekeArchivist(GObject.GObject):
 
                 #isMorphAvailable |= "OSISMorph" in mod.get_global_option_filter()
 
-            #self.set_property("isMorphAvailable", isMorphAvailable)
-
             content = theke.templates.render('bible', {
                 'documents': documents,
                 'verses': verses,

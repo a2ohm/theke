@@ -40,7 +40,6 @@ class ThekeNavigator(GObject.Object):
         'navigation-error': (GObject.SignalFlags.RUN_LAST, None, (int,))
         }
 
-    isMorphAvailable  = GObject.Property(type=bool, default=False)
     selectedWord = GObject.Property(type=object)
 
     def __init__(self, application, parentWindow, *args, **kwargs) -> None:
@@ -225,9 +224,6 @@ class ThekeNavigator(GObject.Object):
 
         elif ref.type == theke.TYPE_INAPP:
             logger.debug("Update context [inApp]")
-
-            with self.freeze_notify():
-                self.set_property("isMorphAvailable", False)
 
             self._currentDocument = self._librarian.get_document(ref)
             self.emit("context-updated", NEW_DOCUMENT)
