@@ -108,8 +108,8 @@ class ThekeIndex:
         rawTestament = self.con.execute("""SELECT testament
             FROM biblicalBookData
             INNER JOIN documentNaming ON biblicalBookData.id_document = documentNaming.id_document
-            WHERE documentNaming.name=?;""",
-            (documentName,)).fetchone()
+            WHERE LOWER(documentNaming.name)=?;""",
+            (documentName.lower(),)).fetchone()
 
         return -1 if rawTestament is None else rawTestament[0]
 
@@ -119,8 +119,8 @@ class ThekeIndex:
 
         rawId = self.con.execute("""SELECT id_document
             FROM documentNaming
-            WHERE name=?;""",
-            (documentName,)).fetchone()
+            WHERE LOWER(name)=?;""",
+            (documentName.lower(),)).fetchone()
 
         return -1 if rawId is None else rawId[0]
 
@@ -144,9 +144,8 @@ class ThekeIndex:
         rawTypes = self.con.execute("""SELECT type
             FROM documents
             INNER JOIN documentNaming ON documents.id = documentNaming.id_document
-            WHERE documentNaming.name=?;""",
-            (documentName,)).fetchone()
-
+            WHERE LOWER(documentNaming.name)=?;""",
+            (documentName.lower(),)).fetchone()
         return -1 if rawTypes is None else rawTypes[0]
 
     def get_edition_id(self, editionName) -> int:
