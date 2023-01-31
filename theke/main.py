@@ -5,9 +5,7 @@ from gi.repository import GLib
 import os
 import yaml
 import theke
-import theke.gui.mainWindow
 import theke.index
-import theke.navigator
 import theke.sword
 import theke.templates
 import theke.uri
@@ -87,6 +85,9 @@ class ThekeApp(Gtk.Application):
         logger.debug("ThekeApp - Do activate")
 
         if not self._window:
+            import theke.gui.mainWindow
+            import theke.navigator
+
             logger.debug("ThekeApp - Create a new window")
 
             # Load settings
