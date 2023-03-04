@@ -21,7 +21,7 @@ Comptez une petite demi-heure pour suivre toutes ces étapes.
 
 Installez les utilitaires et les libraires nécessaires à la compilation de Sword.
 
-* `sudo apt install subversion build-essential autotools-dev pkg-config libz-dev libclucene-dev libicu-dev libcurl4-gnutls-dev libtool m4 automake cmake swig`
+* `sudo apt install subversion build-essential autotools-dev pkg-config libz-dev libclucene-dev libicu-dev libcurl4-gnutls-dev libtool m4 automake cmake swig python3-dev`
 
 Créez dans `PROJECTS` un dossier de travail et télécharger le code source de Sword.
 

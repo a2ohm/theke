@@ -128,6 +128,9 @@ class ThekeApp(Gtk.Application):
         logger.debug("ThekeApp - Do activate")
 
         if not self._window:
+            import theke.gui.mainWindow
+            import theke.navigator
+
             logger.debug("ThekeApp - Create a new window")
 
             self._window = theke.gui.mainWindow.ThekeWindow(self)
