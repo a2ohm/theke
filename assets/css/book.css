@@ -1,7 +1,10 @@
 body {
-    max-width: 35em;
-    margin-right: auto;
-    margin-left: auto;
+    max-width: 80ch; /*35em;*/
+    margin: 0 auto;
+}
+
+main {
+    margin: 0 5em;
 }
 
 a {
@@ -29,7 +32,6 @@ p {
     margin-top: 1.5em;
     margin-bottom: 1.5em;
 
-    font-size: 12px;
     text-align: justify;
     line-height: 1.6em;
 }
